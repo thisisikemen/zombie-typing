@@ -298,6 +298,8 @@ export class UI {
     const url = new URL('https://twitter.com/intent/tweet');
     url.searchParams.set('text', text);
     url.searchParams.set('hashtags', 'ゾンビタイピング');
+    // 公開サイトの URL(クエリ等は除く)
+    url.searchParams.set('url', `${location.origin}${location.pathname}`);
     window.open(url.toString(), '_blank', 'noopener');
   }
 }
