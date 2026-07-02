@@ -44,7 +44,14 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
   return el as T;
 };
 
-const uiUrl = (name: string) => `url("${import.meta.env.BASE_URL}assets/ui/${name}")`;
+/**
+ * UI 画像の CSS url() を絶対 URL で作る。
+ * 相対 URL のままだと、CSS 変数経由で使ったときに「ビルド後の CSS ファイルの
+ * 場所」基準で解決されて本番(サブパス配信)で 404 になるため、
+ * 必ずページ基準の絶対 URL に変換する。
+ */
+const uiUrl = (name: string) =>
+  `url("${new URL(`${import.meta.env.BASE_URL}assets/ui/${name}`, document.baseURI).href}")`;
 
 function formatTime(sec: number): string {
   const mm = Math.floor(sec / 60);
