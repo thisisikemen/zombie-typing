@@ -205,6 +205,15 @@ export class TypingSession {
     return this.completed;
   }
 
+  /** 現在の状態を複製する(自動ターゲット切替の試行用) */
+  clone(): TypingSession {
+    const s = new TypingSession(this.kana);
+    for (const k of this.typed) s.input(k);
+    s.correctCount = this.correctCount;
+    s.missCount = this.missCount;
+    return s;
+  }
+
   /** 表示・進捗の基準となる代表候補(最も進んでいるもの。同率なら優先順) */
   private bestCandidate(): Candidate {
     let best = this.candidates[0];

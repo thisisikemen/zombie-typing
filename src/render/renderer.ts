@@ -652,17 +652,19 @@ export class Renderer {
     }
     ctx.restore();
 
-    // --- 下段: ローマ字ガイド(設定オン時・ロックオン中のみ) ---
-    // ローマ字はゾンビの HP: 残り=黄緑 → 打った分=赤
-    if (showRomaji && locked) {
-      const typedR = z.session.typedRomaji();
+    // --- 下段: ローマ字ガイド ---
+    // ローマ字はゾンビの HP: 残り=緑 → 打った分=赤。
+    // ロックオン中に加え、入力進捗のあるゾンビにも常時表示する
+    // (どこまで打ったか一目で分かるように)
+    const typedR = z.session.typedRomaji();
+    if (showRomaji && (locked || typedR.length > 0)) {
       const remainR = z.session.remainingRomaji();
-      ctx.font = '800 24px ui-monospace, Menlo, monospace';
+      ctx.font = `800 ${locked ? 24 : 20}px ui-monospace, Menlo, monospace`;
       const rw = ctx.measureText(typedR + remainR).width;
       let rx = cx - rw / 2;
-      const ry = ty + 42;
+      const ry = ty + (locked ? 42 : 36);
       ctx.strokeStyle = LABEL_COLORS.outline;
-      ctx.lineWidth = 7;
+      ctx.lineWidth = locked ? 7 : 6;
       ctx.strokeText(typedR + remainR, rx, ry);
       ctx.fillStyle = LABEL_COLORS.romajiTyped;
       ctx.fillText(typedR, rx, ry);
@@ -715,17 +717,31 @@ export class Renderer {
     ctx.fillStyle = 'rgba(90, 82, 70, 0.65)';
     ctx.fillRect(0, BAR_H - 2, W, 2);
 
-    // ロゴ
+    // ロゴ + 難易度サブタイトル(一目でどの難易度か分かるように)
+    let logoRight = 224;
     if (this.assets.logo) {
       const lh = 54;
       const lw = lh * (this.assets.logo.naturalWidth / this.assets.logo.naturalHeight);
-      ctx.drawImage(this.assets.logo, 18, (BAR_H - lh) / 2, lw, lh);
+      ctx.drawImage(this.assets.logo, 18, (BAR_H - lh) / 2 - 4, lw, lh);
+      logoRight = 18 + lw;
     } else {
       ctx.fillStyle = '#d8d4c8';
       ctx.font = '900 26px "Hiragino Kaku Gothic ProN", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText('ゾンビタイピング', 20, 58);
+      ctx.fillText('ゾンビタイピング', 20, 54);
     }
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.font = '900 19px "Hiragino Kaku Gothic ProN", sans-serif';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.lineWidth = 5;
+    ctx.strokeText(game.difficulty.label, logoRight + 4, BAR_H - 10);
+    ctx.fillStyle = game.difficulty.color;
+    ctx.shadowColor = `${game.difficulty.color}88`;
+    ctx.shadowBlur = 10;
+    ctx.fillText(game.difficulty.label, logoRight + 4, BAR_H - 10);
+    ctx.restore();
 
     const boxY = 14;
     const boxH = BAR_H - 28;

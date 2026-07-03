@@ -46,9 +46,8 @@ export interface BonusEffect {
   apply(game: Game): string; // 発動時のバナー文言を返す
 }
 
-/** かなに対してキー列を最初から入力してみる(全部受理されればセッションを返す) */
-function replayKeys(kana: string, keys: string[]): TypingSession | null {
-  const s = new TypingSession(kana);
+/** セッションにキー列を入力してみる(全部受理されればそのセッションを返す) */
+function replayInto(s: TypingSession, keys: string[]): TypingSession | null {
   for (const k of keys) {
     if (s.isComplete()) return null; // 打ち切った後に余分なキーがある
     if (s.input(k) === 'miss') return null;
@@ -243,7 +242,8 @@ export class Game {
     if (this.zombies.length === 0) return; // 対象がいなければノーカウント
     const matches = this.zombies.filter((z) => z.session.currentKeys().has(key));
     if (matches.length === 0) {
-      this.registerMiss();
+      // 進捗のあるゾンビを最初から打ち直しているケース等を拾う
+      if (!this.tryAutoSwitch(key)) this.registerMiss();
       return;
     }
     this.recentKeys = [key];
@@ -272,13 +272,14 @@ export class Game {
 
   /**
    * 自動ターゲット切替(ミス時)。
-   * ロック以降の打鍵列(正打・ミス問わず時系列)の「末尾の並び」が別の
-   * ゾンビの単語として正しい場合、そのゾンビへ入力進捗ごと乗り移る。
-   * - 例1: 「おつかれ…」のつもりが実は「おつとめ…」→ 全打鍵が一致する
-   *   ので最初のミスの瞬間に切替
-   * - 例2: 途中で諦めて別の単語を打ち始めた → 打ち直した部分(末尾)だけで
-   *   一致を検出して切替。最初の数打が現在のターゲットの進行に食われて
-   *   いても(正打扱いになっていても)末尾一致で拾える
+   * 直近の打鍵列(正打・ミス問わず時系列)の「末尾の並び」が別のゾンビの
+   * 入力として正しい場合、そのゾンビへ乗り移る。照合は 2 通り:
+   * - 続きから: 途中まで入力済みのゾンビの「残り」を打っている
+   * - 最初から: そのゾンビの単語を頭から打ち直している(進捗は上書き)
+   * 例:
+   * - 「おつかれ…」のつもりが実は「おつとめ…」→ 全打鍵一致で即切替
+   * - 途中で諦めて別の単語を打ち始めた → 打ち直した末尾だけで切替。
+   *   最初の数打が現在のターゲットに食われていても拾える
    * - 誤爆防止: 一致は 2 打以上必要。そもそもミスにならない限り発動しない
    *   (狙ったターゲットに正しく打てている間は絶対に横取りされない)
    */
@@ -287,17 +288,32 @@ export class Game {
     const excluded = new Set<number>(this.candidateIds);
     if (this.targetId !== null) excluded.add(this.targetId);
 
-    let best: { z: Zombie; s: TypingSession; len: number } | null = null;
+    let best: { z: Zombie; s: TypingSession; len: number; cont: boolean } | null = null;
+    const better = (len: number, cont: boolean, z: Zombie) =>
+      !best ||
+      len > best.len ||
+      (len === best.len && cont && !best.cont) ||
+      (len === best.len && cont === best.cont && z.x < best.z.x);
+
     for (const z of this.zombies) {
       if (excluded.has(z.id)) continue;
+      const hasProgress = !z.session.isComplete() && z.session.typedRomaji().length > 0;
       // このゾンビに一致する最長のサフィックスを探す
       for (let len = this.recentKeys.length; len >= 2; len--) {
         if (best && best.len > len) break; // これより短い一致では勝てない
-        const s = replayKeys(z.word.kana, this.recentKeys.slice(-len));
-        if (s) {
-          if (!best || len > best.len || (len === best.len && z.x < best.z.x)) {
-            best = { z, s, len };
+        const suffix = this.recentKeys.slice(-len);
+        // 続きから(入力進捗のあるゾンビの残りを打っているケース)
+        if (hasProgress) {
+          const cont = replayInto(z.session.clone(), suffix);
+          if (cont) {
+            if (better(len, true, z)) best = { z, s: cont, len, cont: true };
+            break;
           }
+        }
+        // 最初から(頭から打ち直しているケース。進捗は上書きされる)
+        const fresh = replayInto(new TypingSession(z.word.kana), suffix);
+        if (fresh) {
+          if (better(len, false, z)) best = { z, s: fresh, len, cont: false };
           break;
         }
       }

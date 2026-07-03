@@ -11,6 +11,7 @@ export type SfxName =
   | 'shot' // 拳銃(ファイル)
   | 'bolt' // ボルトアクション(ファイル・ナビゲーション系ボタン)
   | 'ready' // 銃を構える(ファイル・ゲーム開始系ボタン)
+  | 'shell' // 薬莢(ファイル・ランキングボタン)
   | 'miss'
   | 'kill'
   | 'damage'
@@ -35,6 +36,7 @@ const PLAY_TUNING: Partial<Record<SfxName, { gain?: number; rateJitter?: number 
   shot: { gain: 0.75, rateJitter: 0.08 },
   bolt: { gain: 0.9 },
   ready: { gain: 0.9 },
+  shell: { gain: 0.9 },
   kill: { gain: 1.0, rateJitter: 0.08 },
   miss: { gain: 0.85 },
 };
@@ -318,6 +320,7 @@ export class AudioSystem {
       loadFile('shot', 'shot.mp3'),
       loadFile('bolt', 'bolt.mp3'),
       loadFile('ready', 'ready.mp3'),
+      loadFile('shell', 'shell.mp3'),
     ]);
     defs.forEach(([name], i) => this.buffers.set(name, rendered[i]));
 

@@ -472,16 +472,27 @@ kbd {
 }
 .ranking-empty { padding: 1.6rem 0; text-align: center; color: var(--ui-dim); }
 
-/* リザルトの登録フォーム */
+/* リザルトの登録フォーム(自動登録+名前変更) */
 .result-register {
   display: flex;
   gap: 0.6rem;
   align-items: center;
   margin-top: 0.2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
-#result-name {
-  width: 14rem;
-  padding: 0.5rem 0.9rem;
+.register-status {
+  width: 100%;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  min-height: 1.4rem;
+}
+#result-name, #set-name, #ranking-name {
+  width: 13rem;
+  padding: 0.45rem 0.9rem;
   font-family: inherit;
   font-size: 1.05rem;
   font-weight: 700;
@@ -491,8 +502,19 @@ kbd {
   border-radius: 6px;
   outline: none;
 }
-#result-name:focus { border-color: var(--accent); }
-#btn-register:disabled { opacity: 0.75; cursor: default; }
+#result-name:focus, #set-name:focus, #ranking-name:focus { border-color: var(--accent); }
+
+/* ランキングモーダルの名前変更行 */
+.ranking-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ui-dim);
+}
+.ranking-name-row input { flex: 1; }
 
 /* リザルトの項目注釈 */
 .result-stats .label-note { font-size: 0.78rem; color: rgba(160, 154, 140, 0.8); font-weight: 600; }

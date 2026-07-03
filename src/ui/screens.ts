@@ -43,8 +43,8 @@ export interface UICallbacks {
   onSettingsChanged(s: Settings): void;
   /** 何らかのユーザー操作(AudioContext の初期化トリガ) */
   onUserGesture(): void;
-  /** ボタン押下音(bolt=ナビゲーション / ready=ゲーム開始系) */
-  onUiSound(kind: 'bolt' | 'ready'): void;
+  /** ボタン押下音(bolt=ナビゲーション / ready=ゲーム開始系 / shell=ランキング) */
+  onUiSound(kind: 'bolt' | 'ready' | 'shell'): void;
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
@@ -85,6 +85,8 @@ export class UI {
   private shareData: ResultData | null = null;
   /** ランキングモーダルで表示中の難易度 */
   private rankingDiff = 'normal';
+  /** 直近のリザルトで自動登録された順位 */
+  private lastRank: number | null = null;
   private activeMode: ModeDef = MODES[0];
   /** 画面切替直後の誤クリック(ダブルクリック等のすり抜け)防止 */
   private shownAt = 0;
@@ -129,17 +131,32 @@ export class UI {
 
     // ランキング
     $('btn-ranking').onclick = () => {
-      cb.onUiSound('bolt');
+      cb.onUiSound('shell'); // 薬莢の音
       this.openRanking();
     };
     $('btn-ranking-close').onclick = () => this.closeModals();
-    $('btn-register').onclick = () => void this.registerScore();
-    const nameInput = $<HTMLInputElement>('result-name');
-    nameInput.value = loadPlayerName();
-    nameInput.addEventListener('keydown', (e) => {
+
+    // 名前変更(結果 / 設定 / ランキングの3箇所から。入力は同期される)
+    const resultName = $<HTMLInputElement>('result-name');
+    resultName.value = loadPlayerName();
+    resultName.addEventListener('keydown', (e) => {
       e.stopPropagation(); // ゲーム側のキー処理(Rリスタート等)に流さない
-      if (e.key === 'Enter') void this.registerScore();
+      if (e.key === 'Enter') void this.applyRename(resultName.value, 'result');
     });
+    $('btn-register').onclick = () => void this.applyRename(resultName.value, 'result');
+
+    const setName = $<HTMLInputElement>('set-name');
+    setName.value = loadPlayerName();
+    setName.addEventListener('keydown', (e) => e.stopPropagation());
+    setName.addEventListener('change', () => void this.applyRename(setName.value, 'settings'));
+
+    const rankingName = $<HTMLInputElement>('ranking-name');
+    rankingName.value = loadPlayerName();
+    rankingName.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') void this.applyRename(rankingName.value, 'ranking');
+    });
+    $('btn-ranking-rename').onclick = () => void this.applyRename(rankingName.value, 'ranking');
 
     const vol = $<HTMLInputElement>('set-volume');
     const sfx = $<HTMLInputElement>('set-sfx');
@@ -231,6 +248,7 @@ export class UI {
 
   openRanking(diffId?: string): void {
     if (diffId) this.rankingDiff = diffId;
+    $<HTMLInputElement>('ranking-name').value = loadPlayerName();
     this.rankingModal.classList.remove('hidden');
     this.renderRanking();
   }
@@ -282,31 +300,6 @@ export class UI {
       });
   }
 
-  private async registerScore(): Promise<void> {
-    const d = this.shareData;
-    if (!d || d.score <= 0) return;
-    const btn = $<HTMLButtonElement>('btn-register');
-    if (btn.disabled) return;
-    const name = sanitizeName($<HTMLInputElement>('result-name').value);
-    savePlayerName(name);
-    btn.disabled = true;
-    btn.textContent = '登録中…';
-    const entry: RankEntry = {
-      name,
-      score: d.score,
-      kills: d.kills,
-      wpm: d.wpm,
-      accuracy: d.accuracy,
-      ts: Date.now(),
-    };
-    try {
-      const rank = await rankingBackend.submit(d.diffId, entry);
-      btn.textContent = `登録しました(${rank}位)`;
-    } catch {
-      btn.textContent = '登録に失敗しました';
-      btn.disabled = false;
-    }
-  }
 
   /** モードタブ + 難易度カード(モード追加時はタブが増える・仕様 §11) */
   buildModeSelect(): void {
@@ -411,16 +404,61 @@ export class UI {
       stats.innerHTML += `<div class="result-new-record">NEW RECORD!</div>`;
     }
 
-    // ランキング登録 UI をリセット
+    // ランキングへ自動登録(登録し忘れ防止)
     const register = $('result-register');
     register.style.display = data.score > 0 ? '' : 'none';
-    const btn = $<HTMLButtonElement>('btn-register');
-    btn.disabled = false;
-    btn.textContent = 'ランキングに登録';
+    $('register-status').textContent = '';
     const nameInput = $<HTMLInputElement>('result-name');
-    if (!nameInput.value) nameInput.value = loadPlayerName();
+    nameInput.value = loadPlayerName();
+    this.lastRank = null;
+    if (data.score > 0) {
+      const name = sanitizeName(loadPlayerName());
+      $('register-status').textContent = 'ランキングに登録中…';
+      const entry: RankEntry = {
+        name,
+        score: data.score,
+        kills: data.kills,
+        wpm: data.wpm,
+        accuracy: data.accuracy,
+        ts: Date.now(),
+      };
+      rankingBackend
+        .submit(data.diffId, entry)
+        .then((rank) => {
+          this.lastRank = rank;
+          this.setRegisterStatus(name);
+        })
+        .catch(() => {
+          $('register-status').textContent = 'ランキング登録に失敗しました';
+        });
+    }
 
     this.show('result');
+  }
+
+  private setRegisterStatus(name: string): void {
+    const where = rankingBackend.online ? '世界' : 'この端末で';
+    $('register-status').textContent =
+      this.lastRank !== null
+        ? `${where} ${this.lastRank}位 にランクイン!(${name})`
+        : '';
+  }
+
+  /** 名前を変更して各所へ反映(登録済みスコアの名前も更新される) */
+  private async applyRename(raw: string, source: 'result' | 'settings' | 'ranking'): Promise<void> {
+    const name = sanitizeName(raw);
+    savePlayerName(name);
+    for (const id of ['result-name', 'set-name', 'ranking-name']) {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.value = name;
+    }
+    try {
+      await rankingBackend.rename(name);
+      if (source === 'ranking') this.renderRanking();
+      if (source === 'result') this.setRegisterStatus(name);
+    } catch {
+      /* オンライン側の改名失敗は致命的ではない */
+    }
   }
 
   private share(): void {

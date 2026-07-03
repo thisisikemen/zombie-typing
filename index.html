@@ -46,8 +46,9 @@
         <h2 id="result-heading">CLEAR</h2>
         <div class="result-stats" id="result-stats"></div>
         <div class="result-register" id="result-register">
+          <span class="register-status" id="register-status"></span>
           <input id="result-name" maxlength="10" placeholder="なまえ(10文字まで)" autocomplete="off" />
-          <button id="btn-register" class="share-btn">ランキングに登録</button>
+          <button id="btn-register" class="share-btn">名前を変更</button>
         </div>
         <div class="result-buttons">
           <button id="btn-retry" class="plate-btn plate-btn-hot">もう一度 <span class="keyhint">(Rキー)</span></button>
@@ -87,6 +88,10 @@
           <span>ローマ字表示</span>
           <input type="checkbox" id="set-romaji" checked />
         </label>
+        <label class="setting-row">
+          <span>ランキングの名前</span>
+          <input type="text" id="set-name" maxlength="10" placeholder="なまえ(10文字まで)" autocomplete="off" />
+        </label>
         <div class="modal-actions">
           <button id="btn-settings-close" class="plate-btn">閉じる</button>
         </div>
@@ -100,6 +105,11 @@
         <div class="ranking-tabs" id="ranking-tabs"></div>
         <p class="ranking-note" id="ranking-note"></p>
         <ol class="ranking-list" id="ranking-list"></ol>
+        <div class="ranking-name-row">
+          <span>あなたの名前</span>
+          <input type="text" id="ranking-name" maxlength="10" placeholder="なまえ(10文字まで)" autocomplete="off" />
+          <button id="btn-ranking-rename" class="share-btn">変更</button>
+        </div>
         <div class="modal-actions">
           <button id="btn-ranking-close" class="plate-btn">閉じる</button>
         </div>

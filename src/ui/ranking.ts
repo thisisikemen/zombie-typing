@@ -1,9 +1,10 @@
 /**
  * ランキング。
- * バックエンドは差し替え可能な構造にしてあり、現在は「この端末内」
- * (localStorage)で動作する。オンライン化するときは ONLINE_CONFIG に
- * Supabase の URL / anon キーを入れて OnlineBackend を有効化する
- * (セットアップ手順は docs/RANKING.md)。
+ * - リザルトで自動登録される(名前は保存された名前、無ければ既定名)
+ * - 「1 人(1 端末)につき難易度ごとに 1 枠」: 端末ごとの deviceKey で
+ *   ベストスコアだけが残る(オンライン時。ローカル時は自分の履歴を保持)
+ * - バックエンドは差し替え可能。ONLINE_CONFIG に Supabase の URL / anon
+ *   キーを入れると自動でオンラインモードになる(手順は docs/RANKING.md)
  */
 
 export interface RankEntry {
@@ -20,6 +21,8 @@ export interface RankingBackend {
   load(difficulty: string): Promise<RankEntry[]>;
   /** 登録して順位(1始まり)を返す */
   submit(difficulty: string, entry: RankEntry): Promise<number>;
+  /** 登録済みスコアの名前を変更する */
+  rename(name: string): Promise<void>;
   readonly online: boolean;
 }
 
@@ -31,6 +34,7 @@ export const ONLINE_CONFIG = {
 
 const MAX_ENTRIES = 100;
 const NAME_KEY = 'zombie-typing:player-name';
+const DEVICE_KEY = 'zombie-typing:device-key';
 
 export function loadPlayerName(): string {
   try {
@@ -52,6 +56,20 @@ export function savePlayerName(name: string): void {
 export function sanitizeName(raw: string): string {
   const name = raw.trim().slice(0, 10);
   return name.length > 0 ? name : '名無しの生存者';
+}
+
+/** この端末を識別するキー(1人1枠の実現用) */
+function deviceKey(): string {
+  try {
+    let key = localStorage.getItem(DEVICE_KEY);
+    if (!key) {
+      key = crypto.randomUUID();
+      localStorage.setItem(DEVICE_KEY, key);
+    }
+    return key;
+  } catch {
+    return '00000000-0000-4000-8000-000000000000';
+  }
 }
 
 // ---------------------------------------------------------------
@@ -87,12 +105,27 @@ class LocalBackend implements RankingBackend {
     }
     return rank;
   }
+
+  async rename(name: string): Promise<void> {
+    // ローカルの記録は全部この端末のものなので、まとめて改名する
+    for (const diff of ['easy', 'normal', 'hard']) {
+      try {
+        const raw = localStorage.getItem(this.key(diff));
+        if (!raw) continue;
+        const list = (JSON.parse(raw) as RankEntry[]).map((e) => ({ ...e, name }));
+        localStorage.setItem(this.key(diff), JSON.stringify(list));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------
-// オンライン(Supabase REST)バックエンド。設定が入ると自動で使われる。
-// 注意: クライアントでスコアを計算する構造上、完全な不正防止は不可能。
-// サーバー側の CHECK 制約 + 挿入専用ポリシーで「現実的な範囲」を守る。
+// オンライン(Supabase)バックエンド。設定が入ると自動で使われる。
+// 書き込みは RPC(submit_score / rename_player)経由のみ。テーブルへの
+// 直接 INSERT/UPDATE は許可しないので、開発者ツールから任意の行は作れない。
+// deviceKey により 1 端末 1 難易度 1 枠(ベストスコアのみ保持)。
 // ---------------------------------------------------------------
 
 class OnlineBackend implements RankingBackend {
@@ -114,7 +147,7 @@ class OnlineBackend implements RankingBackend {
   async load(difficulty: string): Promise<RankEntry[]> {
     const res = await fetch(
       `${this.url}/rest/v1/scores?difficulty=eq.${difficulty}` +
-        `&select=name,score,kills,wpm,accuracy,created_at&order=score.desc&limit=${MAX_ENTRIES}`,
+        `&select=name,score,kills,wpm,accuracy,updated_at&order=score.desc&limit=${MAX_ENTRIES}`,
       { headers: this.headers() },
     );
     if (!res.ok) throw new Error(`ranking load failed: ${res.status}`);
@@ -124,7 +157,7 @@ class OnlineBackend implements RankingBackend {
       kills: number;
       wpm: number;
       accuracy: number;
-      created_at: string;
+      updated_at: string;
     }[];
     return rows.map((r) => ({
       name: r.name,
@@ -132,32 +165,35 @@ class OnlineBackend implements RankingBackend {
       kills: r.kills,
       wpm: r.wpm,
       accuracy: r.accuracy,
-      ts: Date.parse(r.created_at),
+      ts: Date.parse(r.updated_at),
     }));
   }
 
   async submit(difficulty: string, entry: RankEntry): Promise<number> {
-    const res = await fetch(`${this.url}/rest/v1/scores`, {
+    const res = await fetch(`${this.url}/rest/v1/rpc/submit_score`, {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({
-        difficulty,
-        name: entry.name,
-        score: entry.score,
-        kills: entry.kills,
-        wpm: entry.wpm,
-        accuracy: entry.accuracy,
+        p_device_key: deviceKey(),
+        p_difficulty: difficulty,
+        p_name: entry.name,
+        p_score: entry.score,
+        p_kills: entry.kills,
+        p_wpm: entry.wpm,
+        p_accuracy: entry.accuracy,
       }),
     });
     if (!res.ok) throw new Error(`ranking submit failed: ${res.status}`);
-    // 自分より上のスコア数 + 1 = 順位
-    const countRes = await fetch(
-      `${this.url}/rest/v1/scores?difficulty=eq.${difficulty}&score=gt.${entry.score}&select=id`,
-      { headers: { ...this.headers(), Prefer: 'count=exact', Range: '0-0' } },
-    );
-    const contentRange = countRes.headers.get('content-range');
-    const total = contentRange ? Number(contentRange.split('/')[1]) : 0;
-    return (Number.isFinite(total) ? total : 0) + 1;
+    const rank = (await res.json()) as number;
+    return rank;
+  }
+
+  async rename(name: string): Promise<void> {
+    await fetch(`${this.url}/rest/v1/rpc/rename_player`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify({ p_device_key: deviceKey(), p_name: name }),
+    });
   }
 }
 

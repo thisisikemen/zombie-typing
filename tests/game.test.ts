@@ -166,6 +166,44 @@ describe('自動ターゲット切替', () => {
     expect(b.session.typedRomaji()).toBe('sa');
   });
 
+  it('途中まで入力済みのゾンビの「続き」を打つと、そのゾンビに乗り移る', () => {
+    const g = emptyPoolGame();
+    const a = makeZombie('とけい');
+    const b = makeZombie('さくら');
+    g.zombies.push(a, b);
+    // さくら を「さ」まで打って解除 → とけい にロック
+    g.handleKey('s');
+    g.handleKey('a');
+    g.releaseTarget();
+    g.handleKey('t');
+    expect(g.targetId).toBe(a.id);
+    // さくら の続き「くら」を打ち始める
+    g.handleKey('k'); // とけい では miss(1打目は様子見)
+    g.handleKey('u'); // 末尾 "ku" が さくら の続きに一致 → 乗り移り
+    expect(g.targetId).toBe(b.id);
+    expect(b.session.typedRomaji()).toBe('saku');
+    g.handleKey('r');
+    g.handleKey('a');
+    expect(g.kills).toBe(1);
+    expect(g.missKeys).toBe(1);
+  });
+
+  it('ターゲット無しでも、進捗のあるゾンビを頭から打ち直せば復帰できる', () => {
+    const g = emptyPoolGame();
+    const b = makeZombie('かなえ');
+    g.zombies.push(b);
+    g.handleKey('k');
+    g.handleKey('a'); // か まで入力
+    g.releaseTarget();
+    // 進捗を忘れて頭から打ち直す(現在の受け付けは「な」の n のみ)
+    g.handleKey('k'); // どのゾンビにも一致しない → miss
+    g.handleKey('a'); // 末尾 "ka" が かなえ の頭からの入力に一致 → 復帰
+    expect(g.targetId).toBe(b.id);
+    for (const k of 'nae') g.handleKey(k);
+    expect(g.kills).toBe(1);
+    expect(g.missKeys).toBe(1);
+  });
+
   it('どの単語とも一致しないミスは通常のミスのまま', () => {
     const g = emptyPoolGame();
     g.zombies.push(makeZombie('ねこ'), makeZombie('さくら'));
