@@ -176,6 +176,27 @@ describe('自動ターゲット切替', () => {
     expect(g.targetId).not.toBeNull();
   });
 
+  it('途中で諦めて別の単語を打ち直すと、最初の数打が現ターゲットに食われても乗り移る', () => {
+    const g = emptyPoolGame();
+    const a = makeZombie('さかな');
+    const b = makeZombie('かき');
+    g.zombies.push(a, b);
+    // さかな を「さ」まで打ってから、諦めて かき を打ち始める
+    g.handleKey('s');
+    g.handleKey('a');
+    expect(g.targetId).toBe(a.id);
+    // "kaki" と打つ。k,a は さかな の「か」として食われ、2つ目の k でミス→切替
+    g.handleKey('k');
+    g.handleKey('a');
+    expect(g.targetId).toBe(a.id); // まだ さかな(かまで正打)
+    g.handleKey('k'); // な に対してミス → 末尾 "kak" が かき に一致 → 切替
+    expect(g.targetId).toBe(b.id);
+    g.handleKey('i');
+    expect(g.kills).toBe(1);
+    expect(g.getZombie(b.id)).toBeUndefined();
+    expect(g.missKeys).toBe(0);
+  });
+
   it('切替キーで単語が完成した場合はそのまま撃破される', () => {
     const g = emptyPoolGame();
     const a = makeZombie('とけい');

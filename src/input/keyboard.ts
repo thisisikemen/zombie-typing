@@ -15,6 +15,9 @@ export function initKeyboard(onAction: (a: KeyAction) => void): void {
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.repeat) return; // 長押しリピートは無視
+    // 入力欄(ランキングの名前など)への入力はゲーム側で処理しない
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
     if (e.key === 'Enter') {
       e.preventDefault();

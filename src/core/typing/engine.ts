@@ -179,6 +179,16 @@ export class TypingSession {
     return this.bestCandidate().kanaIdx;
   }
 
+  /**
+   * 打ちかけのチャンクも含めた進行中のかな文字数。
+   * 「か」の k を打った瞬間に「か」を塗れるので、表示の反応が速い。
+   */
+  activeKanaCount(): number {
+    if (this.completed) return this.kana.length;
+    const best = this.bestCandidate();
+    return best.kanaIdx + (best.pos > 0 ? best.kanaLen : 0);
+  }
+
   /** これまでに受理されたキー列 */
   typedRomaji(): string {
     return this.typed;

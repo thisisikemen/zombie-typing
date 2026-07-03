@@ -82,8 +82,9 @@ export const LABEL_COLORS = {
   duplicate: '#ffd24a',
   underline: '#d92020',
   outline: 'rgba(0, 0, 0, 0.85)',
-  romajiTyped: '#9a9ab0',
-  romajiRemaining: '#e8e8f0',
+  /** ローマ字はゾンビの HP に見立てる: 残り=黄緑 → 打った分=赤 */
+  romajiTyped: '#ff3b30',
+  romajiRemaining: '#b8e04a',
 } as const;
 
 export const HUD_COLORS = {

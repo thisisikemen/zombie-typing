@@ -27,7 +27,7 @@ export interface Zombie {
 export type GameEvent =
   | { type: 'shot'; zombieId: number }
   | { type: 'miss' }
-  | { type: 'kill'; zombieId: number; x: number; y: number; tier: Tier; gained: number }
+  | { type: 'kill'; zombieId: number; x: number; y: number; tier: Tier; gained: number; kana: string }
   | { type: 'autokill'; zombieId: number; x: number; y: number; tier: Tier }
   | { type: 'crossed'; zombieId: number; damage: number; tier: Tier; y: number }
   | { type: 'lock'; zombieId: number }
@@ -115,10 +115,9 @@ export class Game {
   private spawnTimer = 0;
   private nextId = 1;
   private recentKana: string[] = [];
-  /** ロック(または重複候補)開始以降に受理されたキー列 */
-  private typedSinceLock: string[] = [];
-  /** 現在のターゲットに対して連続ミスになっているキー列(自動切替の判定用) */
-  private missBuffer: string[] = [];
+  /** ロック(または重複候補)開始以降の全打鍵列(正打・ミス問わず時系列。自動切替の判定用) */
+  private recentKeys: string[] = [];
+  private static readonly RECENT_KEYS_MAX = 32;
 
   constructor(
     difficulty: DifficultyDef,
@@ -197,8 +196,7 @@ export class Game {
           // 打鍵列が他のゾンビの単語として正しければ自動で狙いを切り替える
           if (!this.tryAutoSwitch(key)) this.registerMiss();
         } else {
-          this.typedSinceLock.push(key);
-          this.missBuffer = [];
+          this.pushRecentKey(key);
           this.correctKeys++;
           this.events.push({ type: 'shot', zombieId: z.id });
           if (res === 'complete') this.onZombieKilled(z);
@@ -218,8 +216,7 @@ export class Game {
         if (!this.tryAutoSwitch(key)) this.registerMiss();
         return;
       }
-      this.typedSinceLock.push(key);
-      this.missBuffer = [];
+      this.pushRecentKey(key);
       this.correctKeys++;
       this.events.push({ type: 'shot', zombieId: accepting[0].id });
       let killed: Zombie | null = null;
@@ -249,8 +246,7 @@ export class Game {
       this.registerMiss();
       return;
     }
-    this.typedSinceLock = [key];
-    this.missBuffer = [];
+    this.recentKeys = [key];
     if (matches.length === 1) {
       const z = matches[0];
       this.targetId = z.id;
@@ -269,42 +265,41 @@ export class Game {
     this.events.push({ type: 'multiLock', zombieIds: this.candidateIds });
   }
 
+  private pushRecentKey(key: string): void {
+    this.recentKeys.push(key);
+    if (this.recentKeys.length > Game.RECENT_KEYS_MAX) this.recentKeys.shift();
+  }
+
   /**
    * 自動ターゲット切替(ミス時)。
-   * いま打っているキー列が別のゾンビの単語として正しい場合、そのゾンビへ
-   * 入力進捗ごと乗り移る(例: 「おつかれ…」を打っていたつもりが実は
-   * 「おつとめ…」だった場合、ミスにせず切り替える)。
-   * - 文脈込み(ロック以降の受理キー + ミスキー列)が丸ごと通る → 即切替
-   * - ミスキー列の末尾 2 打以上が通る → 切替(先頭に無関係なミスが
-   *   混ざっていても、打ち直しの部分だけで判定する。1 打だけの誤爆は防止)
+   * ロック以降の打鍵列(正打・ミス問わず時系列)の「末尾の並び」が別の
+   * ゾンビの単語として正しい場合、そのゾンビへ入力進捗ごと乗り移る。
+   * - 例1: 「おつかれ…」のつもりが実は「おつとめ…」→ 全打鍵が一致する
+   *   ので最初のミスの瞬間に切替
+   * - 例2: 途中で諦めて別の単語を打ち始めた → 打ち直した部分(末尾)だけで
+   *   一致を検出して切替。最初の数打が現在のターゲットの進行に食われて
+   *   いても(正打扱いになっていても)末尾一致で拾える
+   * - 誤爆防止: 一致は 2 打以上必要。そもそもミスにならない限り発動しない
+   *   (狙ったターゲットに正しく打てている間は絶対に横取りされない)
    */
   private tryAutoSwitch(key: string): boolean {
-    this.missBuffer.push(key);
+    this.pushRecentKey(key);
     const excluded = new Set<number>(this.candidateIds);
     if (this.targetId !== null) excluded.add(this.targetId);
 
-    const ctxKeys = [...this.typedSinceLock, ...this.missBuffer];
-    let best: { z: Zombie; s: TypingSession; weight: number } | null = null;
+    let best: { z: Zombie; s: TypingSession; len: number } | null = null;
     for (const z of this.zombies) {
       if (excluded.has(z.id)) continue;
-      // このゾンビに対する最良の解釈を求める
-      let cand: { s: TypingSession; weight: number } | null = null;
-      const full = replayKeys(z.word.kana, ctxKeys);
-      if (full) {
-        cand = { s: full, weight: 1000 + ctxKeys.length }; // 文脈込みは最優先
-      } else {
-        // ミス列の末尾一致(長いものを優先。1 打だけの誤爆は防止)
-        for (let len = this.missBuffer.length; len >= 2; len--) {
-          const s = replayKeys(z.word.kana, this.missBuffer.slice(-len));
-          if (s) {
-            cand = { s, weight: len };
-            break;
+      // このゾンビに一致する最長のサフィックスを探す
+      for (let len = this.recentKeys.length; len >= 2; len--) {
+        if (best && best.len > len) break; // これより短い一致では勝てない
+        const s = replayKeys(z.word.kana, this.recentKeys.slice(-len));
+        if (s) {
+          if (!best || len > best.len || (len === best.len && z.x < best.z.x)) {
+            best = { z, s, len };
           }
+          break;
         }
-      }
-      if (!cand) continue;
-      if (!best || cand.weight > best.weight || (cand.weight === best.weight && z.x < best.z.x)) {
-        best = { z, s: cand.s, weight: cand.weight };
       }
     }
     if (!best) return false;
@@ -312,8 +307,7 @@ export class Game {
     best.z.session = best.s;
     this.targetId = best.z.id;
     this.candidateIds = [];
-    this.typedSinceLock = [...best.s.typedRomaji()];
-    this.missBuffer = [];
+    this.recentKeys = [...best.s.typedRomaji()];
     this.correctKeys++;
     this.events.push({ type: 'lock', zombieId: best.z.id });
     this.events.push({ type: 'shot', zombieId: best.z.id });
@@ -327,8 +321,7 @@ export class Game {
     if (this.targetId !== null || this.candidateIds.length > 0) {
       this.targetId = null;
       this.candidateIds = [];
-      this.typedSinceLock = [];
-      this.missBuffer = [];
+      this.recentKeys = [];
       this.events.push({ type: 'release' });
     }
   }
@@ -342,8 +335,7 @@ export class Game {
     if (this.targetId === id) this.targetId = null;
     this.candidateIds = this.candidateIds.filter((c) => c !== id);
     if (this.targetId === null && this.candidateIds.length === 0) {
-      this.typedSinceLock = [];
-      this.missBuffer = [];
+      this.recentKeys = [];
     }
   }
 
@@ -372,7 +364,15 @@ export class Game {
     this.removeZombie(z.id);
     this.targetId = null;
     this.candidateIds = [];
-    this.events.push({ type: 'kill', zombieId: z.id, x: z.x, y: z.y, tier: z.tier, gained });
+    this.events.push({
+      type: 'kill',
+      zombieId: z.id,
+      x: z.x,
+      y: z.y,
+      tier: z.tier,
+      gained,
+      kana: z.session.kana,
+    });
 
     // コンボボーナス(閾値の倍数で発動・仕様 §10)
     if (this.combo > 0 && this.combo % COMBO.bonusThreshold === 0) {

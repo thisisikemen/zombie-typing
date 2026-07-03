@@ -157,10 +157,12 @@ async function boot(): Promise<void> {
       score: game.score,
       kills: game.kills,
       accuracy: game.accuracy(),
+      misses: game.missKeys,
       maxCombo: game.maxCombo,
       wpm,
       survival,
       modeLabel: currentMode.label,
+      diffId: currentDiff.id,
       diffLabel: currentDiff.label,
       newRecord,
     });

@@ -58,6 +58,8 @@ export class Renderer {
   private comboPop = 0;
   private lastCombo = 0;
   private sparkTimer = 0;
+  /** 撃破直後に一瞬「全部赤」の単語を残す(倒した!の気持ちよさ用) */
+  private killLabels: { x: number; y: number; kana: string; t: number }[] = [];
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -117,6 +119,9 @@ export class Renderer {
           this.effects.explosion(ev.x, ev.y, 0.8 + ev.tier * 0.35, GORE_PALETTE);
           this.effects.floatText(ev.x, ev.y - 150, `+${ev.gained}`, '#ffd24a');
           this.effects.shake(3 + ev.tier * 2, 0.18);
+          // 最後の一文字まで赤くなった単語を一瞬だけ残す
+          const h = ZOMBIE_ANIM.baseHeight * TIERS[ev.tier].scale;
+          this.killLabels.push({ x: ev.x, y: Math.max(164, ev.y - h - 22), kana: ev.kana, t: 0 });
           break;
         }
         case 'autokill':
@@ -148,6 +153,8 @@ export class Renderer {
       if (t - dt <= 0) this.zombieFlash.delete(id);
       else this.zombieFlash.set(id, t - dt);
     }
+    for (const k of this.killLabels) k.t += dt;
+    this.killLabels = this.killLabels.filter((k) => k.t < 0.32);
     this.effects.update(dt);
 
     const ctx = this.ctx;
@@ -187,14 +194,25 @@ export class Renderer {
       }
       const target = game.targetId !== null ? game.getZombie(game.targetId) : undefined;
       if (target) this.drawLabel(ctx, game, target, scene.showRomaji);
+      this.drawKillLabels(ctx);
 
-      if (!scene.demo) this.drawHud(ctx, game);
+      if (!scene.demo) {
+        this.drawHud(ctx, game);
+        // 下部の操作ヒント(邪魔にならない薄さで)
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = '600 15px "Hiragino Kaku Gothic ProN", sans-serif';
+        ctx.fillStyle = 'rgba(232, 228, 216, 0.48)';
+        ctx.fillText('Space / Enter: ターゲット切り替え(解除)　　Esc: 一時停止', W / 2 + 60, H - 14);
+        ctx.restore();
+      }
     } else {
       this.drawSoldier(ctx);
     }
 
     ctx.restore();
 
+    if (game && !scene.demo) this.drawLowHpVignette(ctx, game);
     this.effects.drawScreen(ctx, W, H);
     if (scene.countdown) this.drawCountdown(ctx, scene.countdown);
     if (scene.endFade) this.drawEndFade(ctx, scene.endFade);
@@ -598,12 +616,20 @@ export class Renderer {
     }
 
     // --- 中段: ひらがな(タイプ済みを塗り分け) ---
+    // 撃たれている間(正打直後)は小さく揺れる
+    const flash = this.zombieFlash.get(z.id) ?? 0;
+    const shake = locked && flash > 0 ? flash / 0.12 : 0;
+    const sx = Math.sin(this.time * 91) * 3.4 * shake;
+    const sy = Math.cos(this.time * 73) * 2.4 * shake;
+    ctx.save();
+    ctx.translate(sx, sy);
     ctx.font = kanaFont;
     ctx.strokeStyle = LABEL_COLORS.outline;
     ctx.lineWidth = 7;
     ctx.strokeText(z.session.kana, left, ty);
     const chars = [...z.session.kana];
-    const done = z.session.confirmedKanaCount();
+    // 打ちかけのかなも赤くする(反応の速さ優先)
+    const done = z.session.activeKanaCount();
     let x = left;
     for (let i = 0; i < chars.length; i++) {
       ctx.fillStyle =
@@ -624,17 +650,19 @@ export class Renderer {
       ctx.fillRect(left - 4, ty + 8, kanaW + 8, 5);
       ctx.shadowBlur = 0;
     }
+    ctx.restore();
 
     // --- 下段: ローマ字ガイド(設定オン時・ロックオン中のみ) ---
+    // ローマ字はゾンビの HP: 残り=黄緑 → 打った分=赤
     if (showRomaji && locked) {
       const typedR = z.session.typedRomaji();
       const remainR = z.session.remainingRomaji();
-      ctx.font = '700 21px ui-monospace, Menlo, monospace';
+      ctx.font = '800 24px ui-monospace, Menlo, monospace';
       const rw = ctx.measureText(typedR + remainR).width;
       let rx = cx - rw / 2;
-      const ry = ty + 40;
+      const ry = ty + 42;
       ctx.strokeStyle = LABEL_COLORS.outline;
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 7;
       ctx.strokeText(typedR + remainR, rx, ry);
       ctx.fillStyle = LABEL_COLORS.romajiTyped;
       ctx.fillText(typedR, rx, ry);
@@ -644,6 +672,31 @@ export class Renderer {
     }
 
     ctx.restore();
+  }
+
+  /** 撃破直後の「全部赤の単語」を一瞬残して消す */
+  private drawKillLabels(ctx: CanvasRenderingContext2D): void {
+    for (const k of this.killLabels) {
+      const p = k.t / 0.32; // 0→1
+      const alpha = 1 - p * p;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.lineJoin = 'round';
+      ctx.font = '900 34px "Hiragino Kaku Gothic ProN", sans-serif';
+      const w = ctx.measureText(k.kana).width;
+      const cx = Math.max(20 + w / 2, Math.min(W - 20 - w / 2, k.x));
+      const y = k.y - 14 * p; // ふわっと上がりながら消える
+      ctx.strokeStyle = LABEL_COLORS.outline;
+      ctx.lineWidth = 7;
+      ctx.strokeText(k.kana, cx - w / 2, y);
+      ctx.fillStyle = LABEL_COLORS.typed;
+      ctx.fillText(k.kana, cx - w / 2, y);
+      ctx.fillStyle = LABEL_COLORS.underline;
+      ctx.fillRect(cx - w / 2 - 4, y + 8, w + 8, 5);
+      ctx.restore();
+    }
   }
 
   // ---------- HUD ----------
@@ -807,6 +860,24 @@ export class Renderer {
     ctx.fillText(`${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`, 1568, boxY + 50);
 
     ctx.restore();
+  }
+
+  /**
+   * 低 HP 時の赤いビネット(FPS の被弾視界風)。
+   * HP 50% から徐々に画面端が赤くなり、25% 以下では鼓動のように明滅する。
+   */
+  private drawLowHpVignette(ctx: CanvasRenderingContext2D, game: Game): void {
+    const ratio = Math.max(0, game.hp / PLAYER.maxHp);
+    if (ratio >= 0.5) return;
+    const t = 1 - ratio / 0.5; // 0(HP50%) → 1(HP0)
+    const pulse = ratio < 0.25 ? (0.5 + 0.5 * Math.sin(this.time * 4.6)) * 0.12 : 0;
+    const alpha = Math.min(0.55, 0.4 * t + pulse);
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.34, W / 2, H / 2, H * 0.82);
+    g.addColorStop(0, 'rgba(140, 8, 8, 0)');
+    g.addColorStop(0.7, `rgba(140, 8, 8, ${alpha * 0.45})`);
+    g.addColorStop(1, `rgba(120, 4, 4, ${alpha})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   // ---------- オーバーレイ ----------

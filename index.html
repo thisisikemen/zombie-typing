@@ -36,6 +36,7 @@
       <div class="tips-bar"><span class="tips-tag">TIP</span><span class="tips-text" id="tips-mode"></span></div>
       <button id="btn-mode-back" class="img-btn corner-bl"><img src="./assets/ui/btn-back.png" alt="戻る" /></button>
       <button id="btn-mode-settings" class="img-btn corner-br"><img src="./assets/ui/btn-setting.png" alt="設定" /></button>
+      <button id="btn-ranking" class="plate-btn plate-btn-corner corner-tr">ランキング</button>
     </div>
 
     <!-- ===== リザルト画面 ===== -->
@@ -44,6 +45,10 @@
         <p id="result-sub"></p>
         <h2 id="result-heading">CLEAR</h2>
         <div class="result-stats" id="result-stats"></div>
+        <div class="result-register" id="result-register">
+          <input id="result-name" maxlength="10" placeholder="なまえ(10文字まで)" autocomplete="off" />
+          <button id="btn-register" class="share-btn">ランキングに登録</button>
+        </div>
         <div class="result-buttons">
           <button id="btn-retry" class="plate-btn plate-btn-hot">もう一度 <span class="keyhint">(Rキー)</span></button>
           <button id="btn-result-mode" class="plate-btn">モード選択 <span class="keyhint">(Escキー)</span></button>
@@ -84,6 +89,19 @@
         </label>
         <div class="modal-actions">
           <button id="btn-settings-close" class="plate-btn">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ランキングモーダル ===== -->
+    <div id="modal-ranking" class="modal hidden">
+      <div class="modal-box ranking-box">
+        <h3>ランキング</h3>
+        <div class="ranking-tabs" id="ranking-tabs"></div>
+        <p class="ranking-note" id="ranking-note"></p>
+        <ol class="ranking-list" id="ranking-list"></ol>
+        <div class="modal-actions">
+          <button id="btn-ranking-close" class="plate-btn">閉じる</button>
         </div>
       </div>
     </div>

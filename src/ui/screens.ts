@@ -5,6 +5,13 @@
  */
 
 import { MODES, type DifficultyDef, type ModeDef } from '../core/modes';
+import {
+  loadPlayerName,
+  rankingBackend,
+  sanitizeName,
+  savePlayerName,
+  type RankEntry,
+} from './ranking';
 import { loadBest, type Settings } from './store';
 import { TIPS } from './tips';
 
@@ -15,10 +22,12 @@ export interface ResultData {
   score: number;
   kills: number;
   accuracy: number; // 0〜1
+  misses: number;
   maxCombo: number;
   wpm: number;
   survival: number; // 秒
   modeLabel: string;
+  diffId: string;
   diffLabel: string;
   newRecord: boolean;
 }
@@ -53,6 +62,10 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
 const uiUrl = (name: string) =>
   `url("${new URL(`${import.meta.env.BASE_URL}assets/ui/${name}`, document.baseURI).href}")`;
 
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
 function formatTime(sec: number): string {
   const mm = Math.floor(sec / 60);
   const ss = Math.floor(sec % 60);
@@ -68,7 +81,10 @@ export class UI {
   };
   private settingsModal = $('modal-settings');
   private howtoModal = $('modal-howto');
+  private rankingModal = $('modal-ranking');
   private shareData: ResultData | null = null;
+  /** ランキングモーダルで表示中の難易度 */
+  private rankingDiff = 'normal';
   private activeMode: ModeDef = MODES[0];
   /** 画面切替直後の誤クリック(ダブルクリック等のすり抜け)防止 */
   private shownAt = 0;
@@ -110,6 +126,20 @@ export class UI {
     $('btn-giveup').onclick = () => cb.onGiveUp();
     $('btn-settings-close').onclick = () => this.closeModals();
     $('btn-howto-close').onclick = () => this.closeModals();
+
+    // ランキング
+    $('btn-ranking').onclick = () => {
+      cb.onUiSound('bolt');
+      this.openRanking();
+    };
+    $('btn-ranking-close').onclick = () => this.closeModals();
+    $('btn-register').onclick = () => void this.registerScore();
+    const nameInput = $<HTMLInputElement>('result-name');
+    nameInput.value = loadPlayerName();
+    nameInput.addEventListener('keydown', (e) => {
+      e.stopPropagation(); // ゲーム側のキー処理(Rリスタート等)に流さない
+      if (e.key === 'Enter') void this.registerScore();
+    });
 
     const vol = $<HTMLInputElement>('set-volume');
     const sfx = $<HTMLInputElement>('set-sfx');
@@ -177,7 +207,8 @@ export class UI {
   isModalOpen(): boolean {
     return (
       !this.settingsModal.classList.contains('hidden') ||
-      !this.howtoModal.classList.contains('hidden')
+      !this.howtoModal.classList.contains('hidden') ||
+      !this.rankingModal.classList.contains('hidden')
     );
   }
 
@@ -192,7 +223,89 @@ export class UI {
   closeModals(): void {
     this.settingsModal.classList.add('hidden');
     this.howtoModal.classList.add('hidden');
+    this.rankingModal.classList.add('hidden');
     (document.activeElement as HTMLElement | null)?.blur?.();
+  }
+
+  // ---------- ランキング ----------
+
+  openRanking(diffId?: string): void {
+    if (diffId) this.rankingDiff = diffId;
+    this.rankingModal.classList.remove('hidden');
+    this.renderRanking();
+  }
+
+  private renderRanking(): void {
+    const tabs = $('ranking-tabs');
+    tabs.innerHTML = '';
+    for (const diff of this.activeMode.difficulties) {
+      const tab = document.createElement('button');
+      tab.className = `ranking-tab${diff.id === this.rankingDiff ? ' active' : ''}`;
+      tab.textContent = diff.label;
+      tab.style.setProperty('--tab-color', diff.color);
+      tab.onclick = () => {
+        this.rankingDiff = diff.id;
+        this.renderRanking();
+      };
+      tabs.appendChild(tab);
+    }
+
+    $('ranking-note').textContent = rankingBackend.online
+      ? '世界ランキング(上位100位)'
+      : 'この端末内のランキングです(オンラインランキングは準備中)';
+
+    const list = $('ranking-list');
+    list.innerHTML = '<li class="ranking-empty">読み込み中…</li>';
+    const requested = this.rankingDiff;
+    rankingBackend
+      .load(requested)
+      .then((entries) => {
+        if (this.rankingDiff !== requested) return; // タブが切り替わっていたら破棄
+        if (entries.length === 0) {
+          list.innerHTML = '<li class="ranking-empty">まだ記録がありません。最初の生存者になろう。</li>';
+          return;
+        }
+        list.innerHTML = entries
+          .map(
+            (e, i) => `
+        <li class="ranking-row${i < 3 ? ` top${i + 1}` : ''}">
+          <span class="rk-pos">${i + 1}</span>
+          <span class="rk-main"><span class="rk-name">${escapeHtml(e.name)}</span>
+            <span class="rk-sub">撃破 ${e.kills}・WPM ${e.wpm}・${(e.accuracy * 100).toFixed(1)}%</span></span>
+          <span class="rk-score">${e.score.toLocaleString()}</span>
+        </li>`,
+          )
+          .join('');
+      })
+      .catch(() => {
+        list.innerHTML = '<li class="ranking-empty">読み込みに失敗しました。</li>';
+      });
+  }
+
+  private async registerScore(): Promise<void> {
+    const d = this.shareData;
+    if (!d || d.score <= 0) return;
+    const btn = $<HTMLButtonElement>('btn-register');
+    if (btn.disabled) return;
+    const name = sanitizeName($<HTMLInputElement>('result-name').value);
+    savePlayerName(name);
+    btn.disabled = true;
+    btn.textContent = '登録中…';
+    const entry: RankEntry = {
+      name,
+      score: d.score,
+      kills: d.kills,
+      wpm: d.wpm,
+      accuracy: d.accuracy,
+      ts: Date.now(),
+    };
+    try {
+      const rank = await rankingBackend.submit(d.diffId, entry);
+      btn.textContent = `登録しました(${rank}位)`;
+    } catch {
+      btn.textContent = '登録に失敗しました';
+      btn.disabled = false;
+    }
   }
 
   /** モードタブ + 難易度カード(モード追加時はタブが増える・仕様 §11) */
@@ -244,7 +357,7 @@ export class UI {
         <ul class="diff-specs">
           <li>単語: <span class="num">${diff.wordHint}</span></li>
           <li>${diff.zombieHint}</li>
-          <li>制限時間 <span class="num">${durText}</span></li>
+          <li>夜明けまで <span class="num">${durText}</span></li>
         </ul>
         <div class="diff-best">${best ? `ベスト ${best.score.toLocaleString()}` : ''}</div>
       `;
@@ -278,8 +391,13 @@ export class UI {
       ['スコア', data.score.toLocaleString(), 'gold'],
       ['撃破数', `${data.kills}<span class="unit">体</span>`, ''],
       ['正確率', `${(data.accuracy * 100).toFixed(1)}<span class="unit">%</span>`, ''],
-      ['最大コンボ', `${data.maxCombo}`, ''],
-      ['WPM', `${data.wpm}`, ''],
+      ['ミスタイプ', `${data.misses}<span class="unit">回</span>`, ''],
+      [
+        '最大コンボ <span class="label-note">(ノーミスでの連続撃破数)</span>',
+        `${data.maxCombo}`,
+        '',
+      ],
+      ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
       ['生存時間', formatTime(data.survival), ''],
     ];
     const stats = $('result-stats');
@@ -292,6 +410,16 @@ export class UI {
     if (data.newRecord) {
       stats.innerHTML += `<div class="result-new-record">NEW RECORD!</div>`;
     }
+
+    // ランキング登録 UI をリセット
+    const register = $('result-register');
+    register.style.display = data.score > 0 ? '' : 'none';
+    const btn = $<HTMLButtonElement>('btn-register');
+    btn.disabled = false;
+    btn.textContent = 'ランキングに登録';
+    const nameInput = $<HTMLInputElement>('result-name');
+    if (!nameInput.value) nameInput.value = loadPlayerName();
+
     this.show('result');
   }
 
