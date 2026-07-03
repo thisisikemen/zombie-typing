@@ -26,10 +26,14 @@ export interface RankingBackend {
   readonly online: boolean;
 }
 
-/** オンライン化するときにここを埋める(docs/RANKING.md 参照) */
+/**
+ * オンラインランキングの接続先(docs/RANKING.md 参照)。
+ * このキーは「公開用(publishable)」であり、ブラウザに埋め込む前提のもの。
+ * 書き込み権限は持たず、サーバー側の RPC・RLS で保護されている。
+ */
 export const ONLINE_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://vizhznqrgasepakokygv.supabase.co',
+  supabaseAnonKey: 'sb_publishable_YaY9RP9wVnlS7yPgIRcF5w_kJXm6LaY',
 };
 
 const MAX_ENTRIES = 100;

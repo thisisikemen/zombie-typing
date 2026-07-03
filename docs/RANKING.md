@@ -108,7 +108,10 @@ begin
     where device_key = p_device_key;
 end $$;
 
--- anon はテーブルへの直接書き込み不可、RPC のみ実行可
+-- anon は読み取りのみ可・テーブルへの直接書き込み不可、RPC のみ実行可
+-- (新しい Supabase プロジェクトは既定で anon にテーブル権限が無いため
+--  SELECT を明示的に付与する)
+grant select on public.scores to anon, authenticated;
 revoke insert, update, delete on public.scores from anon, authenticated;
 grant execute on function public.submit_score to anon, authenticated;
 grant execute on function public.rename_player to anon, authenticated;
