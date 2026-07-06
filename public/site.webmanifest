@@ -1,0 +1,19 @@
+{
+  "name": "ゾンビタイピング",
+  "short_name": "ゾンビタイピング",
+  "description": "ゾンビをタイピングで撃ち倒す無料のブラウザ日本語タイピングゲーム。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#05050f",
+  "theme_color": "#05050f",
+  "categories": ["games", "education"],
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

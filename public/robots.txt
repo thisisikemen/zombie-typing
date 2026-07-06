@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /zombie-typing/
+
+Sitemap: https://thisisikemen.github.io/zombie-typing/sitemap.xml

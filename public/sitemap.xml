@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://thisisikemen.github.io/zombie-typing/</loc>
+    <lastmod>2026-07-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg</image:loc>
+      <image:title>ゾンビタイピング</image:title>
+      <image:caption>無料で遊べるブラウザ日本語タイピングゲーム</image:caption>
+    </image:image>
+  </url>
+</urlset>

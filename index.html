@@ -3,20 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ゾンビタイピング</title>
-  <meta name="description" content="迫りくるゾンビをタイピングで撃ち倒せ。夜明けまで生き延びろ。ブラウザで遊べる日本語タイピングゲーム。" />
+  <title>ゾンビタイピング | 無料ブラウザ日本語タイピングゲーム</title>
+  <meta name="description" content="ゾンビをタイピングで撃ち倒す無料の日本語タイピングゲーム。ブラウザだけでローマ字入力を練習し、難易度別ランキングやエンドレスモードに挑戦できます。" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#05050f" />
+  <link rel="canonical" href="https://thisisikemen.github.io/zombie-typing/" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./site.webmanifest" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:site_name" content="ゾンビタイピング" />
+  <meta property="og:title" content="ゾンビタイピング | 無料ブラウザ日本語タイピングゲーム" />
+  <meta property="og:description" content="迫りくるゾンビをローマ字入力で撃ち倒せ。ブラウザで遊べる日本語タイピング練習ゲーム。" />
+  <meta property="og:url" content="https://thisisikemen.github.io/zombie-typing/" />
+  <meta property="og:image" content="https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="夜明けの廃墟で生き延びるゾンビタイピングのキービジュアル" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ゾンビタイピング | 無料ブラウザ日本語タイピングゲーム" />
+  <meta name="twitter:description" content="ゾンビをローマ字入力で撃ち倒す、無料のブラウザ日本語タイピングゲーム。" />
+  <meta name="twitter:image" content="https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "ゾンビタイピング",
+      "alternateName": "Zombie Typing",
+      "url": "https://thisisikemen.github.io/zombie-typing/",
+      "image": "https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg",
+      "description": "ゾンビをタイピングで撃ち倒す無料の日本語タイピングゲーム。ブラウザだけでローマ字入力を練習でき、難易度別ランキングやエンドレスモードに挑戦できます。",
+      "inLanguage": "ja",
+      "genre": ["タイピングゲーム", "ブラウザゲーム", "学習ゲーム"],
+      "gamePlatform": "Web browser",
+      "playMode": "SinglePlayer",
+      "operatingSystem": "Windows, macOS, ChromeOS",
+      "applicationCategory": "GameApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "JPY"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "thisisikemen"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "thisisikemen"
+      }
+    }
+  </script>
   <link rel="stylesheet" href="./src/styles.css" />
 </head>
 <body>
-  <div id="stage">
+  <main id="stage">
     <canvas id="game-canvas"></canvas>
 
     <!-- ===== タイトル画面 ===== -->
     <div id="screen-title" class="screen">
       <img class="screen-art-bg" src="./assets/ui/title-art.jpg" alt="" />
       <div class="title-content">
-        <img class="title-logo-img" src="./assets/ui/logo.png" alt="ゾンビタイピング" />
+        <h1 class="title-logo"><img class="title-logo-img" src="./assets/ui/logo.png" alt="ゾンビタイピング" /></h1>
         <p class="title-tagline">─── タイピングで、<span class="accent">夜明け</span>まで生き延びろ。───</p>
+        <p class="title-seo-copy">無料で遊べるブラウザ日本語タイピングゲーム。ローマ字入力を練習して、ランキング上位を目指そう。</p>
         <div class="menu-buttons">
           <button id="btn-start" class="plate-btn">スタート</button>
           <button id="btn-howto" class="plate-btn">遊び方</button>
@@ -135,7 +185,11 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
+
+  <noscript>
+    <p>ゾンビタイピングは、ブラウザで遊べる無料の日本語タイピングゲームです。プレイするにはJavaScriptを有効にしてください。</p>
+  </noscript>
 
   <script type="module" src="./src/main.ts"></script>
 </body>
