@@ -146,7 +146,13 @@ kbd {
   width: 100%;
   transform: translateY(-1.4rem); /* 下部の TIP バーぶん少し上へ */
 }
-.title-logo { line-height: 0; }
+.title-logo {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  line-height: 0;
+}
 .title-logo-img {
   width: min(56rem, 62%);
   filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.8));
