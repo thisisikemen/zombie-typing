@@ -118,6 +118,8 @@ export class Game {
   private practiceIndex = 0;
   /** ベーシック: 最後に湧いた時刻(一定テンポ湧きの基準。初回は即出す) */
   private lastPracticeSpawnAt = -Infinity;
+  /** ベーシック: 五十音を一周して「あ」に戻ったか(HUD の終了案内表示用) */
+  practiceLooped = false;
   /** ロック(または重複候補)開始以降の全打鍵列(正打・ミス問わず時系列。自動切替の判定用) */
   private recentKeys: string[] = [];
   private static readonly RECENT_KEYS_MAX = 32;
@@ -516,6 +518,7 @@ export class Game {
     this.lastPracticeSpawnAt = this.time;
     const ch = BASIC.sequence[this.practiceIndex % BASIC.sequence.length];
     this.practiceIndex++;
+    if (this.practiceIndex > BASIC.sequence.length) this.practiceLooped = true;
     const z: Zombie = {
       id: this.nextId++,
       tier: 1,

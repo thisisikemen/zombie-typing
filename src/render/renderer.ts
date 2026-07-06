@@ -901,6 +901,17 @@ export class Renderer {
       : `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
     ctx.fillText(timeText, 1568, boxY + 50);
 
+    // 練習で五十音を一周したら、終了方法をさりげなく案内する
+    if (game.isPractice() && game.practiceLooped) {
+      ctx.textAlign = 'center';
+      ctx.font = '700 18px "Hiragino Kaku Gothic ProN", sans-serif';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+      ctx.lineWidth = 4;
+      ctx.strokeText('五十音を一周! 終了する場合は ESC', W / 2, 108);
+      ctx.fillStyle = 'rgba(232, 228, 216, 0.9)';
+      ctx.fillText('五十音を一周! 終了する場合は ESC', W / 2, 108);
+    }
+
     ctx.restore();
   }
 

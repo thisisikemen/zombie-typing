@@ -115,6 +115,7 @@ async function boot(): Promise<void> {
     cdIndex = 0;
     cdTimer = 0;
     state = 'countdown';
+    ui.setPauseQuitLabel(diff.practice === true);
     ui.show('none');
     ui.closeModals();
     userGesture();
@@ -177,12 +178,20 @@ async function boot(): Promise<void> {
       rankBy: currentDiff.rankBy ?? 'score',
       ranked: currentDiff.ranked !== false,
       endless: currentDiff.endless === true,
+      practice: currentDiff.practice === true,
       newRecord,
     });
   }
 
   function giveUp(): void {
     if (!game) return;
+    if (game.isPractice()) {
+      // 練習の「終了する」はゲームオーバーではなく SCORE リザルトへ
+      game.status = 'clear';
+      ui.show('none');
+      finishGame('clear');
+      return;
+    }
     // その場でゲームオーバー扱い
     game.hp = 0;
     game.status = 'gameover';

@@ -349,6 +349,15 @@ describe('ベーシック(五十音練習)', () => {
     expect(g.survivalTime()).toBeGreaterThan(199);
   });
 
+  it('五十音を一周して「あ」に戻ると practiceLooped が立つ(終了案内表示用)', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    for (let t = 0; t < 420 && !g.practiceLooped; t += 0.25) {
+      g.update(0.25);
+      for (const z of [...g.zombies]) g.removeZombie(z.id); // 被弾を避けつつ湧きを進める
+    }
+    expect(g.practiceLooped).toBe(true);
+  });
+
   it('ベーシックはランキング対象外、ハードコアは対象', () => {
     expect(basic.ranked).toBe(false);
     expect(hardcore.ranked ?? true).toBe(true);

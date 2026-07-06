@@ -33,6 +33,8 @@ export interface ResultData {
   /** ランキング登録の対象か(ベーシックは false) */
   ranked: boolean;
   endless: boolean;
+  /** ベーシック(練習)か。「終了する」で抜けた場合は SCORE 見出しになる */
+  practice: boolean;
   newRecord: boolean;
 }
 
@@ -225,6 +227,11 @@ export class UI {
     this.shownAt = performance.now();
     // ボタンにフォーカスが残ると Enter/Space が誤爆するため外す
     (document.activeElement as HTMLElement | null)?.blur?.();
+  }
+
+  /** ポーズの離脱ボタン: 練習(ベーシック)は「終了する」、それ以外は「あきらめる」 */
+  setPauseQuitLabel(practice: boolean): void {
+    $('btn-giveup').textContent = practice ? '終了する' : 'あきらめる';
   }
 
   isModalOpen(): boolean {
@@ -469,6 +476,9 @@ export class UI {
   showResult(data: ResultData): void {
     this.shareData = data;
 
+    // ベーシックを「終了する」で抜けた場合はクリアでもゲームオーバーでもなく SCORE
+    const practiceScore = data.practice && data.cleared;
+
     // モードに応じたキーアートを背景に
     const screen = this.screens.result;
     if (data.endless) {
@@ -479,13 +489,15 @@ export class UI {
       screen.style.backgroundImage = 'none';
     }
 
-    $('result-sub').textContent = data.endless
-      ? '夜はまだ終わらない…'
-      : data.cleared
-        ? '夜明けまで生き延びた!'
-        : '防衛ラインは破られた…';
+    $('result-sub').textContent = practiceScore
+      ? '練習おつかれさま!'
+      : data.endless
+        ? '夜はまだ終わらない…'
+        : data.cleared
+          ? '夜明けまで生き延びた!'
+          : '防衛ラインは破られた…';
     const heading = $('result-heading');
-    heading.textContent = data.cleared ? 'CLEAR' : 'GAME OVER';
+    heading.textContent = practiceScore ? 'SCORE' : data.cleared ? 'CLEAR' : 'GAME OVER';
     heading.className = data.cleared ? 'clear' : 'gameover';
 
     const rows: [string, string, string][] =

@@ -197,8 +197,14 @@ kbd {
   padding: 0;
   cursor: pointer;
 }
-.mode-tab img { display: block; height: 4.1rem; width: auto; }
+.mode-tabs { height: 4.1rem; } /* タブの拡縮でレイアウトが動かないよう固定 */
+.mode-tab img { display: block; height: 4.1rem; width: auto; transition: height 0.15s ease, filter 0.15s ease; }
 .mode-tab.active img { filter: drop-shadow(0 0 12px rgba(255, 190, 80, 0.45)); }
+/* 非選択タブは近日公開と同じサイズ感+減彩で「選択中」をわかりやすく */
+.mode-tab:not(.active):not(.locked) { opacity: 0.72; }
+.mode-tab:not(.active):not(.locked) img { height: 3.7rem; filter: saturate(0.25) brightness(0.7); }
+.mode-tab:not(.active):not(.locked):hover { opacity: 1; }
+.mode-tab:not(.active):not(.locked):hover img { filter: saturate(0.7) brightness(0.92); }
 .mode-tab.text-tab {
   min-width: 19rem;
   height: 4.1rem;
@@ -230,6 +236,9 @@ kbd {
   display: flex;
   gap: 1.8rem;
   align-items: center;
+  justify-content: center;
+  /* カルーセル(3枚+余白)と同じ高さで固定し、タブ切替でタイトル等がずれないように */
+  height: 30rem;
 }
 .diff-card {
   position: relative;
@@ -346,7 +355,7 @@ kbd {
 .diff-specs li .num { color: var(--card-color); }
 .diff-best {
   position: absolute;
-  bottom: 4.5%;
+  bottom: 7%; /* カード枠の飾りに重ならない高さ */
   left: 0;
   right: 0;
   font-size: 0.95rem;

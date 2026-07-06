@@ -1,1053 +1,4950 @@
 [
-  { "display": "猫", "kana": "ねこ" },
-  { "display": "犬", "kana": "いぬ" },
-  { "display": "鳥", "kana": "とり" },
-  { "display": "猿", "kana": "さる" },
-  { "display": "熊", "kana": "くま" },
-  { "display": "牛", "kana": "うし" },
-  { "display": "馬", "kana": "うま" },
-  { "display": "亀", "kana": "かめ" },
-  { "display": "蜂", "kana": "はち" },
-  { "display": "蟹", "kana": "かに" },
-  { "display": "蛸", "kana": "たこ" },
-  { "display": "烏賊", "kana": "いか" },
-  { "display": "海老", "kana": "えび" },
-  { "display": "鹿", "kana": "しか" },
-  { "display": "豚", "kana": "ぶた" },
-  { "display": "象", "kana": "ぞう" },
-  { "display": "虎", "kana": "とら" },
-  { "display": "リス", "kana": "りす" },
-  { "display": "蛇", "kana": "へび" },
-  { "display": "鷹", "kana": "たか" },
-  { "display": "鷲", "kana": "わし" },
-  { "display": "蟻", "kana": "あり" },
-  { "display": "蝉", "kana": "せみ" },
-  { "display": "月", "kana": "つき" },
-  { "display": "星", "kana": "ほし" },
-  { "display": "空", "kana": "そら" },
-  { "display": "海", "kana": "うみ" },
-  { "display": "山", "kana": "やま" },
-  { "display": "川", "kana": "かわ" },
-  { "display": "石", "kana": "いし" },
-  { "display": "砂", "kana": "すな" },
-  { "display": "雲", "kana": "くも" },
-  { "display": "雨", "kana": "あめ" },
-  { "display": "雪", "kana": "ゆき" },
-  { "display": "風", "kana": "かぜ" },
-  { "display": "昼", "kana": "ひる" },
-  { "display": "夜", "kana": "よる" },
-  { "display": "朝", "kana": "あさ" },
-  { "display": "春", "kana": "はる" },
-  { "display": "夏", "kana": "なつ" },
-  { "display": "秋", "kana": "あき" },
-  { "display": "冬", "kana": "ふゆ" },
-  { "display": "水", "kana": "みず" },
-  { "display": "顔", "kana": "かお" },
-  { "display": "耳", "kana": "みみ" },
-  { "display": "花", "kana": "はな" },
-  { "display": "口", "kana": "くち" },
-  { "display": "足", "kana": "あし" },
-  { "display": "腕", "kana": "うで" },
-  { "display": "指", "kana": "ゆび" },
-  { "display": "腰", "kana": "こし" },
-  { "display": "骨", "kana": "ほね" },
-  { "display": "米", "kana": "こめ" },
-  { "display": "味噌", "kana": "みそ" },
-  { "display": "寿司", "kana": "すし" },
-  { "display": "餅", "kana": "もち" },
-  { "display": "パン", "kana": "ぱん" },
-  { "display": "蕎麦", "kana": "そば" },
-  { "display": "肉", "kana": "にく" },
-  { "display": "酒", "kana": "さけ" },
-  { "display": "傘", "kana": "かさ" },
-  { "display": "靴", "kana": "くつ" },
-  { "display": "服", "kana": "ふく" },
-  { "display": "本", "kana": "ほん" },
-  { "display": "駅", "kana": "えき" },
-  { "display": "道", "kana": "みち" },
-  { "display": "家", "kana": "いえ" },
-  { "display": "庭", "kana": "にわ" },
-  { "display": "窓", "kana": "まど" },
-  { "display": "鍵", "kana": "かぎ" },
-  { "display": "箱", "kana": "はこ" },
-  { "display": "船", "kana": "ふね" },
-  { "display": "橋", "kana": "はし" },
-  { "display": "森", "kana": "もり" },
-  { "display": "池", "kana": "いけ" },
-  { "display": "島", "kana": "しま" },
-  { "display": "谷", "kana": "たに" },
-  { "display": "丘", "kana": "おか" },
-  { "display": "岩", "kana": "いわ" },
-  { "display": "波", "kana": "なみ" },
-  { "display": "影", "kana": "かげ" },
-  { "display": "音", "kana": "おと" },
-  { "display": "声", "kana": "こえ" },
-  { "display": "色", "kana": "いろ" },
-  { "display": "夢", "kana": "ゆめ" },
-  { "display": "過去", "kana": "かこ" },
-  { "display": "意味", "kana": "いみ" },
-  { "display": "赤", "kana": "あか" },
-  { "display": "青", "kana": "あお" },
-  { "display": "白", "kana": "しろ" },
-  { "display": "黒", "kana": "くろ" },
-  { "display": "武器", "kana": "ぶき" },
-  { "display": "弾", "kana": "たま" },
-  { "display": "首", "kana": "くび" },
-  { "display": "肩", "kana": "かた" },
-  { "display": "膝", "kana": "ひざ" },
-  { "display": "爪", "kana": "つめ" },
-  { "display": "喉", "kana": "のど" },
-  { "display": "咳", "kana": "せき" },
-  { "display": "熱", "kana": "ねつ" },
-  { "display": "屋根", "kana": "やね" },
-  { "display": "壁", "kana": "かべ" },
-  { "display": "床", "kana": "ゆか" },
-  { "display": "バス", "kana": "ばす" },
-  { "display": "釣り", "kana": "つり" },
-  { "display": "歌", "kana": "うた" },
-  { "display": "飛ぶ", "kana": "とぶ" },
-  { "display": "飲む", "kana": "のむ" },
-  { "display": "泣く", "kana": "なく" },
-  { "display": "書く", "kana": "かく" },
-  { "display": "読む", "kana": "よむ" },
-  { "display": "聞く", "kana": "きく" },
-  { "display": "待つ", "kana": "まつ" },
-  { "display": "買う", "kana": "かう" },
-  { "display": "売る", "kana": "うる" },
-  { "display": "理科", "kana": "りか" },
-  { "display": "画家", "kana": "がか" },
-  { "display": "午後", "kana": "ごご" },
-  { "display": "虹", "kana": "にじ" },
-  { "display": "塩", "kana": "しお" },
-  { "display": "椅子", "kana": "いす" },
-  { "display": "眼鏡", "kana": "めがね" },
-  { "display": "時計", "kana": "とけい" },
-  { "display": "魚", "kana": "さかな" },
-  { "display": "卵", "kana": "たまご" },
-  { "display": "みかん", "kana": "みかん" },
-  { "display": "りんご", "kana": "りんご" },
-  { "display": "バナナ", "kana": "ばなな" },
-  { "display": "ぶどう", "kana": "ぶどう" },
-  { "display": "いちご", "kana": "いちご" },
-  { "display": "すいか", "kana": "すいか" },
-  { "display": "野菜", "kana": "やさい" },
-  { "display": "ご飯", "kana": "ごはん" },
-  { "display": "お茶", "kana": "おちゃ" },
-  { "display": "氷", "kana": "こおり" },
-  { "display": "砂糖", "kana": "さとう" },
-  { "display": "机", "kana": "つくえ" },
-  { "display": "電話", "kana": "でんわ" },
-  { "display": "手紙", "kana": "てがみ" },
-  { "display": "葉書", "kana": "はがき" },
-  { "display": "鞄", "kana": "かばん" },
-  { "display": "帽子", "kana": "ぼうし" },
-  { "display": "上着", "kana": "うわぎ" },
-  { "display": "着物", "kana": "きもの" },
-  { "display": "浴衣", "kana": "ゆかた" },
-  { "display": "お金", "kana": "おかね" },
-  { "display": "財布", "kana": "さいふ" },
-  { "display": "鏡", "kana": "かがみ" },
-  { "display": "医者", "kana": "いしゃ" },
-  { "display": "家族", "kana": "かぞく" },
-  { "display": "親子", "kana": "おやこ" },
-  { "display": "大人", "kana": "おとな" },
-  { "display": "子供", "kana": "こども" },
-  { "display": "男", "kana": "おとこ" },
-  { "display": "女", "kana": "おんな" },
-  { "display": "一人", "kana": "ひとり" },
-  { "display": "二人", "kana": "ふたり" },
-  { "display": "皆", "kana": "みんな" },
-  { "display": "名前", "kana": "なまえ" },
-  { "display": "言葉", "kana": "ことば" },
-  { "display": "話", "kana": "はなし" },
-  { "display": "キリン", "kana": "きりん" },
-  { "display": "パンダ", "kana": "ぱんだ" },
-  { "display": "コアラ", "kana": "こあら" },
-  { "display": "兎", "kana": "うさぎ" },
-  { "display": "狐", "kana": "きつね" },
-  { "display": "狸", "kana": "たぬき" },
-  { "display": "鼠", "kana": "ねずみ" },
-  { "display": "蛙", "kana": "かえる" },
-  { "display": "メダカ", "kana": "めだか" },
-  { "display": "鯨", "kana": "くじら" },
-  { "display": "イルカ", "kana": "いるか" },
-  { "display": "カラス", "kana": "からす" },
-  { "display": "雀", "kana": "すずめ" },
-  { "display": "燕", "kana": "つばめ" },
-  { "display": "トンボ", "kana": "とんぼ" },
-  { "display": "蛍", "kana": "ほたる" },
-  { "display": "台風", "kana": "たいふう" },
-  { "display": "地震", "kana": "じしん" },
-  { "display": "雷", "kana": "かみなり" },
-  { "display": "朝日", "kana": "あさひ" },
-  { "display": "星座", "kana": "せいざ" },
-  { "display": "銀河", "kana": "ぎんが" },
-  { "display": "宇宙", "kana": "うちゅう" },
-  { "display": "太陽", "kana": "たいよう" },
-  { "display": "地球", "kana": "ちきゅう" },
-  { "display": "湖", "kana": "みずうみ" },
-  { "display": "光", "kana": "ひかり" },
-  { "display": "形", "kana": "かたち" },
-  { "display": "涙", "kana": "なみだ" },
-  { "display": "笑顔", "kana": "えがお" },
-  { "display": "心", "kana": "こころ" },
-  { "display": "命", "kana": "いのち" },
-  { "display": "世界", "kana": "せかい" },
-  { "display": "平和", "kana": "へいわ" },
-  { "display": "自由", "kana": "じゆう" },
-  { "display": "未来", "kana": "みらい" },
-  { "display": "記憶", "kana": "きおく" },
-  { "display": "秘密", "kana": "ひみつ" },
-  { "display": "知識", "kana": "ちしき" },
-  { "display": "理由", "kana": "りゆう" },
-  { "display": "結果", "kana": "けっか" },
-  { "display": "答え", "kana": "こたえ" },
-  { "display": "緑", "kana": "みどり" },
-  { "display": "黄色", "kana": "きいろ" },
-  { "display": "辞書", "kana": "じしょ" },
-  { "display": "はさみ", "kana": "はさみ" },
-  { "display": "会議", "kana": "かいぎ" },
-  { "display": "名刺", "kana": "めいし" },
-  { "display": "今日", "kana": "きょう" },
-  { "display": "明日", "kana": "あした" },
-  { "display": "昨日", "kana": "きのう" },
-  { "display": "今年", "kana": "ことし" },
-  { "display": "時間", "kana": "じかん" },
-  { "display": "午前", "kana": "ごぜん" },
-  { "display": "深夜", "kana": "しんや" },
-  { "display": "刺身", "kana": "さしみ" },
-  { "display": "豆腐", "kana": "とうふ" },
-  { "display": "わかめ", "kana": "わかめ" },
-  { "display": "団子", "kana": "だんご" },
-  { "display": "ケーキ", "kana": "けーき" },
-  { "display": "ジュース", "kana": "じゅーす" },
-  { "display": "コーラ", "kana": "こーら" },
-  { "display": "ビール", "kana": "びーる" },
-  { "display": "ワイン", "kana": "わいん" },
-  { "display": "カレー", "kana": "かれー" },
-  { "display": "テニス", "kana": "てにす" },
-  { "display": "空手", "kana": "からて" },
-  { "display": "登山", "kana": "とざん" },
-  { "display": "散歩", "kana": "さんぽ" },
-  { "display": "旅行", "kana": "りょこう" },
-  { "display": "映画", "kana": "えいが" },
-  { "display": "ゲーム", "kana": "げーむ" },
-  { "display": "布団", "kana": "ふとん" },
-  { "display": "枕", "kana": "まくら" },
-  { "display": "毛布", "kana": "もうふ" },
-  { "display": "箪笥", "kana": "たんす" },
-  { "display": "廊下", "kana": "ろうか" },
-  { "display": "お風呂", "kana": "おふろ" },
-  { "display": "トイレ", "kana": "といれ" },
-  { "display": "テレビ", "kana": "てれび" },
-  { "display": "ラジオ", "kana": "らじお" },
-  { "display": "港", "kana": "みなと" },
-  { "display": "線路", "kana": "せんろ" },
-  { "display": "切符", "kana": "きっぷ" },
-  { "display": "電車", "kana": "でんしゃ" },
-  { "display": "頭", "kana": "あたま" },
-  { "display": "眉毛", "kana": "まゆげ" },
-  { "display": "まつ毛", "kana": "まつげ" },
-  { "display": "背中", "kana": "せなか" },
-  { "display": "お腹", "kana": "おなか" },
-  { "display": "かかと", "kana": "かかと" },
-  { "display": "力", "kana": "ちから" },
-  { "display": "マスク", "kana": "ますく" },
-  { "display": "めまい", "kana": "めまい" },
-  { "display": "頭痛", "kana": "ずつう" },
-  { "display": "雑誌", "kana": "ざっし" },
-  { "display": "政治", "kana": "せいじ" },
-  { "display": "文化", "kana": "ぶんか" },
-  { "display": "歴史", "kana": "れきし" },
-  { "display": "科学", "kana": "かがく" },
-  { "display": "国語", "kana": "こくご" },
-  { "display": "英語", "kana": "えいご" },
-  { "display": "美術", "kana": "びじゅつ" },
-  { "display": "ゾンビ", "kana": "ぞんび" },
-  { "display": "闇夜", "kana": "やみよ" },
-  { "display": "炎", "kana": "ほのお" },
-  { "display": "煙", "kana": "けむり" },
-  { "display": "銃", "kana": "じゅう" },
-  { "display": "希望", "kana": "きぼう" },
-  { "display": "勇気", "kana": "ゆうき" },
-  { "display": "奇跡", "kana": "きせき" },
-  { "display": "危険", "kana": "きけん" },
-  { "display": "援護", "kana": "えんご" },
-  { "display": "東京", "kana": "とうきょう" },
-  { "display": "名古屋", "kana": "なごや" },
-  { "display": "神戸", "kana": "こうべ" },
-  { "display": "花火", "kana": "はなび" },
-  { "display": "花見", "kana": "はなみ" },
-  { "display": "紅葉", "kana": "こうよう" },
-  { "display": "走る", "kana": "はしる" },
-  { "display": "歩く", "kana": "あるく" },
-  { "display": "泳ぐ", "kana": "およぐ" },
-  { "display": "食べる", "kana": "たべる" },
-  { "display": "眠る", "kana": "ねむる" },
-  { "display": "笑う", "kana": "わらう" },
-  { "display": "怒る", "kana": "おこる" },
-  { "display": "歌う", "kana": "うたう" },
-  { "display": "踊る", "kana": "おどる" },
-  { "display": "話す", "kana": "はなす" },
-  { "display": "遊ぶ", "kana": "あそぶ" },
-  { "display": "学ぶ", "kana": "まなぶ" },
-  { "display": "休む", "kana": "やすむ" },
-  { "display": "急ぐ", "kana": "いそぐ" },
-  { "display": "作る", "kana": "つくる" },
-  { "display": "壊す", "kana": "こわす" },
-  { "display": "直す", "kana": "なおす" },
-  { "display": "探す", "kana": "さがす" },
-  { "display": "守る", "kana": "まもる" },
-  { "display": "逃げる", "kana": "にげる" },
-  { "display": "防ぐ", "kana": "ふせぐ" },
-  { "display": "暗い", "kana": "くらい" },
-  { "display": "暑い", "kana": "あつい" },
-  { "display": "寒い", "kana": "さむい" },
-  { "display": "高い", "kana": "たかい" },
-  { "display": "低い", "kana": "ひくい" },
-  { "display": "長い", "kana": "ながい" },
-  { "display": "広い", "kana": "ひろい" },
-  { "display": "狭い", "kana": "せまい" },
-  { "display": "速い", "kana": "はやい" },
-  { "display": "遅い", "kana": "おそい" },
-  { "display": "強い", "kana": "つよい" },
-  { "display": "弱い", "kana": "よわい" },
-  { "display": "古い", "kana": "ふるい" },
-  { "display": "怖い", "kana": "こわい" },
-  { "display": "まずい", "kana": "まずい" },
-  { "display": "甘い", "kana": "あまい" },
-  { "display": "辛い", "kana": "からい" },
-  { "display": "苦い", "kana": "にがい" },
-  { "display": "静か", "kana": "しずか" },
-  { "display": "綺麗", "kana": "きれい" },
-  { "display": "果物", "kana": "くだもの" },
-  { "display": "手袋", "kana": "てぶくろ" },
-  { "display": "靴下", "kana": "くつした" },
-  { "display": "切手", "kana": "きって" },
-  { "display": "学校", "kana": "がっこう" },
-  { "display": "先生", "kana": "せんせい" },
-  { "display": "学生", "kana": "がくせい" },
-  { "display": "友達", "kana": "ともだち" },
-  { "display": "うがい", "kana": "うがい" },
-  { "display": "俳優", "kana": "はいゆう" },
-  { "display": "歌手", "kana": "かしゅ" },
-  { "display": "看護師", "kana": "かんごし" },
-  { "display": "美容師", "kana": "びようし" },
-  { "display": "漫画家", "kana": "まんがか" },
-  { "display": "夕焼け", "kana": "ゆうやけ" },
-  { "display": "一日", "kana": "いちにち" },
-  { "display": "毎日", "kana": "まいにち" },
-  { "display": "一昨日", "kana": "おととい" },
-  { "display": "先月", "kana": "せんげつ" },
-  { "display": "来年", "kana": "らいねん" },
-  { "display": "平日", "kana": "へいじつ" },
-  { "display": "夕方", "kana": "ゆうがた" },
-  { "display": "明け方", "kana": "あけがた" },
-  { "display": "おにぎり", "kana": "おにぎり" },
-  { "display": "弁当", "kana": "べんとう" },
-  { "display": "ラーメン", "kana": "らーめん" },
-  { "display": "焼きそば", "kana": "やきそば" },
-  { "display": "たこ焼き", "kana": "たこやき" },
-  { "display": "天ぷら", "kana": "てんぷら" },
-  { "display": "とんかつ", "kana": "とんかつ" },
-  { "display": "焼き鳥", "kana": "やきとり" },
-  { "display": "納豆", "kana": "なっとう" },
-  { "display": "味噌汁", "kana": "みそしる" },
-  { "display": "漬物", "kana": "つけもの" },
-  { "display": "煎餅", "kana": "せんべい" },
-  { "display": "紅茶", "kana": "こうちゃ" },
-  { "display": "コーヒー", "kana": "こーひー" },
-  { "display": "牛乳", "kana": "ぎゅうにゅう" },
-  { "display": "サッカー", "kana": "さっかー" },
-  { "display": "野球", "kana": "やきゅう" },
-  { "display": "水泳", "kana": "すいえい" },
-  { "display": "マラソン", "kana": "まらそん" },
-  { "display": "体操", "kana": "たいそう" },
-  { "display": "柔道", "kana": "じゅうどう" },
-  { "display": "剣道", "kana": "けんどう" },
-  { "display": "写真", "kana": "しゃしん" },
-  { "display": "音楽", "kana": "おんがく" },
-  { "display": "読書", "kana": "どくしょ" },
-  { "display": "カラオケ", "kana": "からおけ" },
-  { "display": "ライオン", "kana": "らいおん" },
-  { "display": "ペンギン", "kana": "ぺんぎん" },
-  { "display": "フクロウ", "kana": "ふくろう" },
-  { "display": "ちょうちょ", "kana": "ちょうちょ" },
-  { "display": "クワガタ", "kana": "くわがた" },
-  { "display": "掃除機", "kana": "そうじき" },
-  { "display": "暖房", "kana": "だんぼう" },
-  { "display": "冷房", "kana": "れいぼう" },
-  { "display": "カーテン", "kana": "かーてん" },
-  { "display": "本棚", "kana": "ほんだな" },
-  { "display": "玄関", "kana": "げんかん" },
-  { "display": "階段", "kana": "かいだん" },
-  { "display": "寝室", "kana": "しんしつ" },
-  { "display": "ベランダ", "kana": "べらんだ" },
-  { "display": "煙突", "kana": "えんとつ" },
-  { "display": "エアコン", "kana": "えあこん" },
-  { "display": "パソコン", "kana": "ぱそこん" },
-  { "display": "地下鉄", "kana": "ちかてつ" },
-  { "display": "信号", "kana": "しんごう" },
-  { "display": "空港", "kana": "くうこう" },
-  { "display": "パトカー", "kana": "ぱとかー" },
-  { "display": "飛行機", "kana": "ひこうき" },
-  { "display": "髪の毛", "kana": "かみのけ" },
-  { "display": "ほっぺた", "kana": "ほっぺた" },
-  { "display": "筋肉", "kana": "きんにく" },
-  { "display": "健康", "kana": "けんこう" },
-  { "display": "病気", "kana": "びょうき" },
-  { "display": "注射", "kana": "ちゅうしゃ" },
-  { "display": "くしゃみ", "kana": "くしゃみ" },
-  { "display": "歯医者", "kana": "はいしゃ" },
-  { "display": "新聞", "kana": "しんぶん" },
-  { "display": "番組", "kana": "ばんぐみ" },
-  { "display": "ニュース", "kana": "にゅーす" },
-  { "display": "広告", "kana": "こうこく" },
-  { "display": "選挙", "kana": "せんきょ" },
-  { "display": "経済", "kana": "けいざい" },
-  { "display": "数学", "kana": "すうがく" },
-  { "display": "社会", "kana": "しゃかい" },
-  { "display": "体育", "kana": "たいいく" },
-  { "display": "道徳", "kana": "どうとく" },
-  { "display": "恐怖", "kana": "きょうふ" },
-  { "display": "真夜中", "kana": "まよなか" },
-  { "display": "廃墟", "kana": "はいきょ" },
-  { "display": "防衛", "kana": "ぼうえい" },
-  { "display": "生存", "kana": "せいぞん" },
-  { "display": "レーザー", "kana": "れーざー" },
-  { "display": "絶望", "kana": "ぜつぼう" },
-  { "display": "運命", "kana": "うんめい" },
-  { "display": "心配", "kana": "しんぱい" },
-  { "display": "安全", "kana": "あんぜん" },
-  { "display": "警戒", "kana": "けいかい" },
-  { "display": "攻撃", "kana": "こうげき" },
-  { "display": "防御", "kana": "ぼうぎょ" },
-  { "display": "回復", "kana": "かいふく" },
-  { "display": "作戦", "kana": "さくせん" },
-  { "display": "命令", "kana": "めいれい" },
-  { "display": "突撃", "kana": "とつげき" },
-  { "display": "撤退", "kana": "てったい" },
-  { "display": "大阪", "kana": "おおさか" },
-  { "display": "京都", "kana": "きょうと" },
-  { "display": "沖縄", "kana": "おきなわ" },
-  { "display": "福岡", "kana": "ふくおか" },
-  { "display": "横浜", "kana": "よこはま" },
-  { "display": "広島", "kana": "ひろしま" },
-  { "display": "仙台", "kana": "せんだい" },
-  { "display": "札幌", "kana": "さっぽろ" },
-  { "display": "お祭り", "kana": "おまつり" },
-  { "display": "遠足", "kana": "えんそく" },
-  { "display": "明るい", "kana": "あかるい" },
-  { "display": "短い", "kana": "みじかい" },
-  { "display": "大きい", "kana": "おおきい" },
-  { "display": "小さい", "kana": "ちいさい" },
-  { "display": "楽しい", "kana": "たのしい" },
-  { "display": "嬉しい", "kana": "うれしい" },
-  { "display": "悲しい", "kana": "かなしい" },
-  { "display": "美味しい", "kana": "おいしい" },
-  { "display": "賑やか", "kana": "にぎやか" },
-  { "display": "優しい", "kana": "やさしい" },
-  { "display": "働く", "kana": "はたらく" },
-  { "display": "見つける", "kana": "みつける" },
-  { "display": "覚える", "kana": "おぼえる" },
-  { "display": "忘れる", "kana": "わすれる" },
-  { "display": "調べる", "kana": "しらべる" },
-  { "display": "伝える", "kana": "つたえる" },
-  { "display": "助ける", "kana": "たすける" },
-  { "display": "戦う", "kana": "たたかう" },
-  { "display": "茶色", "kana": "ちゃいろ" },
-  { "display": "紫", "kana": "むらさき" },
-  { "display": "桃色", "kana": "ももいろ" },
-  { "display": "灰色", "kana": "はいいろ" },
-  { "display": "金色", "kana": "きんいろ" },
-  { "display": "銀色", "kana": "ぎんいろ" },
-  { "display": "現在", "kana": "げんざい" },
-  { "display": "約束", "kana": "やくそく" },
-  { "display": "冒険", "kana": "ぼうけん" },
-  { "display": "勝利", "kana": "しょうり" },
-  { "display": "敗北", "kana": "はいぼく" },
-  { "display": "努力", "kana": "どりょく" },
-  { "display": "準備", "kana": "じゅんび" },
-  { "display": "完成", "kana": "かんせい" },
-  { "display": "成功", "kana": "せいこう" },
-  { "display": "失敗", "kana": "しっぱい" },
-  { "display": "経験", "kana": "けいけん" },
-  { "display": "想像", "kana": "そうぞう" },
-  { "display": "発明", "kana": "はつめい" },
-  { "display": "発見", "kana": "はっけん" },
-  { "display": "実験", "kana": "じっけん" },
-  { "display": "観察", "kana": "かんさつ" },
-  { "display": "計算", "kana": "けいさん" },
-  { "display": "質問", "kana": "しつもん" },
-  { "display": "問題", "kana": "もんだい" },
-  { "display": "正解", "kana": "せいかい" },
-  { "display": "間違い", "kana": "まちがい" },
-  { "display": "説明", "kana": "せつめい" },
-  { "display": "目的", "kana": "もくてき" },
-  { "display": "方法", "kana": "ほうほう" },
-  { "display": "原因", "kana": "げんいん" },
-  { "display": "授業", "kana": "じゅぎょう" },
-  { "display": "宿題", "kana": "しゅくだい" },
-  { "display": "試験", "kana": "しけん" },
-  { "display": "成績", "kana": "せいせき" },
-  { "display": "鉛筆", "kana": "えんぴつ" },
-  { "display": "消しゴム", "kana": "けしごむ" },
-  { "display": "定規", "kana": "じょうぎ" },
-  { "display": "資料", "kana": "しりょう" },
-  { "display": "電卓", "kana": "でんたく" },
-  { "display": "残業", "kana": "ざんぎょう" },
-  { "display": "自転車", "kana": "じてんしゃ" },
-  { "display": "特急", "kana": "とっきゅう" },
-  { "display": "誕生日", "kana": "たんじょうび" },
-  { "display": "夏休み", "kana": "なつやすみ" },
-  { "display": "冬休み", "kana": "ふゆやすみ" },
-  { "display": "昼休み", "kana": "ひるやすみ" },
-  { "display": "お留守番", "kana": "おるすばん" },
-  { "display": "初詣", "kana": "はつもうで" },
-  { "display": "文化祭", "kana": "ぶんかさい" },
-  { "display": "合宿", "kana": "がっしゅく" },
-  { "display": "冷蔵庫", "kana": "れいぞうこ" },
-  { "display": "洗濯機", "kana": "せんたくき" },
-  { "display": "電球", "kana": "でんきゅう" },
-  { "display": "コンセント", "kana": "こんせんと" },
-  { "display": "絨毯", "kana": "じゅうたん" },
-  { "display": "台所", "kana": "だいどころ" },
-  { "display": "天井", "kana": "てんじょう" },
-  { "display": "交差点", "kana": "こうさてん" },
-  { "display": "風邪薬", "kana": "かぜぐすり" },
-  { "display": "宝物", "kana": "たからもの" },
-  { "display": "挑戦", "kana": "ちょうせん" },
-  { "display": "練習", "kana": "れんしゅう" },
-  { "display": "情報", "kana": "じょうほう" },
-  { "display": "研究", "kana": "けんきゅう" },
-  { "display": "図書館", "kana": "としょかん" },
-  { "display": "市役所", "kana": "しやくしょ" },
-  { "display": "公務員", "kana": "こうむいん" },
-  { "display": "音楽家", "kana": "おんがくか" },
-  { "display": "お好み焼き", "kana": "おこのみやき" },
-  { "display": "卵焼き", "kana": "たまごやき" },
-  { "display": "饅頭", "kana": "まんじゅう" },
-  { "display": "チョコレート", "kana": "ちょこれーと" },
-  { "display": "カブトムシ", "kana": "かぶとむし" },
-  { "display": "カタツムリ", "kana": "かたつむり" },
-  { "display": "ダンゴムシ", "kana": "だんごむし" },
-  { "display": "教科書", "kana": "きょうかしょ" },
-  { "display": "文房具", "kana": "ぶんぼうぐ" },
-  { "display": "給料", "kana": "きゅうりょう" },
-  { "display": "来週", "kana": "らいしゅう" },
-  { "display": "週末", "kana": "しゅうまつ" },
-  { "display": "電子レンジ", "kana": "でんしれんじ" },
-  { "display": "新幹線", "kana": "しんかんせん" },
-  { "display": "消防士", "kana": "しょうぼうし" },
-  { "display": "運転手", "kana": "うんてんしゅ" },
-  { "display": "小説家", "kana": "しょうせつか" },
-  { "display": "高校生", "kana": "こうこうせい" },
-  { "display": "大学生", "kana": "だいがくせい" },
-  { "display": "会社員", "kana": "かいしゃいん" },
-  { "display": "銀行員", "kana": "ぎんこういん" },
-  { "display": "警察官", "kana": "けいさつかん" },
-  { "display": "天気予報", "kana": "てんきよほう" },
-  { "display": "北海道", "kana": "ほっかいどう" },
-  { "display": "運動会", "kana": "うんどうかい" },
-  { "display": "忘年会", "kana": "ぼうねんかい" },
-  { "display": "新年会", "kana": "しんねんかい" },
-  { "display": "体温計", "kana": "たいおんけい" },
-  { "display": "ゾンビ退治", "kana": "ぞんびたいじ" },
-  { "display": "秘密基地", "kana": "ひみつきち" },
-  { "display": "いただきます", "kana": "いただきます" },
-  { "display": "はじめまして", "kana": "はじめまして" },
-  { "display": "アイスクリーム", "kana": "あいすくりーむ" },
-  { "display": "スマートフォン", "kana": "すまーとふぉん" },
-  { "display": "インターネット", "kana": "いんたーねっと" },
-  { "display": "ゲームセンター", "kana": "げーむせんたー" },
-  { "display": "携帯電話", "kana": "けいたいでんわ" },
-  { "display": "高速道路", "kana": "こうそくどうろ" },
-  { "display": "消防車", "kana": "しょうぼうしゃ" },
-  { "display": "郵便局", "kana": "ゆうびんきょく" },
-  { "display": "小学校", "kana": "しょうがっこう" },
-  { "display": "中学校", "kana": "ちゅうがっこう" },
-  { "display": "大統領", "kana": "だいとうりょう" },
-  { "display": "総理大臣", "kana": "そうりだいじん" },
-  { "display": "観光客", "kana": "かんこうきゃく" },
-  { "display": "横断歩道", "kana": "おうだんほどう" },
-  { "display": "面倒くさい", "kana": "めんどうくさい" },
-  { "display": "おやすみなさい", "kana": "おやすみなさい" },
-  { "display": "お元気ですか", "kana": "おげんきですか" },
-  { "display": "おかえりなさい", "kana": "おかえりなさい" },
-  { "display": "大晦日の夜", "kana": "おおみそかのよる" },
-  { "display": "自動販売機", "kana": "じどうはんばいき" },
-  { "display": "救急車", "kana": "きゅうきゅうしゃ" },
-  { "display": "宇宙飛行士", "kana": "うちゅうひこうし" },
-  { "display": "気象予報士", "kana": "きしょうよほうし" },
-  { "display": "最終兵器", "kana": "さいしゅうへいき" },
-  { "display": "ガソリンスタンド", "kana": "がそりんすたんど" },
-  { "display": "いってらっしゃい", "kana": "いってらっしゃい" },
-  { "display": "温泉旅行", "kana": "おんせんりょこう" },
-  { "display": "駐車場", "kana": "ちゅうしゃじょう" },
-  { "display": "招待状", "kana": "しょうたいじょう" },
-  { "display": "おはようございます", "kana": "おはようございます" },
-  { "display": "お疲れ様でした", "kana": "おつかれさまでした" },
-  { "display": "ごちそうさまでした", "kana": "ごちそうさまでした" },
-  { "display": "修学旅行", "kana": "しゅうがくりょこう" },
-  { "display": "朝ご飯を食べる", "kana": "あさごはんをたべる" },
-  { "display": "全力で逃げる", "kana": "ぜんりょくでにげる" },
-  { "display": "必殺の一撃", "kana": "ひっさつのいちげき" },
-  { "display": "復活の呪文", "kana": "ふっかつのじゅもん" },
-  { "display": "伝説の勇者", "kana": "でんせつのゆうしゃ" },
-  { "display": "深呼吸をする", "kana": "しんこきゅうをする" },
-  { "display": "ハロウィンのかぼちゃ", "kana": "はろうぃんのかぼちゃ" },
-  { "display": "ありがとうございます", "kana": "ありがとうございます" },
-  { "display": "夜明けまで生き延びろ", "kana": "よあけまでいきのびろ" },
-  { "display": "ゾンビの大軍勢", "kana": "ぞんびのだいぐんぜい" },
-  { "display": "クリスマスプレゼント", "kana": "くりすますぷれぜんと" },
-  { "display": "宿題を忘れた", "kana": "しゅくだいをわすれた" },
-  { "display": "よろしくお願いします", "kana": "よろしくおねがいします" },
-  { "display": "真夜中の大冒険", "kana": "まよなかのだいぼうけん" },
-  { "display": "防衛ラインを守れ", "kana": "ぼうえいらいんをまもれ" },
-  { "display": "電車に乗り遅れる", "kana": "でんしゃにのりおくれる" },
-  { "display": "誕生日パーティー", "kana": "たんじょうびぱーてぃー" },
-  { "display": "世界一周旅行", "kana": "せかいいっしゅうりょこう" },
-  { "display": "遊園地のお化け屋敷", "kana": "ゆうえんちのおばけやしき" },
-  { "display": "携帯電話を忘れた", "kana": "けいたいでんわをわすれた" },
-  { "display": "授業中に居眠り", "kana": "じゅぎょうちゅうにいねむり" },
-  { "display": "手を洗う", "kana": "てをあらう" },
-  { "display": "歯を磨く", "kana": "はをみがく" },
-  { "display": "本を読む", "kana": "ほんをよむ" },
-  { "display": "空を飛ぶ", "kana": "そらをとぶ" },
-  { "display": "夢を見る", "kana": "ゆめをみる" },
-  { "display": "電気を消す", "kana": "でんきをけす" },
-  { "display": "道に迷う", "kana": "みちにまよう" },
-  { "display": "新しい", "kana": "あたらしい" },
-  { "display": "美しい", "kana": "うつくしい" },
-  { "display": "素晴らしい", "kana": "すばらしい" },
-  { "display": "恐ろしい", "kana": "おそろしい" },
-  { "display": "懐かしい", "kana": "なつかしい" },
-  { "display": "難しい", "kana": "むずかしい" },
-  { "display": "忙しい", "kana": "いそがしい" },
-  { "display": "考える", "kana": "かんがえる" },
-  { "display": "餃子", "kana": "ぎょうざ" },
-  { "display": "ぎんなん", "kana": "ぎんなん" },
-  { "display": "たんぽぽ", "kana": "たんぽぽ" },
-  { "display": "ひまわり", "kana": "ひまわり" },
-  { "display": "あじさい", "kana": "あじさい" },
-  { "display": "桜並木", "kana": "さくらなみき" },
-  { "display": "朝顔", "kana": "あさがお" },
-  { "display": "薔薇", "kana": "ばら" },
-  { "display": "松", "kana": "まつ" },
-  { "display": "竹", "kana": "たけ" },
-  { "display": "梅", "kana": "うめ" },
-  { "display": "桜", "kana": "さくら" },
-  { "display": "紅葉狩り", "kana": "もみじがり" },
-  { "display": "青空", "kana": "あおぞら" },
-  { "display": "夜空", "kana": "よぞら" },
-  { "display": "満月", "kana": "まんげつ" },
-  { "display": "三日月", "kana": "みかづき" },
-  { "display": "流れ星", "kana": "ながれぼし" },
-  { "display": "天の川", "kana": "あまのがわ" },
-  { "display": "初雪", "kana": "はつゆき" },
-  { "display": "吹雪", "kana": "ふぶき" },
-  { "display": "梅雨", "kana": "つゆ" },
-  { "display": "夕立", "kana": "ゆうだち" },
-  { "display": "木漏れ日", "kana": "こもれび" },
-  { "display": "陽炎", "kana": "かげろう" },
-  { "display": "蜃気楼", "kana": "しんきろう" },
-  { "display": "霜", "kana": "しも" },
-  { "display": "霧", "kana": "きり" },
-  { "display": "泥", "kana": "どろ" },
-  { "display": "灰", "kana": "はい" },
-  { "display": "炭", "kana": "すみ" },
-  { "display": "鉄", "kana": "てつ" },
-  { "display": "金", "kana": "きん" },
-  { "display": "銀", "kana": "ぎん" },
-  { "display": "銅", "kana": "どう" },
-  { "display": "糸", "kana": "いと" },
-  { "display": "布", "kana": "ぬの" },
-  { "display": "紙", "kana": "かみ" },
-  { "display": "革", "kana": "かわ" },
-  { "display": "綿", "kana": "わた" },
-  { "display": "麦", "kana": "むぎ" },
-  { "display": "豆", "kana": "まめ" },
-  { "display": "芋", "kana": "いも" },
-  { "display": "栗", "kana": "くり" },
-  { "display": "柿", "kana": "かき" },
-  { "display": "桃", "kana": "もも" },
-  { "display": "梨", "kana": "なし" },
-  { "display": "瓜", "kana": "うり" },
-  { "display": "葱", "kana": "ねぎ" },
-  { "display": "大根", "kana": "だいこん" },
-  { "display": "人参", "kana": "にんじん" },
-  { "display": "玉ねぎ", "kana": "たまねぎ" },
-  { "display": "じゃがいも", "kana": "じゃがいも" },
-  { "display": "きゅうり", "kana": "きゅうり" },
-  { "display": "トマト", "kana": "とまと" },
-  { "display": "なすび", "kana": "なすび" },
-  { "display": "ピーマン", "kana": "ぴーまん" },
-  { "display": "キャベツ", "kana": "きゃべつ" },
-  { "display": "レタス", "kana": "れたす" },
-  { "display": "ほうれん草", "kana": "ほうれんそう" },
-  { "display": "とうもろこし", "kana": "とうもろこし" },
-  { "display": "かぼちゃ", "kana": "かぼちゃ" },
-  { "display": "ブロッコリー", "kana": "ぶろっこりー" },
-  { "display": "アスパラガス", "kana": "あすぱらがす" },
-  { "display": "グレープフルーツ", "kana": "ぐれーぷふるーつ" },
-  { "display": "パイナップル", "kana": "ぱいなっぷる" },
-  { "display": "マスカット", "kana": "ますかっと" },
-  { "display": "さくらんぼ", "kana": "さくらんぼ" },
-  { "display": "ドラゴンフルーツ", "kana": "どらごんふるーつ" },
-  { "display": "オムライス", "kana": "おむらいす" },
-  { "display": "ハンバーグ", "kana": "はんばーぐ" },
-  { "display": "コロッケ", "kana": "ころっけ" },
-  { "display": "シチュー", "kana": "しちゅー" },
-  { "display": "グラタン", "kana": "ぐらたん" },
-  { "display": "スパゲッティ", "kana": "すぱげってぃ" },
-  { "display": "サンドイッチ", "kana": "さんどいっち" },
-  { "display": "ホットケーキ", "kana": "ほっとけーき" },
-  { "display": "ドーナツ", "kana": "どーなつ" },
-  { "display": "プリン", "kana": "ぷりん" },
-  { "display": "シュークリーム", "kana": "しゅーくりーむ" },
-  { "display": "かき氷", "kana": "かきごおり" },
-  { "display": "綿あめ", "kana": "わたあめ" },
-  { "display": "りんご飴", "kana": "りんごあめ" },
-  { "display": "焼きいも", "kana": "やきいも" },
-  { "display": "肉じゃが", "kana": "にくじゃが" },
-  { "display": "親子丼", "kana": "おやこどん" },
-  { "display": "牛丼", "kana": "ぎゅうどん" },
-  { "display": "カツカレー", "kana": "かつかれー" },
-  { "display": "チャーハン", "kana": "ちゃーはん" },
-  { "display": "唐揚げ", "kana": "からあげ" },
-  { "display": "餅つき", "kana": "もちつき" },
-  { "display": "食パン", "kana": "しょくぱん" },
-  { "display": "メロンパン", "kana": "めろんぱん" },
-  { "display": "カレーパン", "kana": "かれーぱん" },
-  { "display": "回転寿司", "kana": "かいてんずし" },
-  { "display": "食べ放題", "kana": "たべほうだい" },
-  { "display": "飲み物", "kana": "のみもの" },
-  { "display": "食べ物", "kana": "たべもの" },
-  { "display": "乗り物", "kana": "のりもの" },
-  { "display": "着替え", "kana": "きがえ" },
-  { "display": "忘れ物", "kana": "わすれもの" },
-  { "display": "落とし物", "kana": "おとしもの" },
-  { "display": "買い物", "kana": "かいもの" },
-  { "display": "洗い物", "kana": "あらいもの" },
-  { "display": "洗濯物", "kana": "せんたくもの" },
-  { "display": "贈り物", "kana": "おくりもの" },
-  { "display": "編み物", "kana": "あみもの" },
-  { "display": "履物", "kana": "はきもの" },
-  { "display": "偽物", "kana": "にせもの" },
-  { "display": "本物", "kana": "ほんもの" },
-  { "display": "化け物", "kana": "ばけもの" },
-  { "display": "怪物", "kana": "かいぶつ" },
-  { "display": "幽霊", "kana": "ゆうれい" },
-  { "display": "妖怪", "kana": "ようかい" },
-  { "display": "悪魔", "kana": "あくま" },
-  { "display": "魔王", "kana": "まおう" },
-  { "display": "魔法", "kana": "まほう" },
-  { "display": "呪い", "kana": "のろい" },
-  { "display": "墓場", "kana": "はかば" },
-  { "display": "骸骨", "kana": "がいこつ" },
-  { "display": "満身創痍", "kana": "まんしんそうい" },
-  { "display": "疾風迅雷", "kana": "しっぷうじんらい" },
-  { "display": "一石二鳥", "kana": "いっせきにちょう" },
-  { "display": "百発百中", "kana": "ひゃっぱつひゃくちゅう" },
-  { "display": "電光石火", "kana": "でんこうせっか" },
-  { "display": "十人十色", "kana": "じゅうにんといろ" },
-  { "display": "一期一会", "kana": "いちごいちえ" },
-  { "display": "弱肉強食", "kana": "じゃくにくきょうしょく" },
-  { "display": "絶体絶命", "kana": "ぜったいぜつめい" },
-  { "display": "四苦八苦", "kana": "しくはっく" },
-  { "display": "自業自得", "kana": "じごうじとく" },
-  { "display": "以心伝心", "kana": "いしんでんしん" },
-  { "display": "危機一髪", "kana": "ききいっぱつ" },
-  { "display": "心機一転", "kana": "しんきいってん" },
-  { "display": "全身全霊", "kana": "ぜんしんぜんれい" },
-  { "display": "縦横無尽", "kana": "じゅうおうむじん" },
-  { "display": "夜逃げ", "kana": "よにげ" },
-  { "display": "夜更かし", "kana": "よふかし" },
-  { "display": "早起き", "kana": "はやおき" },
-  { "display": "寝坊", "kana": "ねぼう" },
-  { "display": "昼寝", "kana": "ひるね" },
-  { "display": "居眠り", "kana": "いねむり" },
-  { "display": "夢遊病", "kana": "むゆうびょう" },
-  { "display": "悪夢", "kana": "あくむ" },
-  { "display": "いびき", "kana": "いびき" },
-  { "display": "寝言", "kana": "ねごと" },
-  { "display": "寝癖", "kana": "ねぐせ" },
-  { "display": "歯ぎしり", "kana": "はぎしり" },
-  { "display": "あくび", "kana": "あくび" },
-  { "display": "ため息", "kana": "ためいき" },
-  { "display": "しゃっくり", "kana": "しゃっくり" },
-  { "display": "拍手", "kana": "はくしゅ" },
-  { "display": "握手", "kana": "あくしゅ" },
-  { "display": "指切り", "kana": "ゆびきり" },
-  { "display": "腕相撲", "kana": "うでずもう" },
-  { "display": "にらめっこ", "kana": "にらめっこ" },
-  { "display": "かくれんぼ", "kana": "かくれんぼ" },
-  { "display": "鬼ごっこ", "kana": "おにごっこ" },
-  { "display": "縄跳び", "kana": "なわとび" },
-  { "display": "竹馬", "kana": "たけうま" },
-  { "display": "竹とんぼ", "kana": "たけとんぼ" },
-  { "display": "折り紙", "kana": "おりがみ" },
-  { "display": "あやとり", "kana": "あやとり" },
-  { "display": "けん玉", "kana": "けんだま" },
-  { "display": "こま回し", "kana": "こままわし" },
-  { "display": "紙飛行機", "kana": "かみひこうき" },
-  { "display": "しゃぼん玉", "kana": "しゃぼんだま" },
-  { "display": "砂場", "kana": "すなば" },
-  { "display": "滑り台", "kana": "すべりだい" },
-  { "display": "ブランコ", "kana": "ぶらんこ" },
-  { "display": "鉄棒", "kana": "てつぼう" },
-  { "display": "跳び箱", "kana": "とびばこ" },
-  { "display": "逆上がり", "kana": "さかあがり" },
-  { "display": "騎馬戦", "kana": "きばせん" },
-  { "display": "玉入れ", "kana": "たまいれ" },
-  { "display": "綱引き", "kana": "つなひき" },
-  { "display": "リレー", "kana": "りれー" },
-  { "display": "徒競走", "kana": "ときょうそう" },
-  { "display": "二人三脚", "kana": "ににんさんきゃく" },
-  { "display": "障害物競走", "kana": "しょうがいぶつきょうそう" },
-  { "display": "パソコン教室", "kana": "ぱそこんきょうしつ" },
-  { "display": "留学生", "kana": "りゅうがくせい" },
-  { "display": "転校生", "kana": "てんこうせい" },
-  { "display": "優等生", "kana": "ゆうとうせい" },
-  { "display": "委員長", "kana": "いいんちょう" },
-  { "display": "部活動", "kana": "ぶかつどう" },
-  { "display": "吹奏楽", "kana": "すいそうがく" },
-  { "display": "演劇部", "kana": "えんげきぶ" },
-  { "display": "美術館", "kana": "びじゅつかん" },
-  { "display": "博物館", "kana": "はくぶつかん" },
-  { "display": "水族館", "kana": "すいぞくかん" },
-  { "display": "動物園", "kana": "どうぶつえん" },
-  { "display": "植物園", "kana": "しょくぶつえん" },
-  { "display": "遊園地", "kana": "ゆうえんち" },
-  { "display": "観覧車", "kana": "かんらんしゃ" },
-  { "display": "メリーゴーランド", "kana": "めりーごーらんど" },
-  { "display": "ジェットコースター", "kana": "じぇっとこーすたー" },
-  { "display": "お化け屋敷", "kana": "おばけやしき" },
-  { "display": "迷路", "kana": "めいろ" },
-  { "display": "宝探し", "kana": "たからさがし" },
-  { "display": "肝試し", "kana": "きもだめし" },
-  { "display": "キャンプファイヤー", "kana": "きゃんぷふぁいやー" },
-  { "display": "バーベキュー", "kana": "ばーべきゅー" },
-  { "display": "ピクニック", "kana": "ぴくにっく" },
-  { "display": "ハイキング", "kana": "はいきんぐ" },
-  { "display": "サイクリング", "kana": "さいくりんぐ" },
-  { "display": "ドライブ", "kana": "どらいぶ" },
-  { "display": "釣り堀", "kana": "つりぼり" },
-  { "display": "潮干狩り", "kana": "しおひがり" },
-  { "display": "海水浴", "kana": "かいすいよく" },
-  { "display": "日光浴", "kana": "にっこうよく" },
-  { "display": "森林浴", "kana": "しんりんよく" },
-  { "display": "露天風呂", "kana": "ろてんぶろ" },
-  { "display": "温泉卵", "kana": "おんせんたまご" },
-  { "display": "浴衣姿", "kana": "ゆかたすがた" },
-  { "display": "打ち上げ花火", "kana": "うちあげはなび" },
-  { "display": "線香花火", "kana": "せんこうはなび" },
-  { "display": "金魚すくい", "kana": "きんぎょすくい" },
-  { "display": "ヨーヨー釣り", "kana": "よーよーつり" },
-  { "display": "射的", "kana": "しゃてき" },
-  { "display": "屋台", "kana": "やたい" },
-  { "display": "神社", "kana": "じんじゃ" },
-  { "display": "お寺", "kana": "おてら" },
-  { "display": "お守り", "kana": "おまもり" },
-  { "display": "おみくじ", "kana": "おみくじ" },
-  { "display": "大吉", "kana": "だいきち" },
-  { "display": "願い事", "kana": "ねがいごと" },
-  { "display": "七夕", "kana": "たなばた" },
-  { "display": "短冊", "kana": "たんざく" },
-  { "display": "鯉のぼり", "kana": "こいのぼり" },
-  { "display": "ひな祭り", "kana": "ひなまつり" },
-  { "display": "節分", "kana": "せつぶん" },
-  { "display": "豆まき", "kana": "まめまき" },
-  { "display": "恵方巻き", "kana": "えほうまき" },
-  { "display": "お年玉", "kana": "おとしだま" },
-  { "display": "年賀状", "kana": "ねんがじょう" },
-  { "display": "鏡餅", "kana": "かがみもち" },
-  { "display": "門松", "kana": "かどまつ" },
-  { "display": "福袋", "kana": "ふくぶくろ" },
-  { "display": "宝くじ", "kana": "たからくじ" },
-  { "display": "貯金箱", "kana": "ちょきんばこ" },
-  { "display": "お小遣い", "kana": "おこづかい" },
-  { "display": "おつり", "kana": "おつり" },
-  { "display": "レシート", "kana": "れしーと" },
-  { "display": "領収書", "kana": "りょうしゅうしょ" },
-  { "display": "クレジットカード", "kana": "くれじっとかーど" },
-  { "display": "自己紹介", "kana": "じこしょうかい" },
-  { "display": "電話番号", "kana": "でんわばんごう" },
-  { "display": "留守番電話", "kana": "るすばんでんわ" },
-  { "display": "間違い電話", "kana": "まちがいでんわ" },
-  { "display": "迷惑メール", "kana": "めいわくめーる" },
-  { "display": "既読スルー", "kana": "きどくするー" },
-  { "display": "充電器", "kana": "じゅうでんき" },
-  { "display": "電池切れ", "kana": "でんちぎれ" },
-  { "display": "圏外", "kana": "けんがい" },
-  { "display": "動画配信", "kana": "どうがはいしん" },
-  { "display": "生放送", "kana": "なまほうそう" },
-  { "display": "録画予約", "kana": "ろくがよやく" },
-  { "display": "リモコン", "kana": "りもこん" },
-  { "display": "イヤホン", "kana": "いやほん" },
-  { "display": "スピーカー", "kana": "すぴーかー" },
-  { "display": "キーボード", "kana": "きーぼーど" },
-  { "display": "マウス", "kana": "まうす" },
-  { "display": "プリンター", "kana": "ぷりんたー" },
-  { "display": "ファイル", "kana": "ふぁいる" },
-  { "display": "フォルダ", "kana": "ふぉるだ" },
-  { "display": "パスワード", "kana": "ぱすわーど" },
-  { "display": "ダウンロード", "kana": "だうんろーど" },
-  { "display": "アップデート", "kana": "あっぷでーと" },
-  { "display": "タイピング", "kana": "たいぴんぐ" },
-  { "display": "プログラミング", "kana": "ぷろぐらみんぐ" },
-  { "display": "ローマ字入力", "kana": "ろーまじにゅうりょく" },
-  { "display": "全角と半角", "kana": "ぜんかくとはんかく" },
-  { "display": "漢字変換", "kana": "かんじへんかん" },
-  { "display": "誤字脱字", "kana": "ごじだつじ" },
-  { "display": "上書き保存", "kana": "うわがきほぞん" },
-  { "display": "強制終了", "kana": "きょうせいしゅうりょう" },
-  { "display": "再起動", "kana": "さいきどう" },
-  { "display": "初期化", "kana": "しょきか" },
-  { "display": "文字化け", "kana": "もじばけ" },
-  { "display": "無限ループ", "kana": "むげんるーぷ" },
-  { "display": "夜行バス", "kana": "やこうばす" },
-  { "display": "終電", "kana": "しゅうでん" },
-  { "display": "始発", "kana": "しはつ" },
-  { "display": "満員電車", "kana": "まんいんでんしゃ" },
-  { "display": "各駅停車", "kana": "かくえきていしゃ" },
-  { "display": "乗り換え", "kana": "のりかえ" },
-  { "display": "定期券", "kana": "ていきけん" },
-  { "display": "改札口", "kana": "かいさつぐち" },
-  { "display": "踏切", "kana": "ふみきり" },
-  { "display": "急ブレーキ", "kana": "きゅうぶれーき" },
-  { "display": "渋滞", "kana": "じゅうたい" },
-  { "display": "抜け道", "kana": "ぬけみち" },
-  { "display": "近道", "kana": "ちかみち" },
-  { "display": "回り道", "kana": "まわりみち" },
-  { "display": "一方通行", "kana": "いっぽうつうこう" },
-  { "display": "行き止まり", "kana": "いきどまり" },
-  { "display": "曲がり角", "kana": "まがりかど" },
-  { "display": "坂道", "kana": "さかみち" },
-  { "display": "夜道", "kana": "よみち" },
-  { "display": "帰り道", "kana": "かえりみち" },
-  { "display": "通学路", "kana": "つうがくろ" },
-  { "display": "通勤", "kana": "つうきん" },
-  { "display": "出張", "kana": "しゅっちょう" },
-  { "display": "出勤", "kana": "しゅっきん" },
-  { "display": "退勤", "kana": "たいきん" },
-  { "display": "有給休暇", "kana": "ゆうきゅうきゅうか" },
-  { "display": "締め切り", "kana": "しめきり" },
-  { "display": "打ち合わせ", "kana": "うちあわせ" },
-  { "display": "報告書", "kana": "ほうこくしょ" },
-  { "display": "企画書", "kana": "きかくしょ" },
-  { "display": "履歴書", "kana": "りれきしょ" },
-  { "display": "面接", "kana": "めんせつ" },
-  { "display": "昇進", "kana": "しょうしん" },
-  { "display": "転職", "kana": "てんしょく" },
-  { "display": "在宅勤務", "kana": "ざいたくきんむ" },
-  { "display": "腹ぺこ", "kana": "はらぺこ" },
-  { "display": "満腹", "kana": "まんぷく" },
-  { "display": "空腹", "kana": "くうふく" },
-  { "display": "食欲", "kana": "しょくよく" },
-  { "display": "おかわり", "kana": "おかわり" },
-  { "display": "つまみ食い", "kana": "つまみぐい" },
-  { "display": "食いしん坊", "kana": "くいしんぼう" },
-  { "display": "甘党", "kana": "あまとう" },
-  { "display": "辛党", "kana": "からとう" },
-  { "display": "猫舌", "kana": "ねこじた" },
-  { "display": "大食い", "kana": "おおぐい" },
-  { "display": "早食い", "kana": "はやぐい" },
-  { "display": "腹八分目", "kana": "はらはちぶんめ" },
-  { "display": "うたた寝", "kana": "うたたね" },
-  { "display": "二度寝", "kana": "にどね" },
-  { "display": "徹夜", "kana": "てつや" },
-  { "display": "夜明け", "kana": "よあけ" },
-  { "display": "日の出", "kana": "ひので" },
-  { "display": "日の入り", "kana": "ひのいり" },
-  { "display": "日没", "kana": "にちぼつ" },
-  { "display": "夕暮れ", "kana": "ゆうぐれ" },
-  { "display": "黄昏", "kana": "たそがれ" },
-  { "display": "薄明かり", "kana": "うすあかり" },
-  { "display": "月明かり", "kana": "つきあかり" },
-  { "display": "街灯", "kana": "がいとう" },
-  { "display": "懐中電灯", "kana": "かいちゅうでんとう" },
-  { "display": "ろうそく", "kana": "ろうそく" },
-  { "display": "たいまつ", "kana": "たいまつ" },
-  { "display": "松明の火", "kana": "たいまつのひ" },
-  { "display": "焚き火", "kana": "たきび" },
-  { "display": "火の粉", "kana": "ひのこ" },
-  { "display": "灯台", "kana": "とうだい" },
-  { "display": "サイレン", "kana": "さいれん" },
-  { "display": "警報", "kana": "けいほう" },
-  { "display": "避難訓練", "kana": "ひなんくんれん" },
-  { "display": "非常口", "kana": "ひじょうぐち" },
-  { "display": "非常食", "kana": "ひじょうしょく" },
-  { "display": "救急箱", "kana": "きゅうきゅうばこ" },
-  { "display": "包帯", "kana": "ほうたい" },
-  { "display": "絆創膏", "kana": "ばんそうこう" },
-  { "display": "消毒液", "kana": "しょうどくえき" },
-  { "display": "解毒剤", "kana": "げどくざい" },
-  { "display": "特効薬", "kana": "とっこうやく" },
-  { "display": "生き残り", "kana": "いきのこり" },
-  { "display": "生還", "kana": "せいかん" },
-  { "display": "脱出", "kana": "だっしゅつ" },
-  { "display": "籠城", "kana": "ろうじょう" },
-  { "display": "夜襲", "kana": "やしゅう" },
-  { "display": "奇襲", "kana": "きしゅう" },
-  { "display": "待ち伏せ", "kana": "まちぶせ" },
-  { "display": "一網打尽", "kana": "いちもうだじん" },
-  { "display": "掃討作戦", "kana": "そうとうさくせん" },
-  { "display": "緊急事態", "kana": "きんきゅうじたい" },
-  { "display": "最終決戦", "kana": "さいしゅうけっせん" },
-  { "display": "背水の陣", "kana": "はいすいのじん" },
-  { "display": "起死回生", "kana": "きしかいせい" },
-  { "display": "捨て身の覚悟", "kana": "すてみのかくご" },
-  { "display": "不意打ち", "kana": "ふいうち" },
-  { "display": "返り討ち", "kana": "かえりうち" },
-  { "display": "一騎打ち", "kana": "いっきうち" },
-  { "display": "狙い撃ち", "kana": "ねらいうち" },
-  { "display": "連射", "kana": "れんしゃ" },
-  { "display": "早撃ち", "kana": "はやうち" },
-  { "display": "百戦錬磨", "kana": "ひゃくせんれんま" },
-  { "display": "歴戦の勇士", "kana": "れきせんのゆうし" },
-  { "display": "最後の砦", "kana": "さいごのとりで" },
-  { "display": "運試し", "kana": "うんだめし" },
-  { "display": "腕試し", "kana": "うでだめし" },
-  { "display": "力比べ", "kana": "ちからくらべ" },
-  { "display": "我慢比べ", "kana": "がまんくらべ" },
-  { "display": "真剣勝負", "kana": "しんけんしょうぶ" },
-  { "display": "一発逆転", "kana": "いっぱつぎゃくてん" },
-  { "display": "大逆転", "kana": "だいぎゃくてん" },
-  { "display": "快進撃", "kana": "かいしんげき" },
-  { "display": "連戦連勝", "kana": "れんせんれんしょう" },
-  { "display": "無我夢中", "kana": "むがむちゅう" },
-  { "display": "全力疾走", "kana": "ぜんりょくしっそう" },
-  { "display": "猪突猛進", "kana": "ちょとつもうしん" },
-  { "display": "電撃作戦", "kana": "でんげきさくせん" },
-  { "display": "疾走する影", "kana": "しっそうするかげ" },
-  { "display": "月夜の晩", "kana": "つきよのばん" },
-  { "display": "静寂", "kana": "せいじゃく" },
-  { "display": "足音", "kana": "あしおと" },
-  { "display": "うめき声", "kana": "うめきごえ" },
-  { "display": "遠吠え", "kana": "とおぼえ" },
-  { "display": "鳴き声", "kana": "なきごえ" },
-  { "display": "叫び声", "kana": "さけびごえ" },
-  { "display": "ささやき", "kana": "ささやき" },
-  { "display": "物音", "kana": "ものおと" },
-  { "display": "気配", "kana": "けはい" },
-  { "display": "予感", "kana": "よかん" },
-  { "display": "本能", "kana": "ほんのう" },
-  { "display": "直感", "kana": "ちょっかん" },
-  { "display": "第六感", "kana": "だいろっかん" },
-  { "display": "背筋が凍る", "kana": "せすじがこおる" },
-  { "display": "鳥肌が立つ", "kana": "とりはだがたつ" },
-  { "display": "心臓に悪い", "kana": "しんぞうにわるい" },
-  { "display": "腰を抜かす", "kana": "こしをぬかす" },
-  { "display": "命拾い", "kana": "いのちびろい" },
-  { "display": "九死に一生", "kana": "きゅうしにいっしょう" },
-  { "display": "間一髪", "kana": "かんいっぱつ" },
-  { "display": "紙一重", "kana": "かみひとえ" },
-  { "display": "薄氷を踏む", "kana": "はくひょうをふむ" },
-  { "display": "崖っぷち", "kana": "がけっぷち" },
-  { "display": "土壇場", "kana": "どたんば" },
-  { "display": "正念場", "kana": "しょうねんば" },
-  { "display": "見せ場", "kana": "みせば" },
-  { "display": "山場", "kana": "やまば" },
-  { "display": "修羅場", "kana": "しゅらば" }
+  {
+    "display": "猫",
+    "kana": "ねこ"
+  },
+  {
+    "display": "犬",
+    "kana": "いぬ"
+  },
+  {
+    "display": "鳥",
+    "kana": "とり"
+  },
+  {
+    "display": "猿",
+    "kana": "さる"
+  },
+  {
+    "display": "熊",
+    "kana": "くま"
+  },
+  {
+    "display": "牛",
+    "kana": "うし"
+  },
+  {
+    "display": "馬",
+    "kana": "うま"
+  },
+  {
+    "display": "亀",
+    "kana": "かめ"
+  },
+  {
+    "display": "蜂",
+    "kana": "はち"
+  },
+  {
+    "display": "蟹",
+    "kana": "かに"
+  },
+  {
+    "display": "蛸",
+    "kana": "たこ"
+  },
+  {
+    "display": "烏賊",
+    "kana": "いか"
+  },
+  {
+    "display": "海老",
+    "kana": "えび"
+  },
+  {
+    "display": "鹿",
+    "kana": "しか"
+  },
+  {
+    "display": "豚",
+    "kana": "ぶた"
+  },
+  {
+    "display": "象",
+    "kana": "ぞう"
+  },
+  {
+    "display": "虎",
+    "kana": "とら"
+  },
+  {
+    "display": "リス",
+    "kana": "りす"
+  },
+  {
+    "display": "蛇",
+    "kana": "へび"
+  },
+  {
+    "display": "鷹",
+    "kana": "たか"
+  },
+  {
+    "display": "鷲",
+    "kana": "わし"
+  },
+  {
+    "display": "蟻",
+    "kana": "あり"
+  },
+  {
+    "display": "蝉",
+    "kana": "せみ"
+  },
+  {
+    "display": "月",
+    "kana": "つき"
+  },
+  {
+    "display": "星",
+    "kana": "ほし"
+  },
+  {
+    "display": "空",
+    "kana": "そら"
+  },
+  {
+    "display": "海",
+    "kana": "うみ"
+  },
+  {
+    "display": "山",
+    "kana": "やま"
+  },
+  {
+    "display": "川",
+    "kana": "かわ"
+  },
+  {
+    "display": "石",
+    "kana": "いし"
+  },
+  {
+    "display": "砂",
+    "kana": "すな"
+  },
+  {
+    "display": "雲",
+    "kana": "くも"
+  },
+  {
+    "display": "雨",
+    "kana": "あめ"
+  },
+  {
+    "display": "雪",
+    "kana": "ゆき"
+  },
+  {
+    "display": "風",
+    "kana": "かぜ"
+  },
+  {
+    "display": "昼",
+    "kana": "ひる"
+  },
+  {
+    "display": "夜",
+    "kana": "よる"
+  },
+  {
+    "display": "朝",
+    "kana": "あさ"
+  },
+  {
+    "display": "春",
+    "kana": "はる"
+  },
+  {
+    "display": "夏",
+    "kana": "なつ"
+  },
+  {
+    "display": "秋",
+    "kana": "あき"
+  },
+  {
+    "display": "冬",
+    "kana": "ふゆ"
+  },
+  {
+    "display": "水",
+    "kana": "みず"
+  },
+  {
+    "display": "顔",
+    "kana": "かお"
+  },
+  {
+    "display": "耳",
+    "kana": "みみ"
+  },
+  {
+    "display": "花",
+    "kana": "はな"
+  },
+  {
+    "display": "口",
+    "kana": "くち"
+  },
+  {
+    "display": "足",
+    "kana": "あし"
+  },
+  {
+    "display": "腕",
+    "kana": "うで"
+  },
+  {
+    "display": "指",
+    "kana": "ゆび"
+  },
+  {
+    "display": "腰",
+    "kana": "こし"
+  },
+  {
+    "display": "骨",
+    "kana": "ほね"
+  },
+  {
+    "display": "米",
+    "kana": "こめ"
+  },
+  {
+    "display": "味噌",
+    "kana": "みそ"
+  },
+  {
+    "display": "寿司",
+    "kana": "すし"
+  },
+  {
+    "display": "餅",
+    "kana": "もち"
+  },
+  {
+    "display": "パン",
+    "kana": "ぱん"
+  },
+  {
+    "display": "蕎麦",
+    "kana": "そば"
+  },
+  {
+    "display": "肉",
+    "kana": "にく"
+  },
+  {
+    "display": "酒",
+    "kana": "さけ"
+  },
+  {
+    "display": "傘",
+    "kana": "かさ"
+  },
+  {
+    "display": "靴",
+    "kana": "くつ"
+  },
+  {
+    "display": "服",
+    "kana": "ふく"
+  },
+  {
+    "display": "本",
+    "kana": "ほん"
+  },
+  {
+    "display": "駅",
+    "kana": "えき"
+  },
+  {
+    "display": "道",
+    "kana": "みち"
+  },
+  {
+    "display": "家",
+    "kana": "いえ"
+  },
+  {
+    "display": "庭",
+    "kana": "にわ"
+  },
+  {
+    "display": "窓",
+    "kana": "まど"
+  },
+  {
+    "display": "鍵",
+    "kana": "かぎ"
+  },
+  {
+    "display": "箱",
+    "kana": "はこ"
+  },
+  {
+    "display": "船",
+    "kana": "ふね"
+  },
+  {
+    "display": "橋",
+    "kana": "はし"
+  },
+  {
+    "display": "森",
+    "kana": "もり"
+  },
+  {
+    "display": "池",
+    "kana": "いけ"
+  },
+  {
+    "display": "島",
+    "kana": "しま"
+  },
+  {
+    "display": "谷",
+    "kana": "たに"
+  },
+  {
+    "display": "丘",
+    "kana": "おか"
+  },
+  {
+    "display": "岩",
+    "kana": "いわ"
+  },
+  {
+    "display": "波",
+    "kana": "なみ"
+  },
+  {
+    "display": "影",
+    "kana": "かげ"
+  },
+  {
+    "display": "音",
+    "kana": "おと"
+  },
+  {
+    "display": "声",
+    "kana": "こえ"
+  },
+  {
+    "display": "色",
+    "kana": "いろ"
+  },
+  {
+    "display": "夢",
+    "kana": "ゆめ"
+  },
+  {
+    "display": "過去",
+    "kana": "かこ"
+  },
+  {
+    "display": "意味",
+    "kana": "いみ"
+  },
+  {
+    "display": "赤",
+    "kana": "あか"
+  },
+  {
+    "display": "青",
+    "kana": "あお"
+  },
+  {
+    "display": "白",
+    "kana": "しろ"
+  },
+  {
+    "display": "黒",
+    "kana": "くろ"
+  },
+  {
+    "display": "武器",
+    "kana": "ぶき"
+  },
+  {
+    "display": "弾",
+    "kana": "たま"
+  },
+  {
+    "display": "首",
+    "kana": "くび"
+  },
+  {
+    "display": "肩",
+    "kana": "かた"
+  },
+  {
+    "display": "膝",
+    "kana": "ひざ"
+  },
+  {
+    "display": "爪",
+    "kana": "つめ"
+  },
+  {
+    "display": "喉",
+    "kana": "のど"
+  },
+  {
+    "display": "咳",
+    "kana": "せき"
+  },
+  {
+    "display": "熱",
+    "kana": "ねつ"
+  },
+  {
+    "display": "屋根",
+    "kana": "やね"
+  },
+  {
+    "display": "壁",
+    "kana": "かべ"
+  },
+  {
+    "display": "床",
+    "kana": "ゆか"
+  },
+  {
+    "display": "バス",
+    "kana": "ばす"
+  },
+  {
+    "display": "釣り",
+    "kana": "つり"
+  },
+  {
+    "display": "歌",
+    "kana": "うた"
+  },
+  {
+    "display": "飛ぶ",
+    "kana": "とぶ"
+  },
+  {
+    "display": "飲む",
+    "kana": "のむ"
+  },
+  {
+    "display": "泣く",
+    "kana": "なく"
+  },
+  {
+    "display": "書く",
+    "kana": "かく"
+  },
+  {
+    "display": "読む",
+    "kana": "よむ"
+  },
+  {
+    "display": "聞く",
+    "kana": "きく"
+  },
+  {
+    "display": "待つ",
+    "kana": "まつ"
+  },
+  {
+    "display": "買う",
+    "kana": "かう"
+  },
+  {
+    "display": "売る",
+    "kana": "うる"
+  },
+  {
+    "display": "理科",
+    "kana": "りか"
+  },
+  {
+    "display": "画家",
+    "kana": "がか"
+  },
+  {
+    "display": "午後",
+    "kana": "ごご"
+  },
+  {
+    "display": "虹",
+    "kana": "にじ"
+  },
+  {
+    "display": "塩",
+    "kana": "しお"
+  },
+  {
+    "display": "椅子",
+    "kana": "いす"
+  },
+  {
+    "display": "眼鏡",
+    "kana": "めがね"
+  },
+  {
+    "display": "時計",
+    "kana": "とけい"
+  },
+  {
+    "display": "魚",
+    "kana": "さかな"
+  },
+  {
+    "display": "卵",
+    "kana": "たまご"
+  },
+  {
+    "display": "みかん",
+    "kana": "みかん"
+  },
+  {
+    "display": "りんご",
+    "kana": "りんご"
+  },
+  {
+    "display": "バナナ",
+    "kana": "ばなな"
+  },
+  {
+    "display": "ぶどう",
+    "kana": "ぶどう"
+  },
+  {
+    "display": "いちご",
+    "kana": "いちご"
+  },
+  {
+    "display": "すいか",
+    "kana": "すいか"
+  },
+  {
+    "display": "野菜",
+    "kana": "やさい"
+  },
+  {
+    "display": "ご飯",
+    "kana": "ごはん"
+  },
+  {
+    "display": "お茶",
+    "kana": "おちゃ"
+  },
+  {
+    "display": "氷",
+    "kana": "こおり"
+  },
+  {
+    "display": "砂糖",
+    "kana": "さとう"
+  },
+  {
+    "display": "机",
+    "kana": "つくえ"
+  },
+  {
+    "display": "電話",
+    "kana": "でんわ"
+  },
+  {
+    "display": "手紙",
+    "kana": "てがみ"
+  },
+  {
+    "display": "葉書",
+    "kana": "はがき"
+  },
+  {
+    "display": "鞄",
+    "kana": "かばん"
+  },
+  {
+    "display": "帽子",
+    "kana": "ぼうし"
+  },
+  {
+    "display": "上着",
+    "kana": "うわぎ"
+  },
+  {
+    "display": "着物",
+    "kana": "きもの"
+  },
+  {
+    "display": "浴衣",
+    "kana": "ゆかた"
+  },
+  {
+    "display": "お金",
+    "kana": "おかね"
+  },
+  {
+    "display": "財布",
+    "kana": "さいふ"
+  },
+  {
+    "display": "鏡",
+    "kana": "かがみ"
+  },
+  {
+    "display": "医者",
+    "kana": "いしゃ"
+  },
+  {
+    "display": "家族",
+    "kana": "かぞく"
+  },
+  {
+    "display": "親子",
+    "kana": "おやこ"
+  },
+  {
+    "display": "大人",
+    "kana": "おとな"
+  },
+  {
+    "display": "子供",
+    "kana": "こども"
+  },
+  {
+    "display": "男",
+    "kana": "おとこ"
+  },
+  {
+    "display": "女",
+    "kana": "おんな"
+  },
+  {
+    "display": "一人",
+    "kana": "ひとり"
+  },
+  {
+    "display": "二人",
+    "kana": "ふたり"
+  },
+  {
+    "display": "皆",
+    "kana": "みんな"
+  },
+  {
+    "display": "名前",
+    "kana": "なまえ"
+  },
+  {
+    "display": "言葉",
+    "kana": "ことば"
+  },
+  {
+    "display": "話",
+    "kana": "はなし"
+  },
+  {
+    "display": "キリン",
+    "kana": "きりん"
+  },
+  {
+    "display": "パンダ",
+    "kana": "ぱんだ"
+  },
+  {
+    "display": "コアラ",
+    "kana": "こあら"
+  },
+  {
+    "display": "兎",
+    "kana": "うさぎ"
+  },
+  {
+    "display": "狐",
+    "kana": "きつね"
+  },
+  {
+    "display": "狸",
+    "kana": "たぬき"
+  },
+  {
+    "display": "鼠",
+    "kana": "ねずみ"
+  },
+  {
+    "display": "蛙",
+    "kana": "かえる"
+  },
+  {
+    "display": "メダカ",
+    "kana": "めだか"
+  },
+  {
+    "display": "鯨",
+    "kana": "くじら"
+  },
+  {
+    "display": "イルカ",
+    "kana": "いるか"
+  },
+  {
+    "display": "カラス",
+    "kana": "からす"
+  },
+  {
+    "display": "雀",
+    "kana": "すずめ"
+  },
+  {
+    "display": "燕",
+    "kana": "つばめ"
+  },
+  {
+    "display": "トンボ",
+    "kana": "とんぼ"
+  },
+  {
+    "display": "蛍",
+    "kana": "ほたる"
+  },
+  {
+    "display": "台風",
+    "kana": "たいふう"
+  },
+  {
+    "display": "地震",
+    "kana": "じしん"
+  },
+  {
+    "display": "雷",
+    "kana": "かみなり"
+  },
+  {
+    "display": "朝日",
+    "kana": "あさひ"
+  },
+  {
+    "display": "星座",
+    "kana": "せいざ"
+  },
+  {
+    "display": "銀河",
+    "kana": "ぎんが"
+  },
+  {
+    "display": "宇宙",
+    "kana": "うちゅう"
+  },
+  {
+    "display": "太陽",
+    "kana": "たいよう"
+  },
+  {
+    "display": "地球",
+    "kana": "ちきゅう"
+  },
+  {
+    "display": "湖",
+    "kana": "みずうみ"
+  },
+  {
+    "display": "光",
+    "kana": "ひかり"
+  },
+  {
+    "display": "形",
+    "kana": "かたち"
+  },
+  {
+    "display": "涙",
+    "kana": "なみだ"
+  },
+  {
+    "display": "笑顔",
+    "kana": "えがお"
+  },
+  {
+    "display": "心",
+    "kana": "こころ"
+  },
+  {
+    "display": "命",
+    "kana": "いのち"
+  },
+  {
+    "display": "世界",
+    "kana": "せかい"
+  },
+  {
+    "display": "平和",
+    "kana": "へいわ"
+  },
+  {
+    "display": "自由",
+    "kana": "じゆう"
+  },
+  {
+    "display": "未来",
+    "kana": "みらい"
+  },
+  {
+    "display": "記憶",
+    "kana": "きおく"
+  },
+  {
+    "display": "秘密",
+    "kana": "ひみつ"
+  },
+  {
+    "display": "知識",
+    "kana": "ちしき"
+  },
+  {
+    "display": "理由",
+    "kana": "りゆう"
+  },
+  {
+    "display": "結果",
+    "kana": "けっか"
+  },
+  {
+    "display": "答え",
+    "kana": "こたえ"
+  },
+  {
+    "display": "緑",
+    "kana": "みどり"
+  },
+  {
+    "display": "黄色",
+    "kana": "きいろ"
+  },
+  {
+    "display": "辞書",
+    "kana": "じしょ"
+  },
+  {
+    "display": "はさみ",
+    "kana": "はさみ"
+  },
+  {
+    "display": "会議",
+    "kana": "かいぎ"
+  },
+  {
+    "display": "名刺",
+    "kana": "めいし"
+  },
+  {
+    "display": "今日",
+    "kana": "きょう"
+  },
+  {
+    "display": "明日",
+    "kana": "あした"
+  },
+  {
+    "display": "昨日",
+    "kana": "きのう"
+  },
+  {
+    "display": "今年",
+    "kana": "ことし"
+  },
+  {
+    "display": "時間",
+    "kana": "じかん"
+  },
+  {
+    "display": "午前",
+    "kana": "ごぜん"
+  },
+  {
+    "display": "深夜",
+    "kana": "しんや"
+  },
+  {
+    "display": "刺身",
+    "kana": "さしみ"
+  },
+  {
+    "display": "豆腐",
+    "kana": "とうふ"
+  },
+  {
+    "display": "わかめ",
+    "kana": "わかめ"
+  },
+  {
+    "display": "団子",
+    "kana": "だんご"
+  },
+  {
+    "display": "ケーキ",
+    "kana": "けーき"
+  },
+  {
+    "display": "ジュース",
+    "kana": "じゅーす"
+  },
+  {
+    "display": "コーラ",
+    "kana": "こーら"
+  },
+  {
+    "display": "ビール",
+    "kana": "びーる"
+  },
+  {
+    "display": "ワイン",
+    "kana": "わいん"
+  },
+  {
+    "display": "カレー",
+    "kana": "かれー"
+  },
+  {
+    "display": "テニス",
+    "kana": "てにす"
+  },
+  {
+    "display": "空手",
+    "kana": "からて"
+  },
+  {
+    "display": "登山",
+    "kana": "とざん"
+  },
+  {
+    "display": "散歩",
+    "kana": "さんぽ"
+  },
+  {
+    "display": "旅行",
+    "kana": "りょこう"
+  },
+  {
+    "display": "映画",
+    "kana": "えいが"
+  },
+  {
+    "display": "ゲーム",
+    "kana": "げーむ"
+  },
+  {
+    "display": "布団",
+    "kana": "ふとん"
+  },
+  {
+    "display": "枕",
+    "kana": "まくら"
+  },
+  {
+    "display": "毛布",
+    "kana": "もうふ"
+  },
+  {
+    "display": "箪笥",
+    "kana": "たんす"
+  },
+  {
+    "display": "廊下",
+    "kana": "ろうか"
+  },
+  {
+    "display": "お風呂",
+    "kana": "おふろ"
+  },
+  {
+    "display": "トイレ",
+    "kana": "といれ"
+  },
+  {
+    "display": "テレビ",
+    "kana": "てれび"
+  },
+  {
+    "display": "ラジオ",
+    "kana": "らじお"
+  },
+  {
+    "display": "港",
+    "kana": "みなと"
+  },
+  {
+    "display": "線路",
+    "kana": "せんろ"
+  },
+  {
+    "display": "切符",
+    "kana": "きっぷ"
+  },
+  {
+    "display": "電車",
+    "kana": "でんしゃ"
+  },
+  {
+    "display": "頭",
+    "kana": "あたま"
+  },
+  {
+    "display": "眉毛",
+    "kana": "まゆげ"
+  },
+  {
+    "display": "まつ毛",
+    "kana": "まつげ"
+  },
+  {
+    "display": "背中",
+    "kana": "せなか"
+  },
+  {
+    "display": "お腹",
+    "kana": "おなか"
+  },
+  {
+    "display": "かかと",
+    "kana": "かかと"
+  },
+  {
+    "display": "力",
+    "kana": "ちから"
+  },
+  {
+    "display": "マスク",
+    "kana": "ますく"
+  },
+  {
+    "display": "めまい",
+    "kana": "めまい"
+  },
+  {
+    "display": "頭痛",
+    "kana": "ずつう"
+  },
+  {
+    "display": "雑誌",
+    "kana": "ざっし"
+  },
+  {
+    "display": "政治",
+    "kana": "せいじ"
+  },
+  {
+    "display": "文化",
+    "kana": "ぶんか"
+  },
+  {
+    "display": "歴史",
+    "kana": "れきし"
+  },
+  {
+    "display": "科学",
+    "kana": "かがく"
+  },
+  {
+    "display": "国語",
+    "kana": "こくご"
+  },
+  {
+    "display": "英語",
+    "kana": "えいご"
+  },
+  {
+    "display": "美術",
+    "kana": "びじゅつ"
+  },
+  {
+    "display": "ゾンビ",
+    "kana": "ぞんび"
+  },
+  {
+    "display": "闇夜",
+    "kana": "やみよ"
+  },
+  {
+    "display": "炎",
+    "kana": "ほのお"
+  },
+  {
+    "display": "煙",
+    "kana": "けむり"
+  },
+  {
+    "display": "銃",
+    "kana": "じゅう"
+  },
+  {
+    "display": "希望",
+    "kana": "きぼう"
+  },
+  {
+    "display": "勇気",
+    "kana": "ゆうき"
+  },
+  {
+    "display": "奇跡",
+    "kana": "きせき"
+  },
+  {
+    "display": "危険",
+    "kana": "きけん"
+  },
+  {
+    "display": "援護",
+    "kana": "えんご"
+  },
+  {
+    "display": "東京",
+    "kana": "とうきょう"
+  },
+  {
+    "display": "名古屋",
+    "kana": "なごや"
+  },
+  {
+    "display": "神戸",
+    "kana": "こうべ"
+  },
+  {
+    "display": "花火",
+    "kana": "はなび"
+  },
+  {
+    "display": "花見",
+    "kana": "はなみ"
+  },
+  {
+    "display": "紅葉",
+    "kana": "こうよう"
+  },
+  {
+    "display": "走る",
+    "kana": "はしる"
+  },
+  {
+    "display": "歩く",
+    "kana": "あるく"
+  },
+  {
+    "display": "泳ぐ",
+    "kana": "およぐ"
+  },
+  {
+    "display": "食べる",
+    "kana": "たべる"
+  },
+  {
+    "display": "眠る",
+    "kana": "ねむる"
+  },
+  {
+    "display": "笑う",
+    "kana": "わらう"
+  },
+  {
+    "display": "怒る",
+    "kana": "おこる"
+  },
+  {
+    "display": "歌う",
+    "kana": "うたう"
+  },
+  {
+    "display": "踊る",
+    "kana": "おどる"
+  },
+  {
+    "display": "話す",
+    "kana": "はなす"
+  },
+  {
+    "display": "遊ぶ",
+    "kana": "あそぶ"
+  },
+  {
+    "display": "学ぶ",
+    "kana": "まなぶ"
+  },
+  {
+    "display": "休む",
+    "kana": "やすむ"
+  },
+  {
+    "display": "急ぐ",
+    "kana": "いそぐ"
+  },
+  {
+    "display": "作る",
+    "kana": "つくる"
+  },
+  {
+    "display": "壊す",
+    "kana": "こわす"
+  },
+  {
+    "display": "直す",
+    "kana": "なおす"
+  },
+  {
+    "display": "探す",
+    "kana": "さがす"
+  },
+  {
+    "display": "守る",
+    "kana": "まもる"
+  },
+  {
+    "display": "逃げる",
+    "kana": "にげる"
+  },
+  {
+    "display": "防ぐ",
+    "kana": "ふせぐ"
+  },
+  {
+    "display": "暗い",
+    "kana": "くらい"
+  },
+  {
+    "display": "暑い",
+    "kana": "あつい"
+  },
+  {
+    "display": "寒い",
+    "kana": "さむい"
+  },
+  {
+    "display": "高い",
+    "kana": "たかい"
+  },
+  {
+    "display": "低い",
+    "kana": "ひくい"
+  },
+  {
+    "display": "長い",
+    "kana": "ながい"
+  },
+  {
+    "display": "広い",
+    "kana": "ひろい"
+  },
+  {
+    "display": "狭い",
+    "kana": "せまい"
+  },
+  {
+    "display": "速い",
+    "kana": "はやい"
+  },
+  {
+    "display": "遅い",
+    "kana": "おそい"
+  },
+  {
+    "display": "強い",
+    "kana": "つよい"
+  },
+  {
+    "display": "弱い",
+    "kana": "よわい"
+  },
+  {
+    "display": "古い",
+    "kana": "ふるい"
+  },
+  {
+    "display": "怖い",
+    "kana": "こわい"
+  },
+  {
+    "display": "まずい",
+    "kana": "まずい"
+  },
+  {
+    "display": "甘い",
+    "kana": "あまい"
+  },
+  {
+    "display": "辛い",
+    "kana": "からい"
+  },
+  {
+    "display": "苦い",
+    "kana": "にがい"
+  },
+  {
+    "display": "静か",
+    "kana": "しずか"
+  },
+  {
+    "display": "綺麗",
+    "kana": "きれい"
+  },
+  {
+    "display": "果物",
+    "kana": "くだもの"
+  },
+  {
+    "display": "手袋",
+    "kana": "てぶくろ"
+  },
+  {
+    "display": "靴下",
+    "kana": "くつした"
+  },
+  {
+    "display": "切手",
+    "kana": "きって"
+  },
+  {
+    "display": "学校",
+    "kana": "がっこう"
+  },
+  {
+    "display": "先生",
+    "kana": "せんせい"
+  },
+  {
+    "display": "学生",
+    "kana": "がくせい"
+  },
+  {
+    "display": "友達",
+    "kana": "ともだち"
+  },
+  {
+    "display": "うがい",
+    "kana": "うがい"
+  },
+  {
+    "display": "俳優",
+    "kana": "はいゆう"
+  },
+  {
+    "display": "歌手",
+    "kana": "かしゅ"
+  },
+  {
+    "display": "看護師",
+    "kana": "かんごし"
+  },
+  {
+    "display": "美容師",
+    "kana": "びようし"
+  },
+  {
+    "display": "漫画家",
+    "kana": "まんがか"
+  },
+  {
+    "display": "夕焼け",
+    "kana": "ゆうやけ"
+  },
+  {
+    "display": "一日",
+    "kana": "いちにち"
+  },
+  {
+    "display": "毎日",
+    "kana": "まいにち"
+  },
+  {
+    "display": "一昨日",
+    "kana": "おととい"
+  },
+  {
+    "display": "先月",
+    "kana": "せんげつ"
+  },
+  {
+    "display": "来年",
+    "kana": "らいねん"
+  },
+  {
+    "display": "平日",
+    "kana": "へいじつ"
+  },
+  {
+    "display": "夕方",
+    "kana": "ゆうがた"
+  },
+  {
+    "display": "明け方",
+    "kana": "あけがた"
+  },
+  {
+    "display": "おにぎり",
+    "kana": "おにぎり"
+  },
+  {
+    "display": "弁当",
+    "kana": "べんとう"
+  },
+  {
+    "display": "ラーメン",
+    "kana": "らーめん"
+  },
+  {
+    "display": "焼きそば",
+    "kana": "やきそば"
+  },
+  {
+    "display": "たこ焼き",
+    "kana": "たこやき"
+  },
+  {
+    "display": "天ぷら",
+    "kana": "てんぷら"
+  },
+  {
+    "display": "とんかつ",
+    "kana": "とんかつ"
+  },
+  {
+    "display": "焼き鳥",
+    "kana": "やきとり"
+  },
+  {
+    "display": "納豆",
+    "kana": "なっとう"
+  },
+  {
+    "display": "味噌汁",
+    "kana": "みそしる"
+  },
+  {
+    "display": "漬物",
+    "kana": "つけもの"
+  },
+  {
+    "display": "煎餅",
+    "kana": "せんべい"
+  },
+  {
+    "display": "紅茶",
+    "kana": "こうちゃ"
+  },
+  {
+    "display": "コーヒー",
+    "kana": "こーひー"
+  },
+  {
+    "display": "牛乳",
+    "kana": "ぎゅうにゅう"
+  },
+  {
+    "display": "サッカー",
+    "kana": "さっかー"
+  },
+  {
+    "display": "野球",
+    "kana": "やきゅう"
+  },
+  {
+    "display": "水泳",
+    "kana": "すいえい"
+  },
+  {
+    "display": "マラソン",
+    "kana": "まらそん"
+  },
+  {
+    "display": "体操",
+    "kana": "たいそう"
+  },
+  {
+    "display": "柔道",
+    "kana": "じゅうどう"
+  },
+  {
+    "display": "剣道",
+    "kana": "けんどう"
+  },
+  {
+    "display": "写真",
+    "kana": "しゃしん"
+  },
+  {
+    "display": "音楽",
+    "kana": "おんがく"
+  },
+  {
+    "display": "読書",
+    "kana": "どくしょ"
+  },
+  {
+    "display": "カラオケ",
+    "kana": "からおけ"
+  },
+  {
+    "display": "ライオン",
+    "kana": "らいおん"
+  },
+  {
+    "display": "ペンギン",
+    "kana": "ぺんぎん"
+  },
+  {
+    "display": "フクロウ",
+    "kana": "ふくろう"
+  },
+  {
+    "display": "ちょうちょ",
+    "kana": "ちょうちょ"
+  },
+  {
+    "display": "クワガタ",
+    "kana": "くわがた"
+  },
+  {
+    "display": "掃除機",
+    "kana": "そうじき"
+  },
+  {
+    "display": "暖房",
+    "kana": "だんぼう"
+  },
+  {
+    "display": "冷房",
+    "kana": "れいぼう"
+  },
+  {
+    "display": "カーテン",
+    "kana": "かーてん"
+  },
+  {
+    "display": "本棚",
+    "kana": "ほんだな"
+  },
+  {
+    "display": "玄関",
+    "kana": "げんかん"
+  },
+  {
+    "display": "階段",
+    "kana": "かいだん"
+  },
+  {
+    "display": "寝室",
+    "kana": "しんしつ"
+  },
+  {
+    "display": "ベランダ",
+    "kana": "べらんだ"
+  },
+  {
+    "display": "煙突",
+    "kana": "えんとつ"
+  },
+  {
+    "display": "エアコン",
+    "kana": "えあこん"
+  },
+  {
+    "display": "パソコン",
+    "kana": "ぱそこん"
+  },
+  {
+    "display": "地下鉄",
+    "kana": "ちかてつ"
+  },
+  {
+    "display": "信号",
+    "kana": "しんごう"
+  },
+  {
+    "display": "空港",
+    "kana": "くうこう"
+  },
+  {
+    "display": "パトカー",
+    "kana": "ぱとかー"
+  },
+  {
+    "display": "飛行機",
+    "kana": "ひこうき"
+  },
+  {
+    "display": "髪の毛",
+    "kana": "かみのけ"
+  },
+  {
+    "display": "ほっぺた",
+    "kana": "ほっぺた"
+  },
+  {
+    "display": "筋肉",
+    "kana": "きんにく"
+  },
+  {
+    "display": "健康",
+    "kana": "けんこう"
+  },
+  {
+    "display": "病気",
+    "kana": "びょうき"
+  },
+  {
+    "display": "注射",
+    "kana": "ちゅうしゃ"
+  },
+  {
+    "display": "くしゃみ",
+    "kana": "くしゃみ"
+  },
+  {
+    "display": "歯医者",
+    "kana": "はいしゃ"
+  },
+  {
+    "display": "新聞",
+    "kana": "しんぶん"
+  },
+  {
+    "display": "番組",
+    "kana": "ばんぐみ"
+  },
+  {
+    "display": "ニュース",
+    "kana": "にゅーす"
+  },
+  {
+    "display": "広告",
+    "kana": "こうこく"
+  },
+  {
+    "display": "選挙",
+    "kana": "せんきょ"
+  },
+  {
+    "display": "経済",
+    "kana": "けいざい"
+  },
+  {
+    "display": "数学",
+    "kana": "すうがく"
+  },
+  {
+    "display": "社会",
+    "kana": "しゃかい"
+  },
+  {
+    "display": "体育",
+    "kana": "たいいく"
+  },
+  {
+    "display": "道徳",
+    "kana": "どうとく"
+  },
+  {
+    "display": "恐怖",
+    "kana": "きょうふ"
+  },
+  {
+    "display": "真夜中",
+    "kana": "まよなか"
+  },
+  {
+    "display": "廃墟",
+    "kana": "はいきょ"
+  },
+  {
+    "display": "防衛",
+    "kana": "ぼうえい"
+  },
+  {
+    "display": "生存",
+    "kana": "せいぞん"
+  },
+  {
+    "display": "レーザー",
+    "kana": "れーざー"
+  },
+  {
+    "display": "絶望",
+    "kana": "ぜつぼう"
+  },
+  {
+    "display": "運命",
+    "kana": "うんめい"
+  },
+  {
+    "display": "心配",
+    "kana": "しんぱい"
+  },
+  {
+    "display": "安全",
+    "kana": "あんぜん"
+  },
+  {
+    "display": "警戒",
+    "kana": "けいかい"
+  },
+  {
+    "display": "攻撃",
+    "kana": "こうげき"
+  },
+  {
+    "display": "防御",
+    "kana": "ぼうぎょ"
+  },
+  {
+    "display": "回復",
+    "kana": "かいふく"
+  },
+  {
+    "display": "作戦",
+    "kana": "さくせん"
+  },
+  {
+    "display": "命令",
+    "kana": "めいれい"
+  },
+  {
+    "display": "突撃",
+    "kana": "とつげき"
+  },
+  {
+    "display": "撤退",
+    "kana": "てったい"
+  },
+  {
+    "display": "大阪",
+    "kana": "おおさか"
+  },
+  {
+    "display": "京都",
+    "kana": "きょうと"
+  },
+  {
+    "display": "沖縄",
+    "kana": "おきなわ"
+  },
+  {
+    "display": "福岡",
+    "kana": "ふくおか"
+  },
+  {
+    "display": "横浜",
+    "kana": "よこはま"
+  },
+  {
+    "display": "広島",
+    "kana": "ひろしま"
+  },
+  {
+    "display": "仙台",
+    "kana": "せんだい"
+  },
+  {
+    "display": "札幌",
+    "kana": "さっぽろ"
+  },
+  {
+    "display": "お祭り",
+    "kana": "おまつり"
+  },
+  {
+    "display": "遠足",
+    "kana": "えんそく"
+  },
+  {
+    "display": "明るい",
+    "kana": "あかるい"
+  },
+  {
+    "display": "短い",
+    "kana": "みじかい"
+  },
+  {
+    "display": "大きい",
+    "kana": "おおきい"
+  },
+  {
+    "display": "小さい",
+    "kana": "ちいさい"
+  },
+  {
+    "display": "楽しい",
+    "kana": "たのしい"
+  },
+  {
+    "display": "嬉しい",
+    "kana": "うれしい"
+  },
+  {
+    "display": "悲しい",
+    "kana": "かなしい"
+  },
+  {
+    "display": "美味しい",
+    "kana": "おいしい"
+  },
+  {
+    "display": "賑やか",
+    "kana": "にぎやか"
+  },
+  {
+    "display": "優しい",
+    "kana": "やさしい"
+  },
+  {
+    "display": "働く",
+    "kana": "はたらく"
+  },
+  {
+    "display": "見つける",
+    "kana": "みつける"
+  },
+  {
+    "display": "覚える",
+    "kana": "おぼえる"
+  },
+  {
+    "display": "忘れる",
+    "kana": "わすれる"
+  },
+  {
+    "display": "調べる",
+    "kana": "しらべる"
+  },
+  {
+    "display": "伝える",
+    "kana": "つたえる"
+  },
+  {
+    "display": "助ける",
+    "kana": "たすける"
+  },
+  {
+    "display": "戦う",
+    "kana": "たたかう"
+  },
+  {
+    "display": "茶色",
+    "kana": "ちゃいろ"
+  },
+  {
+    "display": "紫",
+    "kana": "むらさき"
+  },
+  {
+    "display": "桃色",
+    "kana": "ももいろ"
+  },
+  {
+    "display": "灰色",
+    "kana": "はいいろ"
+  },
+  {
+    "display": "金色",
+    "kana": "きんいろ"
+  },
+  {
+    "display": "銀色",
+    "kana": "ぎんいろ"
+  },
+  {
+    "display": "現在",
+    "kana": "げんざい"
+  },
+  {
+    "display": "約束",
+    "kana": "やくそく"
+  },
+  {
+    "display": "冒険",
+    "kana": "ぼうけん"
+  },
+  {
+    "display": "勝利",
+    "kana": "しょうり"
+  },
+  {
+    "display": "敗北",
+    "kana": "はいぼく"
+  },
+  {
+    "display": "努力",
+    "kana": "どりょく"
+  },
+  {
+    "display": "準備",
+    "kana": "じゅんび"
+  },
+  {
+    "display": "完成",
+    "kana": "かんせい"
+  },
+  {
+    "display": "成功",
+    "kana": "せいこう"
+  },
+  {
+    "display": "失敗",
+    "kana": "しっぱい"
+  },
+  {
+    "display": "経験",
+    "kana": "けいけん"
+  },
+  {
+    "display": "想像",
+    "kana": "そうぞう"
+  },
+  {
+    "display": "発明",
+    "kana": "はつめい"
+  },
+  {
+    "display": "発見",
+    "kana": "はっけん"
+  },
+  {
+    "display": "実験",
+    "kana": "じっけん"
+  },
+  {
+    "display": "観察",
+    "kana": "かんさつ"
+  },
+  {
+    "display": "計算",
+    "kana": "けいさん"
+  },
+  {
+    "display": "質問",
+    "kana": "しつもん"
+  },
+  {
+    "display": "問題",
+    "kana": "もんだい"
+  },
+  {
+    "display": "正解",
+    "kana": "せいかい"
+  },
+  {
+    "display": "間違い",
+    "kana": "まちがい"
+  },
+  {
+    "display": "説明",
+    "kana": "せつめい"
+  },
+  {
+    "display": "目的",
+    "kana": "もくてき"
+  },
+  {
+    "display": "方法",
+    "kana": "ほうほう"
+  },
+  {
+    "display": "原因",
+    "kana": "げんいん"
+  },
+  {
+    "display": "授業",
+    "kana": "じゅぎょう"
+  },
+  {
+    "display": "宿題",
+    "kana": "しゅくだい"
+  },
+  {
+    "display": "試験",
+    "kana": "しけん"
+  },
+  {
+    "display": "成績",
+    "kana": "せいせき"
+  },
+  {
+    "display": "鉛筆",
+    "kana": "えんぴつ"
+  },
+  {
+    "display": "消しゴム",
+    "kana": "けしごむ"
+  },
+  {
+    "display": "定規",
+    "kana": "じょうぎ"
+  },
+  {
+    "display": "資料",
+    "kana": "しりょう"
+  },
+  {
+    "display": "電卓",
+    "kana": "でんたく"
+  },
+  {
+    "display": "残業",
+    "kana": "ざんぎょう"
+  },
+  {
+    "display": "自転車",
+    "kana": "じてんしゃ"
+  },
+  {
+    "display": "特急",
+    "kana": "とっきゅう"
+  },
+  {
+    "display": "誕生日",
+    "kana": "たんじょうび"
+  },
+  {
+    "display": "夏休み",
+    "kana": "なつやすみ"
+  },
+  {
+    "display": "冬休み",
+    "kana": "ふゆやすみ"
+  },
+  {
+    "display": "昼休み",
+    "kana": "ひるやすみ"
+  },
+  {
+    "display": "お留守番",
+    "kana": "おるすばん"
+  },
+  {
+    "display": "初詣",
+    "kana": "はつもうで"
+  },
+  {
+    "display": "文化祭",
+    "kana": "ぶんかさい"
+  },
+  {
+    "display": "合宿",
+    "kana": "がっしゅく"
+  },
+  {
+    "display": "冷蔵庫",
+    "kana": "れいぞうこ"
+  },
+  {
+    "display": "洗濯機",
+    "kana": "せんたくき"
+  },
+  {
+    "display": "電球",
+    "kana": "でんきゅう"
+  },
+  {
+    "display": "コンセント",
+    "kana": "こんせんと"
+  },
+  {
+    "display": "絨毯",
+    "kana": "じゅうたん"
+  },
+  {
+    "display": "台所",
+    "kana": "だいどころ"
+  },
+  {
+    "display": "天井",
+    "kana": "てんじょう"
+  },
+  {
+    "display": "交差点",
+    "kana": "こうさてん"
+  },
+  {
+    "display": "風邪薬",
+    "kana": "かぜぐすり"
+  },
+  {
+    "display": "宝物",
+    "kana": "たからもの"
+  },
+  {
+    "display": "挑戦",
+    "kana": "ちょうせん"
+  },
+  {
+    "display": "練習",
+    "kana": "れんしゅう"
+  },
+  {
+    "display": "情報",
+    "kana": "じょうほう"
+  },
+  {
+    "display": "研究",
+    "kana": "けんきゅう"
+  },
+  {
+    "display": "図書館",
+    "kana": "としょかん"
+  },
+  {
+    "display": "市役所",
+    "kana": "しやくしょ"
+  },
+  {
+    "display": "公務員",
+    "kana": "こうむいん"
+  },
+  {
+    "display": "音楽家",
+    "kana": "おんがくか"
+  },
+  {
+    "display": "お好み焼き",
+    "kana": "おこのみやき"
+  },
+  {
+    "display": "卵焼き",
+    "kana": "たまごやき"
+  },
+  {
+    "display": "饅頭",
+    "kana": "まんじゅう"
+  },
+  {
+    "display": "チョコレート",
+    "kana": "ちょこれーと"
+  },
+  {
+    "display": "カブトムシ",
+    "kana": "かぶとむし"
+  },
+  {
+    "display": "カタツムリ",
+    "kana": "かたつむり"
+  },
+  {
+    "display": "ダンゴムシ",
+    "kana": "だんごむし"
+  },
+  {
+    "display": "教科書",
+    "kana": "きょうかしょ"
+  },
+  {
+    "display": "文房具",
+    "kana": "ぶんぼうぐ"
+  },
+  {
+    "display": "給料",
+    "kana": "きゅうりょう"
+  },
+  {
+    "display": "来週",
+    "kana": "らいしゅう"
+  },
+  {
+    "display": "週末",
+    "kana": "しゅうまつ"
+  },
+  {
+    "display": "電子レンジ",
+    "kana": "でんしれんじ"
+  },
+  {
+    "display": "新幹線",
+    "kana": "しんかんせん"
+  },
+  {
+    "display": "消防士",
+    "kana": "しょうぼうし"
+  },
+  {
+    "display": "運転手",
+    "kana": "うんてんしゅ"
+  },
+  {
+    "display": "小説家",
+    "kana": "しょうせつか"
+  },
+  {
+    "display": "高校生",
+    "kana": "こうこうせい"
+  },
+  {
+    "display": "大学生",
+    "kana": "だいがくせい"
+  },
+  {
+    "display": "会社員",
+    "kana": "かいしゃいん"
+  },
+  {
+    "display": "銀行員",
+    "kana": "ぎんこういん"
+  },
+  {
+    "display": "警察官",
+    "kana": "けいさつかん"
+  },
+  {
+    "display": "天気予報",
+    "kana": "てんきよほう"
+  },
+  {
+    "display": "北海道",
+    "kana": "ほっかいどう"
+  },
+  {
+    "display": "運動会",
+    "kana": "うんどうかい"
+  },
+  {
+    "display": "忘年会",
+    "kana": "ぼうねんかい"
+  },
+  {
+    "display": "新年会",
+    "kana": "しんねんかい"
+  },
+  {
+    "display": "体温計",
+    "kana": "たいおんけい"
+  },
+  {
+    "display": "ゾンビ退治",
+    "kana": "ぞんびたいじ"
+  },
+  {
+    "display": "秘密基地",
+    "kana": "ひみつきち"
+  },
+  {
+    "display": "いただきます",
+    "kana": "いただきます"
+  },
+  {
+    "display": "はじめまして",
+    "kana": "はじめまして"
+  },
+  {
+    "display": "アイスクリーム",
+    "kana": "あいすくりーむ"
+  },
+  {
+    "display": "スマートフォン",
+    "kana": "すまーとふぉん"
+  },
+  {
+    "display": "インターネット",
+    "kana": "いんたーねっと"
+  },
+  {
+    "display": "ゲームセンター",
+    "kana": "げーむせんたー"
+  },
+  {
+    "display": "携帯電話",
+    "kana": "けいたいでんわ"
+  },
+  {
+    "display": "高速道路",
+    "kana": "こうそくどうろ"
+  },
+  {
+    "display": "消防車",
+    "kana": "しょうぼうしゃ"
+  },
+  {
+    "display": "郵便局",
+    "kana": "ゆうびんきょく"
+  },
+  {
+    "display": "小学校",
+    "kana": "しょうがっこう"
+  },
+  {
+    "display": "中学校",
+    "kana": "ちゅうがっこう"
+  },
+  {
+    "display": "大統領",
+    "kana": "だいとうりょう"
+  },
+  {
+    "display": "総理大臣",
+    "kana": "そうりだいじん"
+  },
+  {
+    "display": "観光客",
+    "kana": "かんこうきゃく"
+  },
+  {
+    "display": "横断歩道",
+    "kana": "おうだんほどう"
+  },
+  {
+    "display": "面倒くさい",
+    "kana": "めんどうくさい"
+  },
+  {
+    "display": "おやすみなさい",
+    "kana": "おやすみなさい"
+  },
+  {
+    "display": "お元気ですか",
+    "kana": "おげんきですか"
+  },
+  {
+    "display": "おかえりなさい",
+    "kana": "おかえりなさい"
+  },
+  {
+    "display": "大晦日の夜",
+    "kana": "おおみそかのよる"
+  },
+  {
+    "display": "自動販売機",
+    "kana": "じどうはんばいき"
+  },
+  {
+    "display": "救急車",
+    "kana": "きゅうきゅうしゃ"
+  },
+  {
+    "display": "宇宙飛行士",
+    "kana": "うちゅうひこうし"
+  },
+  {
+    "display": "気象予報士",
+    "kana": "きしょうよほうし"
+  },
+  {
+    "display": "最終兵器",
+    "kana": "さいしゅうへいき"
+  },
+  {
+    "display": "ガソリンスタンド",
+    "kana": "がそりんすたんど"
+  },
+  {
+    "display": "いってらっしゃい",
+    "kana": "いってらっしゃい"
+  },
+  {
+    "display": "温泉旅行",
+    "kana": "おんせんりょこう"
+  },
+  {
+    "display": "駐車場",
+    "kana": "ちゅうしゃじょう"
+  },
+  {
+    "display": "招待状",
+    "kana": "しょうたいじょう"
+  },
+  {
+    "display": "おはようございます",
+    "kana": "おはようございます"
+  },
+  {
+    "display": "お疲れ様でした",
+    "kana": "おつかれさまでした"
+  },
+  {
+    "display": "ごちそうさまでした",
+    "kana": "ごちそうさまでした"
+  },
+  {
+    "display": "修学旅行",
+    "kana": "しゅうがくりょこう"
+  },
+  {
+    "display": "朝ご飯を食べる",
+    "kana": "あさごはんをたべる"
+  },
+  {
+    "display": "全力で逃げる",
+    "kana": "ぜんりょくでにげる"
+  },
+  {
+    "display": "必殺の一撃",
+    "kana": "ひっさつのいちげき"
+  },
+  {
+    "display": "復活の呪文",
+    "kana": "ふっかつのじゅもん"
+  },
+  {
+    "display": "伝説の勇者",
+    "kana": "でんせつのゆうしゃ"
+  },
+  {
+    "display": "深呼吸をする",
+    "kana": "しんこきゅうをする"
+  },
+  {
+    "display": "ハロウィンのかぼちゃ",
+    "kana": "はろうぃんのかぼちゃ"
+  },
+  {
+    "display": "ありがとうございます",
+    "kana": "ありがとうございます"
+  },
+  {
+    "display": "夜明けまで生き延びろ",
+    "kana": "よあけまでいきのびろ"
+  },
+  {
+    "display": "ゾンビの大軍勢",
+    "kana": "ぞんびのだいぐんぜい"
+  },
+  {
+    "display": "クリスマスプレゼント",
+    "kana": "くりすますぷれぜんと"
+  },
+  {
+    "display": "宿題を忘れた",
+    "kana": "しゅくだいをわすれた"
+  },
+  {
+    "display": "よろしくお願いします",
+    "kana": "よろしくおねがいします"
+  },
+  {
+    "display": "真夜中の大冒険",
+    "kana": "まよなかのだいぼうけん"
+  },
+  {
+    "display": "防衛ラインを守れ",
+    "kana": "ぼうえいらいんをまもれ"
+  },
+  {
+    "display": "電車に乗り遅れる",
+    "kana": "でんしゃにのりおくれる"
+  },
+  {
+    "display": "誕生日パーティー",
+    "kana": "たんじょうびぱーてぃー"
+  },
+  {
+    "display": "世界一周旅行",
+    "kana": "せかいいっしゅうりょこう"
+  },
+  {
+    "display": "遊園地のお化け屋敷",
+    "kana": "ゆうえんちのおばけやしき"
+  },
+  {
+    "display": "携帯電話を忘れた",
+    "kana": "けいたいでんわをわすれた"
+  },
+  {
+    "display": "授業中に居眠り",
+    "kana": "じゅぎょうちゅうにいねむり"
+  },
+  {
+    "display": "手を洗う",
+    "kana": "てをあらう"
+  },
+  {
+    "display": "歯を磨く",
+    "kana": "はをみがく"
+  },
+  {
+    "display": "本を読む",
+    "kana": "ほんをよむ"
+  },
+  {
+    "display": "空を飛ぶ",
+    "kana": "そらをとぶ"
+  },
+  {
+    "display": "夢を見る",
+    "kana": "ゆめをみる"
+  },
+  {
+    "display": "電気を消す",
+    "kana": "でんきをけす"
+  },
+  {
+    "display": "道に迷う",
+    "kana": "みちにまよう"
+  },
+  {
+    "display": "新しい",
+    "kana": "あたらしい"
+  },
+  {
+    "display": "美しい",
+    "kana": "うつくしい"
+  },
+  {
+    "display": "素晴らしい",
+    "kana": "すばらしい"
+  },
+  {
+    "display": "恐ろしい",
+    "kana": "おそろしい"
+  },
+  {
+    "display": "懐かしい",
+    "kana": "なつかしい"
+  },
+  {
+    "display": "難しい",
+    "kana": "むずかしい"
+  },
+  {
+    "display": "忙しい",
+    "kana": "いそがしい"
+  },
+  {
+    "display": "考える",
+    "kana": "かんがえる"
+  },
+  {
+    "display": "餃子",
+    "kana": "ぎょうざ"
+  },
+  {
+    "display": "ぎんなん",
+    "kana": "ぎんなん"
+  },
+  {
+    "display": "たんぽぽ",
+    "kana": "たんぽぽ"
+  },
+  {
+    "display": "ひまわり",
+    "kana": "ひまわり"
+  },
+  {
+    "display": "あじさい",
+    "kana": "あじさい"
+  },
+  {
+    "display": "桜並木",
+    "kana": "さくらなみき"
+  },
+  {
+    "display": "朝顔",
+    "kana": "あさがお"
+  },
+  {
+    "display": "薔薇",
+    "kana": "ばら"
+  },
+  {
+    "display": "松",
+    "kana": "まつ"
+  },
+  {
+    "display": "竹",
+    "kana": "たけ"
+  },
+  {
+    "display": "梅",
+    "kana": "うめ"
+  },
+  {
+    "display": "桜",
+    "kana": "さくら"
+  },
+  {
+    "display": "紅葉狩り",
+    "kana": "もみじがり"
+  },
+  {
+    "display": "青空",
+    "kana": "あおぞら"
+  },
+  {
+    "display": "夜空",
+    "kana": "よぞら"
+  },
+  {
+    "display": "満月",
+    "kana": "まんげつ"
+  },
+  {
+    "display": "三日月",
+    "kana": "みかづき"
+  },
+  {
+    "display": "流れ星",
+    "kana": "ながれぼし"
+  },
+  {
+    "display": "天の川",
+    "kana": "あまのがわ"
+  },
+  {
+    "display": "初雪",
+    "kana": "はつゆき"
+  },
+  {
+    "display": "吹雪",
+    "kana": "ふぶき"
+  },
+  {
+    "display": "梅雨",
+    "kana": "つゆ"
+  },
+  {
+    "display": "夕立",
+    "kana": "ゆうだち"
+  },
+  {
+    "display": "木漏れ日",
+    "kana": "こもれび"
+  },
+  {
+    "display": "陽炎",
+    "kana": "かげろう"
+  },
+  {
+    "display": "蜃気楼",
+    "kana": "しんきろう"
+  },
+  {
+    "display": "霜",
+    "kana": "しも"
+  },
+  {
+    "display": "霧",
+    "kana": "きり"
+  },
+  {
+    "display": "泥",
+    "kana": "どろ"
+  },
+  {
+    "display": "灰",
+    "kana": "はい"
+  },
+  {
+    "display": "炭",
+    "kana": "すみ"
+  },
+  {
+    "display": "鉄",
+    "kana": "てつ"
+  },
+  {
+    "display": "金",
+    "kana": "きん"
+  },
+  {
+    "display": "銀",
+    "kana": "ぎん"
+  },
+  {
+    "display": "銅",
+    "kana": "どう"
+  },
+  {
+    "display": "糸",
+    "kana": "いと"
+  },
+  {
+    "display": "布",
+    "kana": "ぬの"
+  },
+  {
+    "display": "紙",
+    "kana": "かみ"
+  },
+  {
+    "display": "革",
+    "kana": "かわ"
+  },
+  {
+    "display": "綿",
+    "kana": "わた"
+  },
+  {
+    "display": "麦",
+    "kana": "むぎ"
+  },
+  {
+    "display": "豆",
+    "kana": "まめ"
+  },
+  {
+    "display": "芋",
+    "kana": "いも"
+  },
+  {
+    "display": "栗",
+    "kana": "くり"
+  },
+  {
+    "display": "柿",
+    "kana": "かき"
+  },
+  {
+    "display": "桃",
+    "kana": "もも"
+  },
+  {
+    "display": "梨",
+    "kana": "なし"
+  },
+  {
+    "display": "瓜",
+    "kana": "うり"
+  },
+  {
+    "display": "葱",
+    "kana": "ねぎ"
+  },
+  {
+    "display": "大根",
+    "kana": "だいこん"
+  },
+  {
+    "display": "人参",
+    "kana": "にんじん"
+  },
+  {
+    "display": "玉ねぎ",
+    "kana": "たまねぎ"
+  },
+  {
+    "display": "じゃがいも",
+    "kana": "じゃがいも"
+  },
+  {
+    "display": "きゅうり",
+    "kana": "きゅうり"
+  },
+  {
+    "display": "トマト",
+    "kana": "とまと"
+  },
+  {
+    "display": "なすび",
+    "kana": "なすび"
+  },
+  {
+    "display": "ピーマン",
+    "kana": "ぴーまん"
+  },
+  {
+    "display": "キャベツ",
+    "kana": "きゃべつ"
+  },
+  {
+    "display": "レタス",
+    "kana": "れたす"
+  },
+  {
+    "display": "ほうれん草",
+    "kana": "ほうれんそう"
+  },
+  {
+    "display": "とうもろこし",
+    "kana": "とうもろこし"
+  },
+  {
+    "display": "かぼちゃ",
+    "kana": "かぼちゃ"
+  },
+  {
+    "display": "ブロッコリー",
+    "kana": "ぶろっこりー"
+  },
+  {
+    "display": "アスパラガス",
+    "kana": "あすぱらがす"
+  },
+  {
+    "display": "グレープフルーツ",
+    "kana": "ぐれーぷふるーつ"
+  },
+  {
+    "display": "パイナップル",
+    "kana": "ぱいなっぷる"
+  },
+  {
+    "display": "マスカット",
+    "kana": "ますかっと"
+  },
+  {
+    "display": "さくらんぼ",
+    "kana": "さくらんぼ"
+  },
+  {
+    "display": "ドラゴンフルーツ",
+    "kana": "どらごんふるーつ"
+  },
+  {
+    "display": "オムライス",
+    "kana": "おむらいす"
+  },
+  {
+    "display": "ハンバーグ",
+    "kana": "はんばーぐ"
+  },
+  {
+    "display": "コロッケ",
+    "kana": "ころっけ"
+  },
+  {
+    "display": "シチュー",
+    "kana": "しちゅー"
+  },
+  {
+    "display": "グラタン",
+    "kana": "ぐらたん"
+  },
+  {
+    "display": "スパゲッティ",
+    "kana": "すぱげってぃ"
+  },
+  {
+    "display": "サンドイッチ",
+    "kana": "さんどいっち"
+  },
+  {
+    "display": "ホットケーキ",
+    "kana": "ほっとけーき"
+  },
+  {
+    "display": "ドーナツ",
+    "kana": "どーなつ"
+  },
+  {
+    "display": "プリン",
+    "kana": "ぷりん"
+  },
+  {
+    "display": "シュークリーム",
+    "kana": "しゅーくりーむ"
+  },
+  {
+    "display": "かき氷",
+    "kana": "かきごおり"
+  },
+  {
+    "display": "綿あめ",
+    "kana": "わたあめ"
+  },
+  {
+    "display": "りんご飴",
+    "kana": "りんごあめ"
+  },
+  {
+    "display": "焼きいも",
+    "kana": "やきいも"
+  },
+  {
+    "display": "肉じゃが",
+    "kana": "にくじゃが"
+  },
+  {
+    "display": "親子丼",
+    "kana": "おやこどん"
+  },
+  {
+    "display": "牛丼",
+    "kana": "ぎゅうどん"
+  },
+  {
+    "display": "カツカレー",
+    "kana": "かつかれー"
+  },
+  {
+    "display": "チャーハン",
+    "kana": "ちゃーはん"
+  },
+  {
+    "display": "唐揚げ",
+    "kana": "からあげ"
+  },
+  {
+    "display": "餅つき",
+    "kana": "もちつき"
+  },
+  {
+    "display": "食パン",
+    "kana": "しょくぱん"
+  },
+  {
+    "display": "メロンパン",
+    "kana": "めろんぱん"
+  },
+  {
+    "display": "カレーパン",
+    "kana": "かれーぱん"
+  },
+  {
+    "display": "回転寿司",
+    "kana": "かいてんずし"
+  },
+  {
+    "display": "食べ放題",
+    "kana": "たべほうだい"
+  },
+  {
+    "display": "飲み物",
+    "kana": "のみもの"
+  },
+  {
+    "display": "食べ物",
+    "kana": "たべもの"
+  },
+  {
+    "display": "乗り物",
+    "kana": "のりもの"
+  },
+  {
+    "display": "着替え",
+    "kana": "きがえ"
+  },
+  {
+    "display": "忘れ物",
+    "kana": "わすれもの"
+  },
+  {
+    "display": "落とし物",
+    "kana": "おとしもの"
+  },
+  {
+    "display": "買い物",
+    "kana": "かいもの"
+  },
+  {
+    "display": "洗い物",
+    "kana": "あらいもの"
+  },
+  {
+    "display": "洗濯物",
+    "kana": "せんたくもの"
+  },
+  {
+    "display": "贈り物",
+    "kana": "おくりもの"
+  },
+  {
+    "display": "編み物",
+    "kana": "あみもの"
+  },
+  {
+    "display": "履物",
+    "kana": "はきもの"
+  },
+  {
+    "display": "偽物",
+    "kana": "にせもの"
+  },
+  {
+    "display": "本物",
+    "kana": "ほんもの"
+  },
+  {
+    "display": "化け物",
+    "kana": "ばけもの"
+  },
+  {
+    "display": "怪物",
+    "kana": "かいぶつ"
+  },
+  {
+    "display": "幽霊",
+    "kana": "ゆうれい"
+  },
+  {
+    "display": "妖怪",
+    "kana": "ようかい"
+  },
+  {
+    "display": "悪魔",
+    "kana": "あくま"
+  },
+  {
+    "display": "魔王",
+    "kana": "まおう"
+  },
+  {
+    "display": "魔法",
+    "kana": "まほう"
+  },
+  {
+    "display": "呪い",
+    "kana": "のろい"
+  },
+  {
+    "display": "墓場",
+    "kana": "はかば"
+  },
+  {
+    "display": "骸骨",
+    "kana": "がいこつ"
+  },
+  {
+    "display": "満身創痍",
+    "kana": "まんしんそうい"
+  },
+  {
+    "display": "疾風迅雷",
+    "kana": "しっぷうじんらい"
+  },
+  {
+    "display": "一石二鳥",
+    "kana": "いっせきにちょう"
+  },
+  {
+    "display": "百発百中",
+    "kana": "ひゃっぱつひゃくちゅう"
+  },
+  {
+    "display": "電光石火",
+    "kana": "でんこうせっか"
+  },
+  {
+    "display": "十人十色",
+    "kana": "じゅうにんといろ"
+  },
+  {
+    "display": "一期一会",
+    "kana": "いちごいちえ"
+  },
+  {
+    "display": "弱肉強食",
+    "kana": "じゃくにくきょうしょく"
+  },
+  {
+    "display": "絶体絶命",
+    "kana": "ぜったいぜつめい"
+  },
+  {
+    "display": "四苦八苦",
+    "kana": "しくはっく"
+  },
+  {
+    "display": "自業自得",
+    "kana": "じごうじとく"
+  },
+  {
+    "display": "以心伝心",
+    "kana": "いしんでんしん"
+  },
+  {
+    "display": "危機一髪",
+    "kana": "ききいっぱつ"
+  },
+  {
+    "display": "心機一転",
+    "kana": "しんきいってん"
+  },
+  {
+    "display": "全身全霊",
+    "kana": "ぜんしんぜんれい"
+  },
+  {
+    "display": "縦横無尽",
+    "kana": "じゅうおうむじん"
+  },
+  {
+    "display": "夜逃げ",
+    "kana": "よにげ"
+  },
+  {
+    "display": "夜更かし",
+    "kana": "よふかし"
+  },
+  {
+    "display": "早起き",
+    "kana": "はやおき"
+  },
+  {
+    "display": "寝坊",
+    "kana": "ねぼう"
+  },
+  {
+    "display": "昼寝",
+    "kana": "ひるね"
+  },
+  {
+    "display": "居眠り",
+    "kana": "いねむり"
+  },
+  {
+    "display": "夢遊病",
+    "kana": "むゆうびょう"
+  },
+  {
+    "display": "悪夢",
+    "kana": "あくむ"
+  },
+  {
+    "display": "いびき",
+    "kana": "いびき"
+  },
+  {
+    "display": "寝言",
+    "kana": "ねごと"
+  },
+  {
+    "display": "寝癖",
+    "kana": "ねぐせ"
+  },
+  {
+    "display": "歯ぎしり",
+    "kana": "はぎしり"
+  },
+  {
+    "display": "あくび",
+    "kana": "あくび"
+  },
+  {
+    "display": "ため息",
+    "kana": "ためいき"
+  },
+  {
+    "display": "しゃっくり",
+    "kana": "しゃっくり"
+  },
+  {
+    "display": "拍手",
+    "kana": "はくしゅ"
+  },
+  {
+    "display": "握手",
+    "kana": "あくしゅ"
+  },
+  {
+    "display": "指切り",
+    "kana": "ゆびきり"
+  },
+  {
+    "display": "腕相撲",
+    "kana": "うでずもう"
+  },
+  {
+    "display": "にらめっこ",
+    "kana": "にらめっこ"
+  },
+  {
+    "display": "かくれんぼ",
+    "kana": "かくれんぼ"
+  },
+  {
+    "display": "鬼ごっこ",
+    "kana": "おにごっこ"
+  },
+  {
+    "display": "縄跳び",
+    "kana": "なわとび"
+  },
+  {
+    "display": "竹馬",
+    "kana": "たけうま"
+  },
+  {
+    "display": "竹とんぼ",
+    "kana": "たけとんぼ"
+  },
+  {
+    "display": "折り紙",
+    "kana": "おりがみ"
+  },
+  {
+    "display": "あやとり",
+    "kana": "あやとり"
+  },
+  {
+    "display": "けん玉",
+    "kana": "けんだま"
+  },
+  {
+    "display": "こま回し",
+    "kana": "こままわし"
+  },
+  {
+    "display": "紙飛行機",
+    "kana": "かみひこうき"
+  },
+  {
+    "display": "しゃぼん玉",
+    "kana": "しゃぼんだま"
+  },
+  {
+    "display": "砂場",
+    "kana": "すなば"
+  },
+  {
+    "display": "滑り台",
+    "kana": "すべりだい"
+  },
+  {
+    "display": "ブランコ",
+    "kana": "ぶらんこ"
+  },
+  {
+    "display": "鉄棒",
+    "kana": "てつぼう"
+  },
+  {
+    "display": "跳び箱",
+    "kana": "とびばこ"
+  },
+  {
+    "display": "逆上がり",
+    "kana": "さかあがり"
+  },
+  {
+    "display": "騎馬戦",
+    "kana": "きばせん"
+  },
+  {
+    "display": "玉入れ",
+    "kana": "たまいれ"
+  },
+  {
+    "display": "綱引き",
+    "kana": "つなひき"
+  },
+  {
+    "display": "リレー",
+    "kana": "りれー"
+  },
+  {
+    "display": "徒競走",
+    "kana": "ときょうそう"
+  },
+  {
+    "display": "二人三脚",
+    "kana": "ににんさんきゃく"
+  },
+  {
+    "display": "障害物競走",
+    "kana": "しょうがいぶつきょうそう"
+  },
+  {
+    "display": "パソコン教室",
+    "kana": "ぱそこんきょうしつ"
+  },
+  {
+    "display": "留学生",
+    "kana": "りゅうがくせい"
+  },
+  {
+    "display": "転校生",
+    "kana": "てんこうせい"
+  },
+  {
+    "display": "優等生",
+    "kana": "ゆうとうせい"
+  },
+  {
+    "display": "委員長",
+    "kana": "いいんちょう"
+  },
+  {
+    "display": "部活動",
+    "kana": "ぶかつどう"
+  },
+  {
+    "display": "吹奏楽",
+    "kana": "すいそうがく"
+  },
+  {
+    "display": "演劇部",
+    "kana": "えんげきぶ"
+  },
+  {
+    "display": "美術館",
+    "kana": "びじゅつかん"
+  },
+  {
+    "display": "博物館",
+    "kana": "はくぶつかん"
+  },
+  {
+    "display": "水族館",
+    "kana": "すいぞくかん"
+  },
+  {
+    "display": "動物園",
+    "kana": "どうぶつえん"
+  },
+  {
+    "display": "植物園",
+    "kana": "しょくぶつえん"
+  },
+  {
+    "display": "遊園地",
+    "kana": "ゆうえんち"
+  },
+  {
+    "display": "観覧車",
+    "kana": "かんらんしゃ"
+  },
+  {
+    "display": "メリーゴーランド",
+    "kana": "めりーごーらんど"
+  },
+  {
+    "display": "ジェットコースター",
+    "kana": "じぇっとこーすたー"
+  },
+  {
+    "display": "お化け屋敷",
+    "kana": "おばけやしき"
+  },
+  {
+    "display": "迷路",
+    "kana": "めいろ"
+  },
+  {
+    "display": "宝探し",
+    "kana": "たからさがし"
+  },
+  {
+    "display": "肝試し",
+    "kana": "きもだめし"
+  },
+  {
+    "display": "キャンプファイヤー",
+    "kana": "きゃんぷふぁいやー"
+  },
+  {
+    "display": "バーベキュー",
+    "kana": "ばーべきゅー"
+  },
+  {
+    "display": "ピクニック",
+    "kana": "ぴくにっく"
+  },
+  {
+    "display": "ハイキング",
+    "kana": "はいきんぐ"
+  },
+  {
+    "display": "サイクリング",
+    "kana": "さいくりんぐ"
+  },
+  {
+    "display": "ドライブ",
+    "kana": "どらいぶ"
+  },
+  {
+    "display": "釣り堀",
+    "kana": "つりぼり"
+  },
+  {
+    "display": "潮干狩り",
+    "kana": "しおひがり"
+  },
+  {
+    "display": "海水浴",
+    "kana": "かいすいよく"
+  },
+  {
+    "display": "日光浴",
+    "kana": "にっこうよく"
+  },
+  {
+    "display": "森林浴",
+    "kana": "しんりんよく"
+  },
+  {
+    "display": "露天風呂",
+    "kana": "ろてんぶろ"
+  },
+  {
+    "display": "温泉卵",
+    "kana": "おんせんたまご"
+  },
+  {
+    "display": "浴衣姿",
+    "kana": "ゆかたすがた"
+  },
+  {
+    "display": "打ち上げ花火",
+    "kana": "うちあげはなび"
+  },
+  {
+    "display": "線香花火",
+    "kana": "せんこうはなび"
+  },
+  {
+    "display": "金魚すくい",
+    "kana": "きんぎょすくい"
+  },
+  {
+    "display": "ヨーヨー釣り",
+    "kana": "よーよーつり"
+  },
+  {
+    "display": "射的",
+    "kana": "しゃてき"
+  },
+  {
+    "display": "屋台",
+    "kana": "やたい"
+  },
+  {
+    "display": "神社",
+    "kana": "じんじゃ"
+  },
+  {
+    "display": "お寺",
+    "kana": "おてら"
+  },
+  {
+    "display": "お守り",
+    "kana": "おまもり"
+  },
+  {
+    "display": "おみくじ",
+    "kana": "おみくじ"
+  },
+  {
+    "display": "大吉",
+    "kana": "だいきち"
+  },
+  {
+    "display": "願い事",
+    "kana": "ねがいごと"
+  },
+  {
+    "display": "七夕",
+    "kana": "たなばた"
+  },
+  {
+    "display": "短冊",
+    "kana": "たんざく"
+  },
+  {
+    "display": "鯉のぼり",
+    "kana": "こいのぼり"
+  },
+  {
+    "display": "ひな祭り",
+    "kana": "ひなまつり"
+  },
+  {
+    "display": "節分",
+    "kana": "せつぶん"
+  },
+  {
+    "display": "豆まき",
+    "kana": "まめまき"
+  },
+  {
+    "display": "恵方巻き",
+    "kana": "えほうまき"
+  },
+  {
+    "display": "お年玉",
+    "kana": "おとしだま"
+  },
+  {
+    "display": "年賀状",
+    "kana": "ねんがじょう"
+  },
+  {
+    "display": "鏡餅",
+    "kana": "かがみもち"
+  },
+  {
+    "display": "門松",
+    "kana": "かどまつ"
+  },
+  {
+    "display": "福袋",
+    "kana": "ふくぶくろ"
+  },
+  {
+    "display": "宝くじ",
+    "kana": "たからくじ"
+  },
+  {
+    "display": "貯金箱",
+    "kana": "ちょきんばこ"
+  },
+  {
+    "display": "お小遣い",
+    "kana": "おこづかい"
+  },
+  {
+    "display": "おつり",
+    "kana": "おつり"
+  },
+  {
+    "display": "レシート",
+    "kana": "れしーと"
+  },
+  {
+    "display": "領収書",
+    "kana": "りょうしゅうしょ"
+  },
+  {
+    "display": "クレジットカード",
+    "kana": "くれじっとかーど"
+  },
+  {
+    "display": "自己紹介",
+    "kana": "じこしょうかい"
+  },
+  {
+    "display": "電話番号",
+    "kana": "でんわばんごう"
+  },
+  {
+    "display": "留守番電話",
+    "kana": "るすばんでんわ"
+  },
+  {
+    "display": "間違い電話",
+    "kana": "まちがいでんわ"
+  },
+  {
+    "display": "迷惑メール",
+    "kana": "めいわくめーる"
+  },
+  {
+    "display": "既読スルー",
+    "kana": "きどくするー"
+  },
+  {
+    "display": "充電器",
+    "kana": "じゅうでんき"
+  },
+  {
+    "display": "電池切れ",
+    "kana": "でんちぎれ"
+  },
+  {
+    "display": "圏外",
+    "kana": "けんがい"
+  },
+  {
+    "display": "動画配信",
+    "kana": "どうがはいしん"
+  },
+  {
+    "display": "生放送",
+    "kana": "なまほうそう"
+  },
+  {
+    "display": "録画予約",
+    "kana": "ろくがよやく"
+  },
+  {
+    "display": "リモコン",
+    "kana": "りもこん"
+  },
+  {
+    "display": "イヤホン",
+    "kana": "いやほん"
+  },
+  {
+    "display": "スピーカー",
+    "kana": "すぴーかー"
+  },
+  {
+    "display": "キーボード",
+    "kana": "きーぼーど"
+  },
+  {
+    "display": "マウス",
+    "kana": "まうす"
+  },
+  {
+    "display": "プリンター",
+    "kana": "ぷりんたー"
+  },
+  {
+    "display": "ファイル",
+    "kana": "ふぁいる"
+  },
+  {
+    "display": "フォルダ",
+    "kana": "ふぉるだ"
+  },
+  {
+    "display": "パスワード",
+    "kana": "ぱすわーど"
+  },
+  {
+    "display": "ダウンロード",
+    "kana": "だうんろーど"
+  },
+  {
+    "display": "アップデート",
+    "kana": "あっぷでーと"
+  },
+  {
+    "display": "タイピング",
+    "kana": "たいぴんぐ"
+  },
+  {
+    "display": "プログラミング",
+    "kana": "ぷろぐらみんぐ"
+  },
+  {
+    "display": "ローマ字入力",
+    "kana": "ろーまじにゅうりょく"
+  },
+  {
+    "display": "全角と半角",
+    "kana": "ぜんかくとはんかく"
+  },
+  {
+    "display": "漢字変換",
+    "kana": "かんじへんかん"
+  },
+  {
+    "display": "誤字脱字",
+    "kana": "ごじだつじ"
+  },
+  {
+    "display": "上書き保存",
+    "kana": "うわがきほぞん"
+  },
+  {
+    "display": "強制終了",
+    "kana": "きょうせいしゅうりょう"
+  },
+  {
+    "display": "再起動",
+    "kana": "さいきどう"
+  },
+  {
+    "display": "初期化",
+    "kana": "しょきか"
+  },
+  {
+    "display": "文字化け",
+    "kana": "もじばけ"
+  },
+  {
+    "display": "無限ループ",
+    "kana": "むげんるーぷ"
+  },
+  {
+    "display": "夜行バス",
+    "kana": "やこうばす"
+  },
+  {
+    "display": "終電",
+    "kana": "しゅうでん"
+  },
+  {
+    "display": "始発",
+    "kana": "しはつ"
+  },
+  {
+    "display": "満員電車",
+    "kana": "まんいんでんしゃ"
+  },
+  {
+    "display": "各駅停車",
+    "kana": "かくえきていしゃ"
+  },
+  {
+    "display": "乗り換え",
+    "kana": "のりかえ"
+  },
+  {
+    "display": "定期券",
+    "kana": "ていきけん"
+  },
+  {
+    "display": "改札口",
+    "kana": "かいさつぐち"
+  },
+  {
+    "display": "踏切",
+    "kana": "ふみきり"
+  },
+  {
+    "display": "急ブレーキ",
+    "kana": "きゅうぶれーき"
+  },
+  {
+    "display": "渋滞",
+    "kana": "じゅうたい"
+  },
+  {
+    "display": "抜け道",
+    "kana": "ぬけみち"
+  },
+  {
+    "display": "近道",
+    "kana": "ちかみち"
+  },
+  {
+    "display": "回り道",
+    "kana": "まわりみち"
+  },
+  {
+    "display": "一方通行",
+    "kana": "いっぽうつうこう"
+  },
+  {
+    "display": "行き止まり",
+    "kana": "いきどまり"
+  },
+  {
+    "display": "曲がり角",
+    "kana": "まがりかど"
+  },
+  {
+    "display": "坂道",
+    "kana": "さかみち"
+  },
+  {
+    "display": "夜道",
+    "kana": "よみち"
+  },
+  {
+    "display": "帰り道",
+    "kana": "かえりみち"
+  },
+  {
+    "display": "通学路",
+    "kana": "つうがくろ"
+  },
+  {
+    "display": "通勤",
+    "kana": "つうきん"
+  },
+  {
+    "display": "出張",
+    "kana": "しゅっちょう"
+  },
+  {
+    "display": "出勤",
+    "kana": "しゅっきん"
+  },
+  {
+    "display": "退勤",
+    "kana": "たいきん"
+  },
+  {
+    "display": "有給休暇",
+    "kana": "ゆうきゅうきゅうか"
+  },
+  {
+    "display": "締め切り",
+    "kana": "しめきり"
+  },
+  {
+    "display": "打ち合わせ",
+    "kana": "うちあわせ"
+  },
+  {
+    "display": "報告書",
+    "kana": "ほうこくしょ"
+  },
+  {
+    "display": "企画書",
+    "kana": "きかくしょ"
+  },
+  {
+    "display": "履歴書",
+    "kana": "りれきしょ"
+  },
+  {
+    "display": "面接",
+    "kana": "めんせつ"
+  },
+  {
+    "display": "昇進",
+    "kana": "しょうしん"
+  },
+  {
+    "display": "転職",
+    "kana": "てんしょく"
+  },
+  {
+    "display": "在宅勤務",
+    "kana": "ざいたくきんむ"
+  },
+  {
+    "display": "腹ぺこ",
+    "kana": "はらぺこ"
+  },
+  {
+    "display": "満腹",
+    "kana": "まんぷく"
+  },
+  {
+    "display": "空腹",
+    "kana": "くうふく"
+  },
+  {
+    "display": "食欲",
+    "kana": "しょくよく"
+  },
+  {
+    "display": "おかわり",
+    "kana": "おかわり"
+  },
+  {
+    "display": "つまみ食い",
+    "kana": "つまみぐい"
+  },
+  {
+    "display": "食いしん坊",
+    "kana": "くいしんぼう"
+  },
+  {
+    "display": "甘党",
+    "kana": "あまとう"
+  },
+  {
+    "display": "辛党",
+    "kana": "からとう"
+  },
+  {
+    "display": "猫舌",
+    "kana": "ねこじた"
+  },
+  {
+    "display": "大食い",
+    "kana": "おおぐい"
+  },
+  {
+    "display": "早食い",
+    "kana": "はやぐい"
+  },
+  {
+    "display": "腹八分目",
+    "kana": "はらはちぶんめ"
+  },
+  {
+    "display": "うたた寝",
+    "kana": "うたたね"
+  },
+  {
+    "display": "二度寝",
+    "kana": "にどね"
+  },
+  {
+    "display": "徹夜",
+    "kana": "てつや"
+  },
+  {
+    "display": "夜明け",
+    "kana": "よあけ"
+  },
+  {
+    "display": "日の出",
+    "kana": "ひので"
+  },
+  {
+    "display": "日の入り",
+    "kana": "ひのいり"
+  },
+  {
+    "display": "日没",
+    "kana": "にちぼつ"
+  },
+  {
+    "display": "夕暮れ",
+    "kana": "ゆうぐれ"
+  },
+  {
+    "display": "黄昏",
+    "kana": "たそがれ"
+  },
+  {
+    "display": "薄明かり",
+    "kana": "うすあかり"
+  },
+  {
+    "display": "月明かり",
+    "kana": "つきあかり"
+  },
+  {
+    "display": "街灯",
+    "kana": "がいとう"
+  },
+  {
+    "display": "懐中電灯",
+    "kana": "かいちゅうでんとう"
+  },
+  {
+    "display": "ろうそく",
+    "kana": "ろうそく"
+  },
+  {
+    "display": "たいまつ",
+    "kana": "たいまつ"
+  },
+  {
+    "display": "松明の火",
+    "kana": "たいまつのひ"
+  },
+  {
+    "display": "焚き火",
+    "kana": "たきび"
+  },
+  {
+    "display": "火の粉",
+    "kana": "ひのこ"
+  },
+  {
+    "display": "灯台",
+    "kana": "とうだい"
+  },
+  {
+    "display": "サイレン",
+    "kana": "さいれん"
+  },
+  {
+    "display": "警報",
+    "kana": "けいほう"
+  },
+  {
+    "display": "避難訓練",
+    "kana": "ひなんくんれん"
+  },
+  {
+    "display": "非常口",
+    "kana": "ひじょうぐち"
+  },
+  {
+    "display": "非常食",
+    "kana": "ひじょうしょく"
+  },
+  {
+    "display": "救急箱",
+    "kana": "きゅうきゅうばこ"
+  },
+  {
+    "display": "包帯",
+    "kana": "ほうたい"
+  },
+  {
+    "display": "絆創膏",
+    "kana": "ばんそうこう"
+  },
+  {
+    "display": "消毒液",
+    "kana": "しょうどくえき"
+  },
+  {
+    "display": "解毒剤",
+    "kana": "げどくざい"
+  },
+  {
+    "display": "特効薬",
+    "kana": "とっこうやく"
+  },
+  {
+    "display": "生き残り",
+    "kana": "いきのこり"
+  },
+  {
+    "display": "生還",
+    "kana": "せいかん"
+  },
+  {
+    "display": "脱出",
+    "kana": "だっしゅつ"
+  },
+  {
+    "display": "籠城",
+    "kana": "ろうじょう"
+  },
+  {
+    "display": "夜襲",
+    "kana": "やしゅう"
+  },
+  {
+    "display": "奇襲",
+    "kana": "きしゅう"
+  },
+  {
+    "display": "待ち伏せ",
+    "kana": "まちぶせ"
+  },
+  {
+    "display": "一網打尽",
+    "kana": "いちもうだじん"
+  },
+  {
+    "display": "掃討作戦",
+    "kana": "そうとうさくせん"
+  },
+  {
+    "display": "緊急事態",
+    "kana": "きんきゅうじたい"
+  },
+  {
+    "display": "最終決戦",
+    "kana": "さいしゅうけっせん"
+  },
+  {
+    "display": "背水の陣",
+    "kana": "はいすいのじん"
+  },
+  {
+    "display": "起死回生",
+    "kana": "きしかいせい"
+  },
+  {
+    "display": "捨て身の覚悟",
+    "kana": "すてみのかくご"
+  },
+  {
+    "display": "不意打ち",
+    "kana": "ふいうち"
+  },
+  {
+    "display": "返り討ち",
+    "kana": "かえりうち"
+  },
+  {
+    "display": "一騎打ち",
+    "kana": "いっきうち"
+  },
+  {
+    "display": "狙い撃ち",
+    "kana": "ねらいうち"
+  },
+  {
+    "display": "連射",
+    "kana": "れんしゃ"
+  },
+  {
+    "display": "早撃ち",
+    "kana": "はやうち"
+  },
+  {
+    "display": "百戦錬磨",
+    "kana": "ひゃくせんれんま"
+  },
+  {
+    "display": "歴戦の勇士",
+    "kana": "れきせんのゆうし"
+  },
+  {
+    "display": "最後の砦",
+    "kana": "さいごのとりで"
+  },
+  {
+    "display": "運試し",
+    "kana": "うんだめし"
+  },
+  {
+    "display": "腕試し",
+    "kana": "うでだめし"
+  },
+  {
+    "display": "力比べ",
+    "kana": "ちからくらべ"
+  },
+  {
+    "display": "我慢比べ",
+    "kana": "がまんくらべ"
+  },
+  {
+    "display": "真剣勝負",
+    "kana": "しんけんしょうぶ"
+  },
+  {
+    "display": "一発逆転",
+    "kana": "いっぱつぎゃくてん"
+  },
+  {
+    "display": "大逆転",
+    "kana": "だいぎゃくてん"
+  },
+  {
+    "display": "快進撃",
+    "kana": "かいしんげき"
+  },
+  {
+    "display": "連戦連勝",
+    "kana": "れんせんれんしょう"
+  },
+  {
+    "display": "無我夢中",
+    "kana": "むがむちゅう"
+  },
+  {
+    "display": "全力疾走",
+    "kana": "ぜんりょくしっそう"
+  },
+  {
+    "display": "猪突猛進",
+    "kana": "ちょとつもうしん"
+  },
+  {
+    "display": "電撃作戦",
+    "kana": "でんげきさくせん"
+  },
+  {
+    "display": "疾走する影",
+    "kana": "しっそうするかげ"
+  },
+  {
+    "display": "月夜の晩",
+    "kana": "つきよのばん"
+  },
+  {
+    "display": "静寂",
+    "kana": "せいじゃく"
+  },
+  {
+    "display": "足音",
+    "kana": "あしおと"
+  },
+  {
+    "display": "うめき声",
+    "kana": "うめきごえ"
+  },
+  {
+    "display": "遠吠え",
+    "kana": "とおぼえ"
+  },
+  {
+    "display": "鳴き声",
+    "kana": "なきごえ"
+  },
+  {
+    "display": "叫び声",
+    "kana": "さけびごえ"
+  },
+  {
+    "display": "ささやき",
+    "kana": "ささやき"
+  },
+  {
+    "display": "物音",
+    "kana": "ものおと"
+  },
+  {
+    "display": "気配",
+    "kana": "けはい"
+  },
+  {
+    "display": "予感",
+    "kana": "よかん"
+  },
+  {
+    "display": "本能",
+    "kana": "ほんのう"
+  },
+  {
+    "display": "直感",
+    "kana": "ちょっかん"
+  },
+  {
+    "display": "第六感",
+    "kana": "だいろっかん"
+  },
+  {
+    "display": "背筋が凍る",
+    "kana": "せすじがこおる"
+  },
+  {
+    "display": "鳥肌が立つ",
+    "kana": "とりはだがたつ"
+  },
+  {
+    "display": "心臓に悪い",
+    "kana": "しんぞうにわるい"
+  },
+  {
+    "display": "腰を抜かす",
+    "kana": "こしをぬかす"
+  },
+  {
+    "display": "命拾い",
+    "kana": "いのちびろい"
+  },
+  {
+    "display": "九死に一生",
+    "kana": "きゅうしにいっしょう"
+  },
+  {
+    "display": "間一髪",
+    "kana": "かんいっぱつ"
+  },
+  {
+    "display": "紙一重",
+    "kana": "かみひとえ"
+  },
+  {
+    "display": "薄氷を踏む",
+    "kana": "はくひょうをふむ"
+  },
+  {
+    "display": "崖っぷち",
+    "kana": "がけっぷち"
+  },
+  {
+    "display": "土壇場",
+    "kana": "どたんば"
+  },
+  {
+    "display": "正念場",
+    "kana": "しょうねんば"
+  },
+  {
+    "display": "見せ場",
+    "kana": "みせば"
+  },
+  {
+    "display": "山場",
+    "kana": "やまば"
+  },
+  {
+    "display": "修羅場",
+    "kana": "しゅらば"
+  },
+  {
+    "display": "望遠鏡",
+    "kana": "ぼうえんきょう"
+  },
+  {
+    "display": "歩道橋",
+    "kana": "ほどうきょう"
+  },
+  {
+    "display": "支離滅裂",
+    "kana": "しりめつれつ"
+  },
+  {
+    "display": "右往左往",
+    "kana": "うおうさおう"
+  },
+  {
+    "display": "温故知新",
+    "kana": "おんこちしん"
+  },
+  {
+    "display": "都市伝説",
+    "kana": "としでんせつ"
+  },
+  {
+    "display": "世界遺産",
+    "kana": "せかいいさん"
+  },
+  {
+    "display": "年越しそば",
+    "kana": "としこしそば"
+  },
+  {
+    "display": "雪合戦",
+    "kana": "ゆきがっせん"
+  },
+  {
+    "display": "二重跳び",
+    "kana": "にじゅうとび"
+  },
+  {
+    "display": "大縄跳び",
+    "kana": "おおなわとび"
+  },
+  {
+    "display": "黒板消し",
+    "kana": "こくばんけし"
+  },
+  {
+    "display": "連絡網",
+    "kana": "れんらくもう"
+  },
+  {
+    "display": "通知表",
+    "kana": "つうちひょう"
+  },
+  {
+    "display": "幼馴染",
+    "kana": "おさななじみ"
+  },
+  {
+    "display": "下剋上",
+    "kana": "げこくじょう"
+  },
+  {
+    "display": "視聴率",
+    "kana": "しちょうりつ"
+  },
+  {
+    "display": "次回予告",
+    "kana": "じかいよこく"
+  },
+  {
+    "display": "四字熟語",
+    "kana": "よじじゅくご"
+  },
+  {
+    "display": "親父ギャグ",
+    "kana": "おやじぎゃぐ"
+  },
+  {
+    "display": "両替機",
+    "kana": "りょうがえき"
+  },
+  {
+    "display": "花粉症",
+    "kana": "かふんしょう"
+  },
+  {
+    "display": "五月病",
+    "kana": "ごがつびょう"
+  },
+  {
+    "display": "筋肉痛",
+    "kana": "きんにくつう"
+  },
+  {
+    "display": "乗り物酔い",
+    "kana": "のりものよい"
+  },
+  {
+    "display": "深夜ラジオ",
+    "kana": "しんやらじお"
+  },
+  {
+    "display": "優勝旗",
+    "kana": "ゆうしょうき"
+  },
+  {
+    "display": "開幕戦",
+    "kana": "かいまくせん"
+  },
+  {
+    "display": "番狂わせ",
+    "kana": "ばんくるわせ"
+  },
+  {
+    "display": "極秘任務",
+    "kana": "ごくひにんむ"
+  },
+  {
+    "display": "猫に小判",
+    "kana": "ねこにこばん"
+  },
+  {
+    "display": "善は急げ",
+    "kana": "ぜんはいそげ"
+  },
+  {
+    "display": "挿入歌",
+    "kana": "そうにゅうか"
+  },
+  {
+    "display": "住めば都",
+    "kana": "すめばみやこ"
+  },
+  {
+    "display": "目覚まし時計",
+    "kana": "めざましどけい"
+  },
+  {
+    "display": "商店街",
+    "kana": "しょうてんがい"
+  },
+  {
+    "display": "住宅街",
+    "kana": "じゅうたくがい"
+  },
+  {
+    "display": "流星群",
+    "kana": "りゅうせいぐん"
+  },
+  {
+    "display": "期間限定",
+    "kana": "きかんげんてい"
+  },
+  {
+    "display": "前代未聞",
+    "kana": "ぜんだいみもん"
+  },
+  {
+    "display": "荒唐無稽",
+    "kana": "こうとうむけい"
+  },
+  {
+    "display": "臨機応変",
+    "kana": "りんきおうへん"
+  },
+  {
+    "display": "因果応報",
+    "kana": "いんがおうほう"
+  },
+  {
+    "display": "立入禁止",
+    "kana": "たちいりきんし"
+  },
+  {
+    "display": "桜前線",
+    "kana": "さくらぜんせん"
+  },
+  {
+    "display": "花火大会",
+    "kana": "はなびたいかい"
+  },
+  {
+    "display": "蚊取り線香",
+    "kana": "かとりせんこう"
+  },
+  {
+    "display": "風鈴の音",
+    "kana": "ふうりんのおと"
+  },
+  {
+    "display": "賞味期限",
+    "kana": "しょうみきげん"
+  },
+  {
+    "display": "井戸端会議",
+    "kana": "いどばたかいぎ"
+  },
+  {
+    "display": "大器晩成",
+    "kana": "たいきばんせい"
+  },
+  {
+    "display": "誠心誠意",
+    "kana": "せいしんせいい"
+  },
+  {
+    "display": "半信半疑",
+    "kana": "はんしんはんぎ"
+  },
+  {
+    "display": "停電の夜",
+    "kana": "ていでんのよる"
+  },
+  {
+    "display": "避難勧告",
+    "kana": "ひなんかんこく"
+  },
+  {
+    "display": "廃墟の街",
+    "kana": "はいきょのまち"
+  },
+  {
+    "display": "夜明けの合図",
+    "kana": "よあけのあいず"
+  },
+  {
+    "display": "決死の覚悟",
+    "kana": "けっしのかくご"
+  },
+  {
+    "display": "早口言葉",
+    "kana": "はやくちことば"
+  },
+  {
+    "display": "延長戦",
+    "kana": "えんちょうせん"
+  },
+  {
+    "display": "環状線",
+    "kana": "かんじょうせん"
+  },
+  {
+    "display": "路面電車",
+    "kana": "ろめんでんしゃ"
+  },
+  {
+    "display": "踏切の音",
+    "kana": "ふみきりのおと"
+  },
+  {
+    "display": "頭脳明晰",
+    "kana": "ずのうめいせき"
+  },
+  {
+    "display": "秘密結社",
+    "kana": "ひみつけっしゃ"
+  },
+  {
+    "display": "絶対零度",
+    "kana": "ぜったいれいど"
+  },
+  {
+    "display": "世界征服",
+    "kana": "せかいせいふく"
+  },
+  {
+    "display": "花より団子",
+    "kana": "はなよりだんご"
+  },
+  {
+    "display": "豚に真珠",
+    "kana": "ぶたにしんじゅ"
+  },
+  {
+    "display": "急がば回れ",
+    "kana": "いそがばまわれ"
+  },
+  {
+    "display": "掃除当番",
+    "kana": "そうじとうばん"
+  },
+  {
+    "display": "応急手当",
+    "kana": "おうきゅうてあて"
+  },
+  {
+    "display": "人工衛星",
+    "kana": "じんこうえいせい"
+  },
+  {
+    "display": "優柔不断",
+    "kana": "ゆうじゅうふだん"
+  },
+  {
+    "display": "花鳥風月",
+    "kana": "かちょうふうげつ"
+  },
+  {
+    "display": "森羅万象",
+    "kana": "しんらばんしょう"
+  },
+  {
+    "display": "七転八倒",
+    "kana": "しちてんばっとう"
+  },
+  {
+    "display": "本末転倒",
+    "kana": "ほんまつてんとう"
+  },
+  {
+    "display": "質実剛健",
+    "kana": "しつじつごうけん"
+  },
+  {
+    "display": "終電間際",
+    "kana": "しゅうでんまぎわ"
+  },
+  {
+    "display": "入学試験",
+    "kana": "にゅうがくしけん"
+  },
+  {
+    "display": "天体観測",
+    "kana": "てんたいかんそく"
+  },
+  {
+    "display": "皆既月食",
+    "kana": "かいきげっしょく"
+  },
+  {
+    "display": "満場一致",
+    "kana": "まんじょういっち"
+  },
+  {
+    "display": "栄養ドリンク",
+    "kana": "えいようどりんく"
+  },
+  {
+    "display": "防災リュック",
+    "kana": "ぼうさいりゅっく"
+  },
+  {
+    "display": "一攫千金",
+    "kana": "いっかくせんきん"
+  },
+  {
+    "display": "リモコンの電池",
+    "kana": "りもこんのでんち"
+  },
+  {
+    "display": "延長コード",
+    "kana": "えんちょうこーど"
+  },
+  {
+    "display": "最後の弾丸",
+    "kana": "さいごのだんがん"
+  },
+  {
+    "display": "生徒会長",
+    "kana": "せいとかいちょう"
+  },
+  {
+    "display": "学級委員",
+    "kana": "がっきゅういいん"
+  },
+  {
+    "display": "屋上の風",
+    "kana": "おくじょうのかぜ"
+  },
+  {
+    "display": "自由研究",
+    "kana": "じゆうけんきゅう"
+  },
+  {
+    "display": "腹筋崩壊",
+    "kana": "ふっきんほうかい"
+  },
+  {
+    "display": "爆笑の渦",
+    "kana": "ばくしょうのうず"
+  },
+  {
+    "display": "拍手喝采",
+    "kana": "はくしゅかっさい"
+  },
+  {
+    "display": "三点倒立",
+    "kana": "さんてんとうりつ"
+  },
+  {
+    "display": "選手宣誓",
+    "kana": "せんしゅせんせい"
+  },
+  {
+    "display": "応援合戦",
+    "kana": "おうえんがっせん"
+  },
+  {
+    "display": "表彰台",
+    "kana": "ひょうしょうだい"
+  },
+  {
+    "display": "世界新記録",
+    "kana": "せかいしんきろく"
+  },
+  {
+    "display": "天真爛漫",
+    "kana": "てんしんらんまん"
+  },
+  {
+    "display": "才色兼備",
+    "kana": "さいしょくけんび"
+  },
+  {
+    "display": "文武両道",
+    "kana": "ぶんぶりょうどう"
+  },
+  {
+    "display": "品行方正",
+    "kana": "ひんこうほうせい"
+  },
+  {
+    "display": "猛獣使い",
+    "kana": "もうじゅうつかい"
+  },
+  {
+    "display": "潜入捜査",
+    "kana": "せんにゅうそうさ"
+  },
+  {
+    "display": "暗号解読",
+    "kana": "あんごうかいどく"
+  },
+  {
+    "display": "都会の喧騒",
+    "kana": "とかいのけんそう"
+  },
+  {
+    "display": "田舎の星空",
+    "kana": "いなかのほしぞら"
+  },
+  {
+    "display": "終着駅",
+    "kana": "しゅうちゃくえき"
+  },
+  {
+    "display": "寝台列車",
+    "kana": "しんだいれっしゃ"
+  },
+  {
+    "display": "車窓の景色",
+    "kana": "しゃそうのけしき"
+  },
+  {
+    "display": "回送電車",
+    "kana": "かいそうでんしゃ"
+  },
+  {
+    "display": "通勤ラッシュ",
+    "kana": "つうきんらっしゅ"
+  },
+  {
+    "display": "論より証拠",
+    "kana": "ろんよりしょうこ"
+  },
+  {
+    "display": "棚からぼたもち",
+    "kana": "たなからぼたもち"
+  },
+  {
+    "display": "泣きっ面に蜂",
+    "kana": "なきっつらにはち"
+  },
+  {
+    "display": "七転び八起き",
+    "kana": "ななころびやおき"
+  },
+  {
+    "display": "集中豪雨",
+    "kana": "しゅうちゅうごうう"
+  },
+  {
+    "display": "諸行無常",
+    "kana": "しょぎょうむじょう"
+  },
+  {
+    "display": "卒業アルバム",
+    "kana": "そつぎょうあるばむ"
+  },
+  {
+    "display": "夏祭りの屋台",
+    "kana": "なつまつりのやたい"
+  },
+  {
+    "display": "授業参観",
+    "kana": "じゅぎょうさんかん"
+  },
+  {
+    "display": "消費期限切れ",
+    "kana": "しょうひきげんぎれ"
+  },
+  {
+    "display": "緊急速報",
+    "kana": "きんきゅうそくほう"
+  },
+  {
+    "display": "百人一首",
+    "kana": "ひゃくにんいっしゅ"
+  },
+  {
+    "display": "特急列車",
+    "kana": "とっきゅうれっしゃ"
+  },
+  {
+    "display": "蒸気機関車",
+    "kana": "じょうききかんしゃ"
+  },
+  {
+    "display": "応援団長",
+    "kana": "おうえんだんちょう"
+  },
+  {
+    "display": "満塁ホームラン",
+    "kana": "まんるいほーむらん"
+  },
+  {
+    "display": "大逆転劇",
+    "kana": "だいぎゃくてんげき"
+  },
+  {
+    "display": "登場人物",
+    "kana": "とうじょうじんぶつ"
+  },
+  {
+    "display": "伏線回収",
+    "kana": "ふくせんかいしゅう"
+  },
+  {
+    "display": "完全燃焼",
+    "kana": "かんぜんねんしょう"
+  },
+  {
+    "display": "変装の名人",
+    "kana": "へんそうのめいじん"
+  },
+  {
+    "display": "忘れ物センター",
+    "kana": "わすれものせんたー"
+  },
+  {
+    "display": "灯台下暗し",
+    "kana": "とうだいもとくらし"
+  },
+  {
+    "display": "猿も木から落ちる",
+    "kana": "さるもきからおちる"
+  },
+  {
+    "display": "単刀直入",
+    "kana": "たんとうちょくにゅう"
+  },
+  {
+    "display": "地球防衛軍",
+    "kana": "ちきゅうぼうえいぐん"
+  },
+  {
+    "display": "給食当番",
+    "kana": "きゅうしょくとうばん"
+  },
+  {
+    "display": "全自動洗濯機",
+    "kana": "ぜんじどうせんたくき"
+  },
+  {
+    "display": "断水注意報",
+    "kana": "だんすいちゅういほう"
+  },
+  {
+    "display": "起立礼着席",
+    "kana": "きりつれいちゃくせき"
+  },
+  {
+    "display": "放課後の教室",
+    "kana": "ほうかごのきょうしつ"
+  },
+  {
+    "display": "読書感想文",
+    "kana": "どくしょかんそうぶん"
+  },
+  {
+    "display": "教科書の落書き",
+    "kana": "きょうかしょのらくがき"
+  },
+  {
+    "display": "しりとり無限ループ",
+    "kana": "しりとりむげんるーぷ"
+  },
+  {
+    "display": "逆転ホームラン",
+    "kana": "ぎゃくてんほーむらん"
+  },
+  {
+    "display": "実況中継",
+    "kana": "じっきょうちゅうけい"
+  },
+  {
+    "display": "一球入魂",
+    "kana": "いっきゅうにゅうこん"
+  },
+  {
+    "display": "不完全燃焼",
+    "kana": "ふかんぜんねんしょう"
+  },
+  {
+    "display": "流れ星に願いを",
+    "kana": "ながれぼしにねがいを"
+  },
+  {
+    "display": "生存者の記録",
+    "kana": "せいぞんしゃのきろく"
+  },
+  {
+    "display": "春夏秋冬",
+    "kana": "しゅんかしゅうとう"
+  },
+  {
+    "display": "明けましておめでとう",
+    "kana": "あけましておめでとう"
+  },
+  {
+    "display": "継続は力なり",
+    "kana": "けいぞくはちからなり"
+  },
+  {
+    "display": "一期一会の出会い",
+    "kana": "いちごいちえのであい"
+  },
+  {
+    "display": "馬の耳に念仏",
+    "kana": "うまのみみにねんぶつ"
+  },
+  {
+    "display": "雨降って地固まる",
+    "kana": "あめふってじかたまる"
+  },
+  {
+    "display": "真夜中のかくれんぼ",
+    "kana": "まよなかのかくれんぼ"
+  },
+  {
+    "display": "夏休みの宿題",
+    "kana": "なつやすみのしゅくだい"
+  },
+  {
+    "display": "誕生日プレゼント",
+    "kana": "たんじょうびぷれぜんと"
+  },
+  {
+    "display": "非常持ち出し袋",
+    "kana": "ひじょうもちだしぶくろ"
+  },
+  {
+    "display": "最終回の予告",
+    "kana": "さいしゅうかいのよこく"
+  },
+  {
+    "display": "石の上にも三年",
+    "kana": "いしのうえにもさんねん"
+  },
+  {
+    "display": "備えあれば憂いなし",
+    "kana": "そなえあればうれいなし"
+  },
+  {
+    "display": "ありがとうございました",
+    "kana": "ありがとうございました"
+  },
+  {
+    "display": "緊急事態宣言",
+    "kana": "きんきゅうじたいせんげん"
+  },
+  {
+    "display": "一週間の献立",
+    "kana": "いっしゅうかんのこんだて"
+  },
+  {
+    "display": "荒野の一匹狼",
+    "kana": "こうやのいっぴきおおかみ"
+  },
+  {
+    "display": "塵も積もれば山となる",
+    "kana": "ちりもつもればやまとなる"
+  },
+  {
+    "display": "情けは人のためならず",
+    "kana": "なさけはひとのためならず"
+  },
+  {
+    "display": "早起きは三文の徳",
+    "kana": "はやおきはさんもんのとく"
+  },
+  {
+    "display": "笑う門には福来る",
+    "kana": "わらうかどにはふくきたる"
+  },
+  {
+    "display": "お誕生日おめでとう",
+    "kana": "おたんじょうびおめでとう"
+  },
+  {
+    "display": "石橋を叩いて渡る",
+    "kana": "いしばしをたたいてわたる"
+  },
+  {
+    "display": "不要不急の外出",
+    "kana": "ふようふきゅうのがいしゅつ"
+  },
+  {
+    "display": "犬も歩けば棒に当たる",
+    "kana": "いぬもあるけばぼうにあたる"
+  },
+  {
+    "display": "弘法にも筆の誤り",
+    "kana": "こうぼうにもふでのあやまり"
+  },
+  {
+    "display": "週刊少年漫画",
+    "kana": "しゅうかんしょうねんまんが"
+  },
+  {
+    "display": "百聞は一見にしかず",
+    "kana": "ひゃくぶんはいっけんにしかず"
+  },
+  {
+    "display": "火のない所に煙は立たぬ",
+    "kana": "ひのないところにけむりはたたぬ"
+  },
+  {
+    "display": "一年の計は元旦にあり",
+    "kana": "いちねんのけいはがんたんにあり"
+  }
 ]
