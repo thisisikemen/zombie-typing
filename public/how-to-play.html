@@ -209,8 +209,7 @@
         インストール不要で、PCブラウザとキーボードだけで遊べます。
       </p>
       <div class="actions">
-        <a class="button primary" href="./">ゲームを起動する</a>
-        <a class="button" href="./#screen-title">タイトルへ戻る</a>
+        <a class="button primary" href="./" data-return-to-game>前の画面へ戻る</a>
       </div>
     </header>
 
@@ -292,8 +291,39 @@
     </div>
 
     <footer>
-      <p><a href="./">ゾンビタイピングをプレイする</a> / <a href="https://github.com/thisisikemen/zombie-typing">GitHub</a></p>
+      <p><a href="./" data-return-to-game>前の画面へ戻る</a> / <a href="https://github.com/thisisikemen/zombie-typing">GitHub</a></p>
     </footer>
   </main>
+  <script>
+    (() => {
+      const returnLinks = document.querySelectorAll("[data-return-to-game]");
+      if (!returnLinks.length) return;
+
+      let canReturnToGame = false;
+      try {
+        const referrer = document.referrer ? new URL(document.referrer) : null;
+        const basePath = window.location.pathname.startsWith("/zombie-typing/") ? "/zombie-typing/" : "/";
+        canReturnToGame = Boolean(
+          referrer &&
+          referrer.origin === window.location.origin &&
+          referrer.pathname.startsWith(basePath) &&
+          window.history.length > 1
+        );
+      } catch {
+        canReturnToGame = false;
+      }
+
+      returnLinks.forEach((link) => {
+        if (!canReturnToGame) {
+          link.textContent = "ゲームを起動する";
+        }
+        link.addEventListener("click", (event) => {
+          if (!canReturnToGame) return;
+          event.preventDefault();
+          window.history.back();
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
