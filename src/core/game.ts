@@ -116,6 +116,8 @@ export class Game {
   private recentKana: string[] = [];
   /** ベーシック: 次に出す文字の通し番号(五十音順・ループ) */
   private practiceIndex = 0;
+  /** ベーシック: 最後に湧いた時刻(一定テンポ湧きの基準。初回は即出す) */
+  private lastPracticeSpawnAt = -Infinity;
   /** ロック(または重複候補)開始以降の全打鍵列(正打・ミス問わず時系列。自動切替の判定用) */
   private recentKeys: string[] = [];
   private static readonly RECENT_KEYS_MAX = 32;
@@ -133,14 +135,20 @@ export class Game {
     return this.difficulty.endless === true;
   }
 
+  /** ベーシック(五十音練習)か。時間無制限・夜明けなし */
+  isPractice(): boolean {
+    return this.difficulty.practice === true;
+  }
+
   /** 難易度上昇に使う経過率 0〜1 */
   progressRatio(): number {
     const duration = this.isEndless() ? ENDLESS.openingRampSec : this.duration;
     return duration > 0 ? Math.min(1, this.time / duration) : 0;
   }
 
-  /** 空の色・背景演出に使う経過率。エンドレスは深夜で固定する */
+  /** 空の色・背景演出に使う経過率。エンドレスは深夜、練習は日没直後で固定する */
   skyProgressRatio(): number {
+    if (this.isPractice()) return 0;
     return this.isEndless() ? ENDLESS.skyProgress : this.progressRatio();
   }
 
@@ -150,7 +158,8 @@ export class Game {
   }
 
   survivalTime(): number {
-    return this.isEndless() ? this.time : Math.min(this.time, this.duration);
+    if (this.isEndless() || this.isPractice()) return this.time;
+    return Math.min(this.time, this.duration);
   }
 
   update(dt: number): void {
@@ -181,7 +190,7 @@ export class Game {
       this.hp = 0;
       this.status = 'gameover';
       this.events.push({ type: 'gameover' });
-    } else if (!this.isEndless() && this.time >= this.duration) {
+    } else if (!this.isEndless() && !this.isPractice() && this.time >= this.duration) {
       this.status = 'clear';
       this.events.push({ type: 'clear' });
     }
@@ -388,6 +397,8 @@ export class Game {
     this.removeZombie(z.id);
     this.targetId = null;
     this.candidateIds = [];
+    // ベーシック: 撃破した瞬間に次の文字を出す(連続でテンポよく打てるように)
+    if (this.isPractice()) this.trySpawnPractice(true);
     this.events.push({
       type: 'kill',
       zombieId: z.id,
@@ -496,12 +507,13 @@ export class Game {
     this.events.push({ type: 'spawn', zombieId: z.id });
   }
 
-  /** ベーシック用スポーン: 五十音順に一文字ずつ、一列に歩かせる */
-  private trySpawnPractice(): void {
+  /** ベーシック用スポーン: 五十音順に一文字ずつ、一定テンポで一列に歩かせる。
+      force=true(撃破直後)はテンポを待たずに即出す */
+  private trySpawnPractice(force = false): void {
     if (this.zombies.length >= BASIC.maxOnScreen) return;
-    // 直前のゾンビが少し進むまで待つ(重なり防止)
-    if (this.zombies.some((z) => z.x > FIELD.spawnX - BASIC.minSpacing)) return;
+    if (!force && this.time - this.lastPracticeSpawnAt < BASIC.spawnIntervalSec) return;
 
+    this.lastPracticeSpawnAt = this.time;
     const ch = BASIC.sequence[this.practiceIndex % BASIC.sequence.length];
     this.practiceIndex++;
     const z: Zombie = {
@@ -509,7 +521,8 @@ export class Game {
       tier: 1,
       word: { display: ch, kana: ch },
       session: new TypingSession(ch),
-      x: FIELD.spawnX,
+      // 撃破直後の即時出現は画面右端に出してすぐ見える(打てる)ようにする
+      x: force ? FIELD.width : FIELD.spawnX,
       y: BASIC.rowY,
       speed: TIERS[1].speed * BASIC.speedScale * this.difficulty.speedScale,
       speedMultiplier: 1.0,

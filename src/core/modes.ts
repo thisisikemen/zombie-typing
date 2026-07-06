@@ -71,6 +71,7 @@ export const MODES: ModeDef[] = [
         wordHint: '五十音を一文字ずつ',
         zombieHint: '超入門・キーボードガイド付き',
         duration: 90,
+        durationHint: '無制限',
         practice: true,
         ranked: false,
         color: '#6ec8e8',

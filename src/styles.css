@@ -245,9 +245,6 @@ kbd {
   color: var(--ui-text);
   transition: transform 0.12s ease;
 }
-.difficulty-cards.single .diff-card {
-  width: 20rem;
-}
 .diff-card:hover, .diff-card:focus-visible {
   background-image: var(--card-s);
   transform: translateY(-5px) scale(1.02);
@@ -293,7 +290,12 @@ kbd {
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.12s ease;
+  /* 見切れカードの上に少し重ねて内側に寄せる(押しやすさ優先) */
+  position: relative;
+  z-index: 2;
 }
+.carousel-arrow.left { margin-right: -3.2rem; }
+.carousel-arrow.right { margin-left: -3.2rem; }
 .carousel-arrow:hover:not(:disabled) {
   border-color: var(--accent);
   color: #fff;

@@ -14,6 +14,7 @@ export type SfxName =
   | 'shell' // 薬莢(ファイル・ランキングボタン)
   | 'pause' // 拳銃を構える(ファイル・一時停止)
   | 'resume' // ボルトリリース(ファイル・再開)
+  | 'select' // カルーセル矢印(ファイル)
   | 'miss'
   | 'kill'
   | 'damage'
@@ -23,7 +24,15 @@ export type SfxName =
   | 'go'
   | 'gameover';
 
-export type BgmKind = 'menu' | 'battle' | null;
+/** BGM の種類(battle=夜明けまで / hardcore / endless=夜は明けない) */
+export type BgmKind = 'menu' | 'battle' | 'hardcore' | 'endless' | null;
+
+const BGM_FILES: Record<Exclude<BgmKind, null>, string> = {
+  menu: 'bgm-menu.mp3',
+  battle: 'bgm-battle.mp3',
+  hardcore: 'bgm-hardcore.mp3',
+  endless: 'bgm-endless.mp3',
+};
 
 export interface AudioSettings {
   volume: number; // 0〜1
@@ -41,6 +50,7 @@ const PLAY_TUNING: Partial<Record<SfxName, { gain?: number; rateJitter?: number 
   shell: { gain: 0.9 },
   pause: { gain: 0.9 },
   resume: { gain: 0.9 },
+  select: { gain: 0.85 },
   kill: { gain: 1.0, rateJitter: 0.08 },
   miss: { gain: 0.85 },
 };
@@ -138,8 +148,7 @@ export class AudioSystem {
   private settings: AudioSettings = { volume: AUDIO.masterVolume, sfxOn: true, bgmOn: true };
   private initPromise: Promise<void> | null = null;
 
-  private menuBgm: HTMLAudioElement | null = null;
-  private battleBgm: HTMLAudioElement | null = null;
+  private bgms: Partial<Record<Exclude<BgmKind, null>, HTMLAudioElement>> = {};
   private desiredBgm: BgmKind = null;
 
   /** 最初のユーザー操作で呼ぶ(AudioContext / audio 再生の制約対策) */
@@ -176,14 +185,15 @@ export class AudioSystem {
   /**
    * BGM の切り替え。
    * - 'menu': タイトル・モード選択
-   * - 'battle': カウントダウン〜プレイ〜リザルトまで流し続ける
+   * - 'battle' / 'hardcore' / 'endless': カウントダウン〜プレイ〜リザルトまで流し続ける
    * restart=true なら曲を頭から再生し直す
    */
   setBgm(kind: BgmKind, restart = false): void {
     this.desiredBgm = kind;
-    if (!this.menuBgm || !this.battleBgm) return; // init 前は desired だけ覚える
-    const target = kind === 'menu' ? this.menuBgm : kind === 'battle' ? this.battleBgm : null;
-    for (const el of [this.menuBgm, this.battleBgm]) {
+    const els = Object.values(this.bgms);
+    if (els.length === 0) return; // init 前は desired だけ覚える
+    const target = kind ? this.bgms[kind] ?? null : null;
+    for (const el of els) {
       if (el !== target && !el.paused) el.pause();
     }
     if (target) {
@@ -194,8 +204,7 @@ export class AudioSystem {
 
   private updateBgmVolumes(): void {
     const v = this.settings.bgmOn ? this.settings.volume * AUDIO.musicVolume : 0;
-    if (this.menuBgm) this.menuBgm.volume = v;
-    if (this.battleBgm) this.battleBgm.volume = v;
+    for (const el of Object.values(this.bgms)) el.volume = v;
   }
 
   private async init(): Promise<void> {
@@ -208,12 +217,12 @@ export class AudioSystem {
 
     const base = import.meta.env.BASE_URL;
 
-    // BGM(ストリーミング再生)
-    this.menuBgm = new Audio(`${base}audio/bgm-menu.mp3`);
-    this.battleBgm = new Audio(`${base}audio/bgm-battle.mp3`);
-    for (const el of [this.menuBgm, this.battleBgm]) {
+    // BGM(ストリーミング再生・モード別)
+    for (const [kind, file] of Object.entries(BGM_FILES)) {
+      const el = new Audio(`${base}audio/${file}`);
       el.loop = true;
       el.preload = 'auto';
+      this.bgms[kind as Exclude<BgmKind, null>] = el;
     }
 
     this.applySettings(this.settings);
@@ -327,6 +336,7 @@ export class AudioSystem {
       loadFile('shell', 'shell.mp3'),
       loadFile('pause', 'pause.mp3'),
       loadFile('resume', 'resume.mp3'),
+      loadFile('select', 'select.mp3'),
     ]);
     defs.forEach(([name], i) => this.buffers.set(name, rendered[i]));
 

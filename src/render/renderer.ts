@@ -864,7 +864,11 @@ export class Renderer {
     ctx.fillStyle = 'rgba(216,212,200,0.72)';
     ctx.fillText(game.isEndless() ? '生存時間:' : '残り時間:', 1358, boxY + 22);
     ctx.fillStyle = '#ffab4a';
-    ctx.fillText(game.isEndless() ? '夜は明けない' : '夜明けまで', 1432, boxY + 22);
+    ctx.fillText(
+      game.isPractice() ? '練習し放題' : game.isEndless() ? '夜は明けない' : '夜明けまで',
+      1432,
+      boxY + 22,
+    );
     // 進行バー(青)
     const tbX = 1358;
     const tbW = 118;
@@ -872,9 +876,11 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     roundRect(ctx, tbX, tbY, tbW, 12, 3);
     ctx.fill();
-    const p = game.isEndless()
-      ? (game.time % 60) / 60
-      : game.progressRatio();
+    const p = game.isPractice()
+      ? 0
+      : game.isEndless()
+        ? (game.time % 60) / 60
+        : game.progressRatio();
     if (p > 0.01) {
       const tg = ctx.createLinearGradient(tbX, 0, tbX + tbW, 0);
       tg.addColorStop(0, '#2a72c8');
@@ -889,7 +895,11 @@ export class Renderer {
     ctx.textAlign = 'right';
     ctx.font = '900 30px ui-monospace, Menlo, monospace';
     ctx.fillStyle = HUD_COLORS.text;
-    ctx.fillText(`${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`, 1568, boxY + 50);
+    // 練習モードは時間無制限なので --:-- 表示
+    const timeText = game.isPractice()
+      ? '--:--'
+      : `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    ctx.fillText(timeText, 1568, boxY + 50);
 
     ctx.restore();
   }
@@ -1021,7 +1031,7 @@ export class Renderer {
     if (shiftSide === 'left') hotFingers.add(0); // 左小指でシフト
     if (shiftSide === 'right') hotFingers.add(9); // 右小指でシフト
 
-    const heights = [26, 36, 42, 36, 22, 22, 36, 42, 36, 26]; // 小指〜親指〜小指
+    const heights = [36, 46, 52, 46, 30, 30, 46, 52, 46, 36]; // 小指〜親指〜小指
     const fw = 34;
     const fGap = 10;
     const handGap = 46;

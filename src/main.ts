@@ -121,7 +121,9 @@ async function boot(): Promise<void> {
     void audio.ensureInit().then(() => {
       applyAudioSettings();
       audio.play('ready'); // 銃を構える
-      audio.setBgm('battle', true); // 戦闘 BGM はリザルトまで流れ続ける
+      // 戦闘 BGM はモード別。リザルトまで流れ続ける
+      const bgm = diff.endless === true ? 'endless' : diff.id === 'hardcore' ? 'hardcore' : 'battle';
+      audio.setBgm(bgm, true);
       if (cdSteps[0]?.sfx) audio.play(cdSteps[0].sfx);
     });
   }

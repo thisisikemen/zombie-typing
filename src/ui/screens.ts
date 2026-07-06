@@ -47,8 +47,8 @@ export interface UICallbacks {
   onSettingsChanged(s: Settings): void;
   /** 何らかのユーザー操作(AudioContext の初期化トリガ) */
   onUserGesture(): void;
-  /** ボタン押下音(bolt=ナビゲーション / ready=ゲーム開始系 / shell=ランキング) */
-  onUiSound(kind: 'bolt' | 'ready' | 'shell'): void;
+  /** ボタン押下音(bolt=ナビゲーション / ready=ゲーム開始系 / shell=ランキング / select=カルーセル矢印) */
+  onUiSound(kind: 'bolt' | 'ready' | 'shell' | 'select'): void;
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => {
@@ -387,7 +387,7 @@ export class UI {
         <ul class="diff-specs">
           <li>単語: <span class="num">${diff.wordHint}</span></li>
           <li>${diff.zombieHint}</li>
-          <li>${diff.endless ? '条件' : '夜明けまで'} <span class="num">${durText}</span></li>
+          <li>${diff.endless ? '条件' : diff.practice ? '時間' : '夜明けまで'} <span class="num">${durText}</span></li>
         </ul>
         <div class="diff-best">${bestText}</div>
       `;
@@ -438,14 +438,14 @@ export class UI {
     };
     arrowL.onclick = () => {
       if (this.carouselOffset > 0) {
-        this.cb.onUiSound('bolt');
+        this.cb.onUiSound('select');
         this.carouselOffset--;
         apply();
       }
     };
     arrowR.onclick = () => {
       if (this.carouselOffset < maxOffset) {
-        this.cb.onUiSound('bolt');
+        this.cb.onUiSound('select');
         this.carouselOffset++;
         apply();
       }

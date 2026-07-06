@@ -318,6 +318,37 @@ describe('ベーシック(五十音練習)', () => {
     expect(g.zombies.length).toBeLessThanOrEqual(BASIC.maxOnScreen);
   });
 
+  it('撃破した瞬間に次の文字が出る(update を待たない)', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    for (let i = 0; i < 20 && g.zombies.length < 1; i++) g.update(0.5);
+    g.handleKey('a');
+    expect(g.kills).toBe(1);
+    expect(g.zombies.length).toBe(1); // 即時再出現
+    expect(g.zombies[0].word.kana).toBe(BASIC.sequence[1]); // い
+    expect(g.zombies[0].x).toBe(FIELD.width); // 画面右端に出てすぐ見える
+  });
+
+  it('放置しても一定テンポで3体目以降も湧き続ける', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    let spawns = 0;
+    for (let t = 0; t < 60; t += 0.25) {
+      g.update(0.25);
+      spawns += g.drainEvents().filter((e) => e.type === 'spawn').length;
+    }
+    expect(spawns).toBeGreaterThanOrEqual(4);
+  });
+
+  it('ベーシックは時間経過でクリアにならず、夜明けも来ない', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    for (let t = 0; t < 200; t += 0.5) {
+      g.update(0.5);
+      g.zombies = []; // ライン被弾での HP 減少を避ける
+    }
+    expect(g.status).toBe('running'); // duration(90秒) を超えてもクリアしない
+    expect(g.skyProgressRatio()).toBe(0); // 空は日没直後で固定
+    expect(g.survivalTime()).toBeGreaterThan(199);
+  });
+
   it('ベーシックはランキング対象外、ハードコアは対象', () => {
     expect(basic.ranked).toBe(false);
     expect(hardcore.ranked ?? true).toBe(true);
