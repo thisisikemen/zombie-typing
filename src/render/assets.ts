@@ -6,6 +6,7 @@
  *
  * 期待する素材(すべて任意・左向き・透過・足元揃え):
  *   assets/bg_night.png                  背景 1920x1080
+ *   assets/bg_endless.png                エンドレス用背景
  *   assets/soldier_body.png              兵士の胴体(腕なし)
  *   assets/soldier_arms_gun.png          銃 + 両腕(肩ピボット左端)
  *   assets/zombie1_walk_1..4.png         Tier1 歩行 4 フレーム
@@ -17,6 +18,7 @@ import type { Tier } from '../config';
 
 export interface Assets {
   bg: HTMLImageElement | null;
+  bgEndless: HTMLImageElement | null;
   bgFallback: HTMLCanvasElement;
   soldierBody: CanvasImageSource;
   soldierArms: CanvasImageSource;
@@ -290,8 +292,9 @@ export async function loadAssets(): Promise<Assets> {
   const base = import.meta.env.BASE_URL;
   const url = (name: string) => `${base}assets/${name}`;
 
-  const [bg, body, arms, logo, ...zombieFlat] = await Promise.all([
+  const [bg, bgEndless, body, arms, logo, ...zombieFlat] = await Promise.all([
     tryLoadImage(url('bg_night.png')),
+    tryLoadImage(url('bg_endless.png')),
     tryLoadImage(url('soldier_body.png')),
     tryLoadImage(url('soldier_arms_gun.png')),
     tryLoadImage(url('ui/logo.png')),
@@ -322,6 +325,7 @@ export async function loadAssets(): Promise<Assets> {
 
   return {
     bg,
+    bgEndless,
     bgFallback: makeBgFallback(1600, 900),
     soldierBody: body ?? makeSoldierBody(),
     soldierArms: arms ?? makeSoldierArms(),

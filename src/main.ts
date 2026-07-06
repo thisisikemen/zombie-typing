@@ -32,10 +32,12 @@ interface CountdownStep {
   sfx: SfxName | null;
 }
 
-function countdownSteps(quick: boolean): CountdownStep[] {
+function countdownSteps(quick: boolean, endless = false): CountdownStep[] {
   const step = quick ? COUNTDOWN.stepTime * 0.65 : COUNTDOWN.stepTime;
   const steps: CountdownStep[] = [];
-  if (!quick) steps.push({ text: '日没…', dur: COUNTDOWN.introTime, sfx: null });
+  if (!quick) {
+    steps.push({ text: endless ? '終わらない夜…' : '日没…', dur: COUNTDOWN.introTime, sfx: null });
+  }
   steps.push(
     { text: '3', dur: step, sfx: 'tick' },
     { text: '2', dur: step, sfx: 'tick' },
@@ -109,7 +111,7 @@ async function boot(): Promise<void> {
     endFade = null;
     goTimer = 0;
     renderer.resetForNewGame();
-    cdSteps = countdownSteps(quick);
+    cdSteps = countdownSteps(quick, diff.endless === true);
     cdIndex = 0;
     cdTimer = 0;
     state = 'countdown';
@@ -145,13 +147,19 @@ async function boot(): Promise<void> {
     const survival = game.survivalTime();
     // WPM = 正打キー数 / 分(Eタイピング準拠)
     const wpm = survival > 0 ? Math.round(game.correctKeys / (survival / 60)) : 0;
-    const newRecord = saveBest(currentMode.id, currentDiff.id, {
-      score: game.score,
-      kills: game.kills,
-      maxCombo: game.maxCombo,
-      accuracy: game.accuracy(),
-      cleared,
-    });
+    const newRecord = saveBest(
+      currentMode.id,
+      currentDiff.id,
+      {
+        score: game.score,
+        kills: game.kills,
+        maxCombo: game.maxCombo,
+        accuracy: game.accuracy(),
+        cleared,
+        survival,
+      },
+      currentDiff.rankBy ?? 'score',
+    );
     ui.showResult({
       cleared,
       score: game.score,
@@ -164,6 +172,8 @@ async function boot(): Promise<void> {
       modeLabel: currentMode.label,
       diffId: currentDiff.id,
       diffLabel: currentDiff.label,
+      rankBy: currentDiff.rankBy ?? 'score',
+      endless: currentDiff.endless === true,
       newRecord,
     });
   }
@@ -219,9 +229,7 @@ async function boot(): Promise<void> {
         if (action.kind === 'escape') gotoTitle();
         if (action.kind === 'typing') {
           const idx = ['1', '2', '3'].indexOf(action.key);
-          if (idx >= 0 && currentModeSelectable(idx)) {
-            startGame(MODES[0], MODES[0].difficulties[idx], false);
-          }
+          if (idx >= 0) ui.selectDifficultyByIndex(idx);
         }
         break;
       case 'countdown':
@@ -252,10 +260,6 @@ async function boot(): Promise<void> {
         break;
     }
   });
-
-  function currentModeSelectable(idx: number): boolean {
-    return idx < MODES[0].difficulties.length;
-  }
 
   // ---------- イベント → 音・演出 ----------
 

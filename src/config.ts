@@ -53,6 +53,31 @@ export const SPAWN = {
   recentWordMemory: 20,
 } as const;
 
+export const ENDLESS = {
+  /** 空と背景演出は深夜で固定する(夜明けへ進ませない) */
+  skyProgress: 0.5,
+  /** 通常モードの終盤相当まで到達する秒数 */
+  openingRampSec: 180,
+  /** 何秒ごとに一段難しくなるか */
+  rampStepSec: 35,
+  /** 予算回復の伸び(1段ごとの倍率加算) */
+  regenGrowthPerStep: 0.045,
+  regenMaxMultiplier: 2.35,
+  /** 新しく出るゾンビの速度上昇(1段ごとの倍率加算) */
+  speedGrowthPerStep: 0.018,
+  speedMaxMultiplier: 1.7,
+  /** 同時出現数の上限を伸ばす間隔と天井 */
+  extraConcurrentEverySec: 55,
+  maxZombiesCap: 18,
+  /** 単語の長さをじわじわ伸ばす */
+  wordShiftEverySec: 70,
+  wordShiftMax: 4,
+  /** Tier 構成比。序盤は短い語中心、後半は強いゾンビが増える */
+  tierWeightsStart: { 1: 0.65, 2: 0.3, 3: 0.05 } as Record<Tier, number>,
+  tierWeightsEnd: { 1: 0.18, 2: 0.42, 3: 0.4 } as Record<Tier, number>,
+  tierWeightRampSec: 420,
+} as const;
+
 export const COMBO = {
   /** ボーナス発動のコンボ閾値(この倍数ごとに発動) */
   bonusThreshold: 10,

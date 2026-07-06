@@ -163,14 +163,18 @@ export class Renderer {
     ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
 
     const game = scene.game;
-    const progress = game ? game.progressRatio() : 0.35;
+    const progress = game ? game.skyProgressRatio() : 0.35;
 
     const [sx, sy] = this.effects.shakeOffset();
     ctx.save();
     ctx.translate(sx, sy);
 
-    if (this.assets.bg) {
-      this.drawImageBackdrop(ctx, progress);
+    const bg =
+      game?.difficulty.backgroundId === 'endless'
+        ? this.assets.bgEndless ?? this.assets.bg
+        : this.assets.bg;
+    if (bg) {
+      this.drawImageBackdrop(ctx, progress, bg);
     } else {
       this.drawSky(ctx, progress);
       ctx.drawImage(this.assets.bgFallback, 0, 0, W, H);
@@ -225,8 +229,12 @@ export class Renderer {
    * 序盤は日没の残光を、終盤は夜明けの白みと朝焼けを重ねて
    * 時間経過を作る(ベイクされた月・星を殺さない)。
    */
-  private drawImageBackdrop(ctx: CanvasRenderingContext2D, progress: number): void {
-    ctx.drawImage(this.assets.bg!, 0, 0, W, H);
+  private drawImageBackdrop(
+    ctx: CanvasRenderingContext2D,
+    progress: number,
+    bg: HTMLImageElement,
+  ): void {
+    ctx.drawImage(bg, 0, 0, W, H);
 
     // 序盤: 日没の残光が地平線に残る → 消えていく
     const sunset = Math.max(0, 1 - progress / 0.22);
@@ -848,9 +856,9 @@ export class Renderer {
     ctx.textAlign = 'left';
     ctx.font = '700 15px "Hiragino Kaku Gothic ProN", sans-serif';
     ctx.fillStyle = 'rgba(216,212,200,0.72)';
-    ctx.fillText('残り時間:', 1358, boxY + 22);
+    ctx.fillText(game.isEndless() ? '生存時間:' : '残り時間:', 1358, boxY + 22);
     ctx.fillStyle = '#ffab4a';
-    ctx.fillText('夜明けまで', 1432, boxY + 22);
+    ctx.fillText(game.isEndless() ? '夜は明けない' : '夜明けまで', 1432, boxY + 22);
     // 進行バー(青)
     const tbX = 1358;
     const tbW = 118;
@@ -858,7 +866,9 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     roundRect(ctx, tbX, tbY, tbW, 12, 3);
     ctx.fill();
-    const p = game.progressRatio();
+    const p = game.isEndless()
+      ? (game.time % 60) / 60
+      : game.progressRatio();
     if (p > 0.01) {
       const tg = ctx.createLinearGradient(tbX, 0, tbX + tbW, 0);
       tg.addColorStop(0, '#2a72c8');
@@ -867,9 +877,9 @@ export class Renderer {
       roundRect(ctx, tbX + 1, tbY + 1, (tbW - 2) * p, 10, 2);
       ctx.fill();
     }
-    const remain = Math.max(0, game.duration - game.time);
-    const mm = Math.floor(remain / 60);
-    const ss = Math.floor(remain % 60);
+    const displayTime = game.isEndless() ? game.time : Math.max(0, game.duration - game.time);
+    const mm = Math.floor(displayTime / 60);
+    const ss = Math.floor(displayTime % 60);
     ctx.textAlign = 'right';
     ctx.font = '900 30px ui-monospace, Menlo, monospace';
     ctx.fillStyle = HUD_COLORS.text;

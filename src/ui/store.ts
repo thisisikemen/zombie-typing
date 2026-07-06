@@ -15,6 +15,7 @@ export interface BestRecord {
   maxCombo: number;
   accuracy: number;
   cleared: boolean;
+  survival?: number;
 }
 
 const SETTINGS_KEY = 'zombie-typing:settings';
@@ -49,10 +50,19 @@ export function loadBest(modeId: string, diffId: string): BestRecord | null {
   }
 }
 
-/** スコアがベスト更新なら保存して true を返す */
-export function saveBest(modeId: string, diffId: string, rec: BestRecord): boolean {
+/** 指定された指標でベスト更新なら保存して true を返す */
+export function saveBest(
+  modeId: string,
+  diffId: string,
+  rec: BestRecord,
+  metric: 'score' | 'survival' = 'score',
+): boolean {
   const prev = loadBest(modeId, diffId);
-  if (prev && prev.score >= rec.score) return false;
+  if (prev) {
+    const prevValue = metric === 'survival' ? prev.survival ?? 0 : prev.score;
+    const nextValue = metric === 'survival' ? rec.survival ?? 0 : rec.score;
+    if (prevValue >= nextValue) return false;
+  }
   try {
     localStorage.setItem(`${BEST_PREFIX}${modeId}:${diffId}`, JSON.stringify(rec));
   } catch {

@@ -4,8 +4,8 @@
  * 将来のオンライン化ではこのモジュールをサーバーへ移植する想定(仕様 §1)。
  */
 
-import { BONUS, COMBO, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
-import type { DifficultyDef } from './modes';
+import { BONUS, COMBO, ENDLESS, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
+import type { DifficultyDef, TierSpawnRule } from './modes';
 import { TypingSession } from './typing/engine';
 import type { WordEntry, WordPool } from './words';
 
@@ -127,9 +127,19 @@ export class Game {
     this.duration = difficulty.duration;
   }
 
-  /** 経過率 0〜1(空の色・時間バーに使う) */
+  isEndless(): boolean {
+    return this.difficulty.endless === true;
+  }
+
+  /** 難易度上昇に使う経過率 0〜1 */
   progressRatio(): number {
-    return Math.min(1, this.time / this.duration);
+    const duration = this.isEndless() ? ENDLESS.openingRampSec : this.duration;
+    return duration > 0 ? Math.min(1, this.time / duration) : 0;
+  }
+
+  /** 空の色・背景演出に使う経過率。エンドレスは深夜で固定する */
+  skyProgressRatio(): number {
+    return this.isEndless() ? ENDLESS.skyProgress : this.progressRatio();
   }
 
   accuracy(): number {
@@ -138,7 +148,7 @@ export class Game {
   }
 
   survivalTime(): number {
-    return Math.min(this.time, this.duration);
+    return this.isEndless() ? this.time : Math.min(this.time, this.duration);
   }
 
   update(dt: number): void {
@@ -157,11 +167,7 @@ export class Game {
     }
 
     // --- スポーン制御(難易度予算方式・仕様 §7) ---
-    const regen =
-      (SPAWN.budgetRegenStart +
-        (SPAWN.budgetRegenEnd - SPAWN.budgetRegenStart) * this.progressRatio()) *
-      this.difficulty.regenScale;
-    this.budget += regen * dt;
+    this.budget += this.budgetRegenRate() * dt;
     this.spawnTimer += dt;
     if (this.spawnTimer >= SPAWN.interval) {
       this.spawnTimer -= SPAWN.interval;
@@ -173,7 +179,7 @@ export class Game {
       this.hp = 0;
       this.status = 'gameover';
       this.events.push({ type: 'gameover' });
-    } else if (this.time >= this.duration) {
+    } else if (!this.isEndless() && this.time >= this.duration) {
       this.status = 'clear';
       this.events.push({ type: 'clear' });
     }
@@ -410,8 +416,14 @@ export class Game {
   }
 
   private allowedConcurrent(): number {
+    const maxZombies = this.isEndless()
+      ? Math.min(
+          ENDLESS.maxZombiesCap,
+          this.difficulty.maxZombies + Math.floor(this.time / ENDLESS.extraConcurrentEverySec),
+        )
+      : this.difficulty.maxZombies;
     return Math.min(
-      this.difficulty.maxZombies,
+      maxZombies,
       1 + Math.floor(this.time / this.difficulty.concurrentRampSec),
     );
   }
@@ -422,7 +434,7 @@ export class Game {
     // 予算内で出せる Tier を重み付き抽選
     const options: { tier: Tier; weight: number }[] = [];
     for (const tier of [1, 2, 3] as Tier[]) {
-      const rule = this.difficulty.tiers[tier];
+      const rule = this.tierRule(tier);
       if (rule.weight <= 0) continue;
       if (TIERS[tier].cost > this.budget) continue;
       options.push({ tier, weight: rule.weight });
@@ -449,7 +461,7 @@ export class Game {
 
     const picked = this.pool.pick(
       this.rng,
-      this.difficulty.tiers[tier].kanaRange,
+      this.tierRule(tier).kanaRange,
       blockedKeys,
       onScreen,
       recent,
@@ -467,7 +479,7 @@ export class Game {
       session: new TypingSession(picked.word.kana),
       x: FIELD.spawnX,
       y: this.pickSpawnY(),
-      speed: TIERS[tier].speed * this.difficulty.speedScale,
+      speed: TIERS[tier].speed * this.currentSpeedScale(),
       speedMultiplier: 1.0, // 「速いゾンビ」導入用パラメータ(仕様 §7)
       walkTime: this.rng() * 10,
       exclusive: picked.exclusive,
@@ -488,5 +500,52 @@ export class Game {
       y = FIELD.zombieMinY + this.rng() * range;
     }
     return y;
+  }
+
+  private endlessLevel(): number {
+    return Math.max(0, this.time / ENDLESS.rampStepSec);
+  }
+
+  private budgetRegenRate(): number {
+    const base =
+      (SPAWN.budgetRegenStart +
+        (SPAWN.budgetRegenEnd - SPAWN.budgetRegenStart) * this.progressRatio()) *
+      this.difficulty.regenScale;
+    if (!this.isEndless()) return base;
+
+    const growth = Math.min(
+      ENDLESS.regenMaxMultiplier,
+      1 + this.endlessLevel() * ENDLESS.regenGrowthPerStep,
+    );
+    return base * growth;
+  }
+
+  private currentSpeedScale(): number {
+    if (!this.isEndless()) return this.difficulty.speedScale;
+    const growth = Math.min(
+      ENDLESS.speedMaxMultiplier,
+      1 + this.endlessLevel() * ENDLESS.speedGrowthPerStep,
+    );
+    return this.difficulty.speedScale * growth;
+  }
+
+  private tierRule(tier: Tier): TierSpawnRule {
+    const base = this.difficulty.tiers[tier];
+    if (!this.isEndless()) return base;
+
+    const t = Math.min(1, this.time / ENDLESS.tierWeightRampSec);
+    const weight =
+      ENDLESS.tierWeightsStart[tier] +
+      (ENDLESS.tierWeightsEnd[tier] - ENDLESS.tierWeightsStart[tier]) * t;
+    const shift = Math.min(
+      ENDLESS.wordShiftMax,
+      Math.floor(this.time / ENDLESS.wordShiftEverySec),
+    );
+    const minShift =
+      tier === 1 ? Math.floor(shift * 0.5) : tier === 2 ? Math.floor(shift * 0.75) : shift;
+    const maxCap = tier === 1 ? 8 : tier === 2 ? 12 : 15;
+    const min = Math.min(maxCap, base.kanaRange[0] + minShift);
+    const max = Math.min(maxCap, base.kanaRange[1] + shift);
+    return { weight, kanaRange: [min, Math.max(min, max)] };
   }
 }

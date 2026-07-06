@@ -4,7 +4,7 @@
  * 金属プレート等の UI 画像は public/assets/ui/ のものを CSS 変数経由で使う。
  */
 
-import { MODES, type DifficultyDef, type ModeDef } from '../core/modes';
+import { MODES, type DifficultyDef, type ModeDef, type RankMetric } from '../core/modes';
 import {
   loadPlayerName,
   rankingBackend,
@@ -29,6 +29,8 @@ export interface ResultData {
   modeLabel: string;
   diffId: string;
   diffLabel: string;
+  rankBy: RankMetric;
+  endless: boolean;
   newRecord: boolean;
 }
 
@@ -256,6 +258,9 @@ export class UI {
   private renderRanking(): void {
     const tabs = $('ranking-tabs');
     tabs.innerHTML = '';
+    if (!this.activeMode.difficulties.some((diff) => diff.id === this.rankingDiff)) {
+      this.rankingDiff = this.activeMode.difficulties[0]?.id ?? this.rankingDiff;
+    }
     for (const diff of this.activeMode.difficulties) {
       const tab = document.createElement('button');
       tab.className = `ranking-tab${diff.id === this.rankingDiff ? ' active' : ''}`;
@@ -266,6 +271,14 @@ export class UI {
         this.renderRanking();
       };
       tabs.appendChild(tab);
+    }
+
+    const activeDiff = this.activeMode.difficulties.find((diff) => diff.id === this.rankingDiff);
+    if (activeDiff?.rankBy === 'survival') {
+      $('ranking-note').textContent = 'エンドレスランキングはゲーム完成後に追加予定です';
+      $('ranking-list').innerHTML =
+        '<li class="ranking-empty">まずはゲーム本編を完成させています。</li>';
+      return;
     }
 
     $('ranking-note').textContent = rankingBackend.online
@@ -308,11 +321,16 @@ export class UI {
     for (const mode of MODES) {
       const tab = document.createElement('button');
       tab.className = `mode-tab${mode.id === this.activeMode.id ? ' active' : ''}`;
-      const img = document.createElement('img');
-      // ※現状は「夜明けまで」のみ。モード追加時はモードごとのタブ画像を用意する
-      img.src = `${import.meta.env.BASE_URL}assets/ui/tab-active.png`;
-      img.alt = mode.label;
-      tab.appendChild(img);
+      tab.setAttribute('aria-label', mode.label);
+      if (mode.id === 'dawn') {
+        const img = document.createElement('img');
+        img.src = `${import.meta.env.BASE_URL}assets/ui/tab-active.png`;
+        img.alt = mode.label;
+        tab.appendChild(img);
+      } else {
+        tab.classList.add('text-tab');
+        tab.textContent = mode.label;
+      }
       tab.onclick = () => {
         this.cb.onUiSound('bolt');
         this.activeMode = mode;
@@ -320,8 +338,8 @@ export class UI {
       };
       tabs.appendChild(tab);
     }
-    // 近日公開の空きスロット(イメージ準拠で2枠)
-    for (let i = 0; i < 2; i++) {
+    // 近日公開の空きスロット(合計3枠になるように補う)
+    for (let i = 0; i < Math.max(0, 3 - MODES.length); i++) {
       const locked = document.createElement('div');
       locked.className = 'mode-tab locked';
       const img = document.createElement('img');
@@ -333,6 +351,7 @@ export class UI {
 
     const cards = $('difficulty-cards');
     cards.innerHTML = '';
+    cards.classList.toggle('single', this.activeMode.difficulties.length === 1);
     for (const diff of this.activeMode.difficulties) {
       const card = document.createElement('button');
       card.className = 'diff-card';
@@ -344,15 +363,22 @@ export class UI {
       const mm = Math.floor(diff.duration / 60);
       const ss = diff.duration % 60;
       const durText =
-        mm > 0 ? `${mm}分${ss > 0 ? `${ss}秒` : ''}` : `${diff.duration}秒`;
+        diff.durationHint ??
+        (mm > 0 ? `${mm}分${ss > 0 ? `${ss}秒` : ''}` : `${diff.duration}秒`);
+      const bestText =
+        best && diff.rankBy === 'survival'
+          ? `最長 ${formatTime(best.survival ?? 0)}`
+          : best
+            ? `ベスト ${best.score.toLocaleString()}`
+            : '';
       card.innerHTML = `
         <h3>${diff.label}</h3>
         <ul class="diff-specs">
           <li>単語: <span class="num">${diff.wordHint}</span></li>
           <li>${diff.zombieHint}</li>
-          <li>夜明けまで <span class="num">${durText}</span></li>
+          <li>${diff.endless ? '条件' : '夜明けまで'} <span class="num">${durText}</span></li>
         </ul>
-        <div class="diff-best">${best ? `ベスト ${best.score.toLocaleString()}` : ''}</div>
+        <div class="diff-best">${bestText}</div>
       `;
       card.onclick = () => {
         if (performance.now() - this.shownAt < 300) return; // すり抜けクリック防止
@@ -362,37 +388,63 @@ export class UI {
     }
   }
 
+  selectDifficultyByIndex(idx: number): boolean {
+    const diff = this.activeMode.difficulties[idx];
+    if (!diff) return false;
+    this.cb.onSelectDifficulty(this.activeMode, diff);
+    return true;
+  }
+
   showResult(data: ResultData): void {
     this.shareData = data;
 
-    // クリア時は朝焼けのキーアートを背景に
+    // モードに応じたキーアートを背景に
     const screen = this.screens.result;
-    if (data.cleared) {
+    if (data.endless) {
+      screen.style.backgroundImage = uiUrl('result-endless-bg.png');
+    } else if (data.cleared) {
       screen.style.backgroundImage = uiUrl('result-clear-bg.jpg');
     } else {
       screen.style.backgroundImage = 'none';
     }
 
-    $('result-sub').textContent = data.cleared
-      ? '夜明けまで生き延びた!'
-      : '防衛ラインは破られた…';
+    $('result-sub').textContent = data.endless
+      ? '夜はまだ終わらない…'
+      : data.cleared
+        ? '夜明けまで生き延びた!'
+        : '防衛ラインは破られた…';
     const heading = $('result-heading');
     heading.textContent = data.cleared ? 'CLEAR' : 'GAME OVER';
     heading.className = data.cleared ? 'clear' : 'gameover';
 
-    const rows: [string, string, string][] = [
-      ['スコア', data.score.toLocaleString(), 'gold'],
-      ['撃破数', `${data.kills}<span class="unit">体</span>`, ''],
-      ['正確率', `${(data.accuracy * 100).toFixed(1)}<span class="unit">%</span>`, ''],
-      ['ミスタイプ', `${data.misses}<span class="unit">回</span>`, ''],
-      [
-        '最大コンボ <span class="label-note">(ノーミスでの連続撃破数)</span>',
-        `${data.maxCombo}`,
-        '',
-      ],
-      ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
-      ['生存時間', formatTime(data.survival), ''],
-    ];
+    const rows: [string, string, string][] =
+      data.rankBy === 'survival'
+        ? [
+            ['生存時間', formatTime(data.survival), 'gold'],
+            ['スコア', data.score.toLocaleString(), ''],
+            ['撃破数', `${data.kills}<span class="unit">体</span>`, ''],
+            ['正確率', `${(data.accuracy * 100).toFixed(1)}<span class="unit">%</span>`, ''],
+            ['ミスタイプ', `${data.misses}<span class="unit">回</span>`, ''],
+            [
+              '最大コンボ <span class="label-note">(ノーミスでの連続撃破数)</span>',
+              `${data.maxCombo}`,
+              '',
+            ],
+            ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
+          ]
+        : [
+            ['スコア', data.score.toLocaleString(), 'gold'],
+            ['撃破数', `${data.kills}<span class="unit">体</span>`, ''],
+            ['正確率', `${(data.accuracy * 100).toFixed(1)}<span class="unit">%</span>`, ''],
+            ['ミスタイプ', `${data.misses}<span class="unit">回</span>`, ''],
+            [
+              '最大コンボ <span class="label-note">(ノーミスでの連続撃破数)</span>',
+              `${data.maxCombo}`,
+              '',
+            ],
+            ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
+            ['生存時間', formatTime(data.survival), ''],
+          ];
     const stats = $('result-stats');
     stats.innerHTML = rows
       .map(
@@ -406,12 +458,13 @@ export class UI {
 
     // ランキングへ自動登録(登録し忘れ防止)
     const register = $('result-register');
-    register.style.display = data.score > 0 ? '' : 'none';
+    const canRegister = data.rankBy === 'score' && data.score > 0;
+    register.style.display = canRegister ? '' : 'none';
     $('register-status').textContent = '';
     const nameInput = $<HTMLInputElement>('result-name');
     nameInput.value = loadPlayerName();
     this.lastRank = null;
-    if (data.score > 0) {
+    if (canRegister) {
       const name = sanitizeName(loadPlayerName());
       $('register-status').textContent = 'ランキングに登録中…';
       const entry: RankEntry = {
@@ -464,9 +517,13 @@ export class UI {
   private share(): void {
     if (!this.shareData) return;
     const d = this.shareData;
+    const outcome = d.endless
+      ? `${formatTime(d.survival)}生き延びた`
+      : d.cleared
+        ? '夜明けまで生き延びた!'
+        : '力尽きた…';
     const text =
-      `【ゾンビタイピング】${d.modeLabel}(${d.diffLabel})で` +
-      (d.cleared ? '夜明けまで生き延びた!' : '力尽きた…') +
+      `【ゾンビタイピング】${d.modeLabel}(${d.diffLabel})で${outcome}` +
       ` スコア${d.score.toLocaleString()} / 撃破${d.kills}体 / 正確率${(d.accuracy * 100).toFixed(1)}% / WPM ${d.wpm} / 最大コンボ${d.maxCombo}`;
     const url = new URL('https://twitter.com/intent/tweet');
     url.searchParams.set('text', text);

@@ -6,6 +6,7 @@ import { TypingSession } from '../src/core/typing/engine';
 import { WordPool } from '../src/core/words';
 
 const normal = getDifficulty(getMode('dawn'), 'normal');
+const endless = getDifficulty(getMode('endless'), 'endless');
 
 /** 決定的な擬似乱数(テスト用) */
 function lcg(seed = 1): () => number {
@@ -275,6 +276,22 @@ describe('ダメージ・終了判定', () => {
     const g = emptyPoolGame();
     for (let t = 0; t < normal.duration + 1; t += 0.5) g.update(0.5);
     expect(g.status).toBe('clear');
+  });
+
+  it('エンドレスは時間経過ではクリアにならず、生存時間が伸び続ける', () => {
+    const g = new Game(endless, new WordPool([]), lcg());
+    for (let t = 0; t < 900; t += 0.5) g.update(0.5);
+    expect(g.status).toBe('running');
+    expect(g.survivalTime()).toBeGreaterThan(899);
+    expect(g.skyProgressRatio()).toBe(0.5);
+  });
+
+  it('エンドレスでも HP が尽きるとゲームオーバー', () => {
+    const g = new Game(endless, new WordPool([]), lcg());
+    g.hp = 1;
+    g.zombies.push(makeZombie('とけい', 3, FIELD.lineX + 1));
+    g.update(0.1);
+    expect(g.status).toBe('gameover');
   });
 });
 

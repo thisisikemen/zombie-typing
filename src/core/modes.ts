@@ -6,8 +6,10 @@
 
 import type { Tier } from '../config';
 
-export type DifficultyId = 'easy' | 'normal' | 'hard';
-export type ModeId = 'dawn';
+export type DifficultyId = 'easy' | 'normal' | 'hard' | 'endless';
+export type ModeId = 'dawn' | 'endless';
+export type RankMetric = 'score' | 'survival';
+export type BackgroundId = 'night' | 'endless';
 
 export interface TierSpawnRule {
   /** 出現比率(0 なら出現しない) */
@@ -24,6 +26,16 @@ export interface DifficultyDef {
   zombieHint: string;
   /** 制限時間(夜の長さ・秒) */
   duration: number;
+  /** true の場合、制限時間クリアはなく HP 0 のみで終了する */
+  endless?: boolean;
+  /** カードに出す時間/条件表示 */
+  durationHint?: string;
+  /** ベスト記録・ランキングで重視する指標 */
+  rankBy?: RankMetric;
+  /** プレイ中背景 */
+  backgroundId?: BackgroundId;
+  /** リザルト画面専用背景 */
+  resultBackgroundId?: BackgroundId;
   tiers: Record<Tier, TierSpawnRule>;
   color: string;
   /** スポーン強度(予算回復への乗算) */
@@ -98,6 +110,35 @@ export const MODES: ModeDef[] = [
           1: { weight: 0.2, kanaRange: [5, 7] },
           2: { weight: 0.42, kanaRange: [7, 10] },
           3: { weight: 0.38, kanaRange: [8, 13] },
+        },
+      },
+    ],
+  },
+  {
+    id: 'endless',
+    label: '夜は明けない',
+    desc: 'クリアは無い。HP が尽きるまで、少しずつ苛烈になる夜を生き延びる。',
+    difficulties: [
+      {
+        id: 'endless',
+        label: 'エンドレス',
+        wordHint: 'かな 3〜13+文字',
+        zombieHint: '時間とともに無制限に苛烈化',
+        duration: 0,
+        durationHint: '制限時間なし',
+        endless: true,
+        rankBy: 'survival',
+        backgroundId: 'endless',
+        resultBackgroundId: 'endless',
+        color: '#d7d1c4',
+        regenScale: 1.22,
+        speedScale: 1.08,
+        maxZombies: 8,
+        concurrentRampSec: 10,
+        tiers: {
+          1: { weight: 0.65, kanaRange: [3, 5] },
+          2: { weight: 0.3, kanaRange: [5, 8] },
+          3: { weight: 0.05, kanaRange: [8, 11] },
         },
       },
     ],
