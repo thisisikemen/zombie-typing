@@ -399,8 +399,9 @@ export class Game {
     this.removeZombie(z.id);
     this.targetId = null;
     this.candidateIds = [];
-    // ベーシック: 撃破した瞬間に次の文字を出す(連続でテンポよく打てるように)
-    if (this.isPractice()) this.trySpawnPractice(true);
+    // ベーシック: 最後の1体を倒して場が空になった瞬間だけ次の文字を即出す。
+    // まだ他のゾンビが残っている場合は通常テンポに任せる(画面右端での重なり防止)
+    if (this.isPractice() && this.zombies.length === 0) this.trySpawnPractice(true);
     this.events.push({
       type: 'kill',
       zombieId: z.id,

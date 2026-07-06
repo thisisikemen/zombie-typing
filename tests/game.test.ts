@@ -318,14 +318,27 @@ describe('ベーシック(五十音練習)', () => {
     expect(g.zombies.length).toBeLessThanOrEqual(BASIC.maxOnScreen);
   });
 
-  it('撃破した瞬間に次の文字が出る(update を待たない)', () => {
+  it('最後の1体を倒して場が空になった瞬間は次の文字が即出る(update を待たない)', () => {
     const g = new Game(basic, new WordPool([]), lcg());
     for (let i = 0; i < 20 && g.zombies.length < 1; i++) g.update(0.5);
+    expect(g.zombies.length).toBe(1);
     g.handleKey('a');
     expect(g.kills).toBe(1);
     expect(g.zombies.length).toBe(1); // 即時再出現
     expect(g.zombies[0].word.kana).toBe(BASIC.sequence[1]); // い
     expect(g.zombies[0].x).toBe(FIELD.width); // 画面右端に出てすぐ見える
+  });
+
+  it('2体以上いるときに1体倒しても即出現しない(重なり防止・通常テンポ待ち)', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    for (let t = 0; t < 10 && g.zombies.length < 2; t += 0.25) g.update(0.25);
+    expect(g.zombies.length).toBe(2); // あ・い
+    g.handleKey('a'); // あ を撃破
+    expect(g.kills).toBe(1);
+    expect(g.zombies.length).toBe(1); // う はまだ出ない
+    // 通常テンポ(spawnIntervalSec)経過後に う が出る
+    for (let t = 0; t < 6 && g.zombies.length < 2; t += 0.25) g.update(0.25);
+    expect(g.zombies.some((z) => z.word.kana === BASIC.sequence[2])).toBe(true);
   });
 
   it('放置しても一定テンポで3体目以降も湧き続ける', () => {
