@@ -171,21 +171,6 @@ kbd {
   margin-top: -0.6rem;
 }
 .title-tagline .accent { color: var(--accent); }
-.title-seo-copy {
-  position: absolute;
-  left: 50%;
-  bottom: 4.65rem;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: min(58rem, 82%);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  text-align: center;
-  color: rgba(232, 228, 216, 0.72);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
-  letter-spacing: 0.06em;
-  pointer-events: none;
-}
 .menu-buttons {
   display: flex;
   flex-direction: column;
@@ -710,6 +695,25 @@ kbd {
 .howto-list li { padding-left: 1.2em; position: relative; }
 .howto-list li::before { content: "▸"; position: absolute; left: 0; color: var(--blood); }
 .howto-list strong { color: var(--gold); font-weight: 700; }
+.howto-guide-link {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.howto-guide-link a {
+  color: #ffd24a;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 210, 74, 0.55);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+.howto-guide-link a:hover,
+.howto-guide-link a:focus-visible {
+  color: #fff2bd;
+  border-bottom-color: #fff2bd;
+  outline: none;
+}
 .modal-actions { display: flex; justify-content: center; margin-top: 1.4rem; }
 .modal-actions .plate-btn { min-width: 12rem; font-size: 1.1rem; padding: 0.8rem 1.6rem; }
 
@@ -724,7 +728,6 @@ kbd {
     font-size: 1.15rem;
     letter-spacing: 0.08em;
   }
-  #screen-title .title-seo-copy { display: none; }
   #screen-title .menu-buttons {
     gap: 0.45rem;
     margin-top: 0.2rem;

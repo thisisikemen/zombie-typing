@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ゾンビタイピング攻略・遊び方ガイド | 無料ブラウザ日本語タイピングゲーム</title>
+  <meta name="description" content="ゾンビタイピングの遊び方、ローマ字入力のコツ、難易度、ランキング、エンドレスモードを解説。無料で遊べるブラウザ日本語タイピングゲームの攻略ガイド。" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#05050f" />
+  <link rel="canonical" href="https://thisisikemen.github.io/zombie-typing/how-to-play.html" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <meta property="og:type" content="article" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:site_name" content="ゾンビタイピング" />
+  <meta property="og:title" content="ゾンビタイピング攻略・遊び方ガイド" />
+  <meta property="og:description" content="ゾンビをローマ字入力で撃ち倒す無料ブラウザ日本語タイピングゲームの攻略・練習ガイド。" />
+  <meta property="og:url" content="https://thisisikemen.github.io/zombie-typing/how-to-play.html" />
+  <meta property="og:image" content="https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ゾンビタイピング攻略・遊び方ガイド" />
+  <meta name="twitter:description" content="無料ブラウザ日本語タイピングゲームの遊び方、練習方法、ランキング攻略を解説。" />
+  <meta name="twitter:image" content="https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "ゾンビタイピング攻略・遊び方ガイド",
+      "description": "ゾンビタイピングの遊び方、ローマ字入力のコツ、難易度、ランキング、エンドレスモードを解説する攻略ガイド。",
+      "inLanguage": "ja",
+      "url": "https://thisisikemen.github.io/zombie-typing/how-to-play.html",
+      "image": "https://thisisikemen.github.io/zombie-typing/assets/ogp.jpg",
+      "author": {
+        "@type": "Person",
+        "name": "thisisikemen"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "thisisikemen"
+      }
+    }
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05050f;
+      --panel: rgba(13, 12, 10, 0.88);
+      --panel-strong: rgba(8, 7, 6, 0.94);
+      --border: rgba(126, 111, 83, 0.58);
+      --text: #ece6d8;
+      --muted: #b9b09e;
+      --accent: #ff8a2a;
+      --gold: #ffd24a;
+      --blood: #b31212;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(5, 5, 15, 0.5), rgba(5, 5, 15, 0.94)),
+        url("./assets/ui/title-art.jpg") center / cover fixed no-repeat,
+        var(--bg);
+      line-height: 1.8;
+    }
+
+    a { color: var(--gold); }
+    a:hover { color: #fff2bd; }
+
+    .page {
+      width: min(72rem, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 3rem 0 4rem;
+    }
+
+    .hero {
+      min-height: 46vh;
+      display: grid;
+      align-content: end;
+      padding: 5rem 0 3rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 0.6rem;
+      color: var(--accent);
+      font-weight: 900;
+      letter-spacing: 0.16em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.05rem, 4.4vw, 3.7rem);
+      line-height: 1.15;
+      letter-spacing: 0.04em;
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
+    }
+
+    .nowrap { white-space: nowrap; }
+
+    .lead {
+      max-width: 48rem;
+      margin: 1.2rem 0 0;
+      color: #f1eadc;
+      font-size: 1.08rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 1.6rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.8rem;
+      padding: 0.45rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.58);
+      color: var(--text);
+      font-weight: 900;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+    }
+
+    .button.primary {
+      border-color: rgba(255, 138, 42, 0.75);
+      color: #fff3df;
+      background: rgba(179, 18, 18, 0.45);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    section {
+      margin-top: 1rem;
+      padding: 1.45rem 1.55rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 12px 42px rgba(0, 0, 0, 0.45);
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.45rem;
+      letter-spacing: 0.08em;
+      color: #fff7e8;
+    }
+
+    h3 {
+      margin: 1rem 0 0.35rem;
+      font-size: 1.08rem;
+      color: var(--gold);
+    }
+
+    p { margin: 0.65rem 0 0; }
+    ul, ol { margin: 0.65rem 0 0; padding-left: 1.25rem; }
+    li + li { margin-top: 0.35rem; }
+    strong { color: var(--gold); }
+    kbd {
+      padding: 0.08rem 0.42rem;
+      border: 1px solid var(--muted);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.55);
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    footer {
+      margin-top: 2rem;
+      padding: 1.2rem 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 760px) {
+      .page { width: min(100% - 1rem, 44rem); padding-top: 1.2rem; }
+      .hero { min-height: auto; padding: 2.5rem 0 1.4rem; }
+      .grid { grid-template-columns: 1fr; }
+      section { padding: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">無料ブラウザ日本語タイピングゲーム</p>
+      <h1>ゾンビタイピング攻略・<span class="nowrap">遊び方ガイド</span></h1>
+      <p class="lead">
+        ゾンビタイピングは、右から迫るゾンビの単語をローマ字入力で打ち切って撃退するタイピングトレーニングゲームです。
+        インストール不要で、PCブラウザとキーボードだけで遊べます。
+      </p>
+      <div class="actions">
+        <a class="button primary" href="./">ゲームを起動する</a>
+        <a class="button" href="./#screen-title">タイトルへ戻る</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section>
+        <h2>基本ルール</h2>
+        <ol>
+          <li>右から迫るゾンビの頭上に日本語の単語が表示されます。</li>
+          <li>表示された単語を<strong>ローマ字入力</strong>で打つと、兵士がそのゾンビを攻撃します。</li>
+          <li>最初の1打でターゲットがロックオンされ、単語を打ち切ると撃破です。</li>
+          <li>ゾンビが防衛ラインを越えるとダメージを受けます。</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>操作方法</h2>
+        <ul>
+          <li>文字キー: 表示された単語をローマ字で入力</li>
+          <li><kbd>Enter</kbd> / <kbd>Space</kbd>: ターゲット解除</li>
+          <li><kbd>Esc</kbd>: 一時停止</li>
+          <li>リザルト画面の <kbd>R</kbd>: 同じ難易度で再挑戦</li>
+        </ul>
+        <p class="note">IMEを使わず、半角英字のまま入力すると安定します。</p>
+      </section>
+
+      <section class="wide">
+        <h2>タイピング練習のコツ</h2>
+        <h3>まずは打ち切ることを優先する</h3>
+        <p>
+          速さよりも、単語を最後まで打ち切る感覚を優先しましょう。途中まで打った単語は進捗が保存されるので、
+          <kbd>Enter</kbd> や <kbd>Space</kbd> でターゲットを解除しても後で続きから打てます。
+        </p>
+        <h3>ノーミス撃破でコンボを伸ばす</h3>
+        <p>
+          ノーミスで撃破を続けるとコンボが伸び、ボーナスが発動します。ランキング上位を狙うなら、
+          WPMだけでなく正確率も重要です。
+        </p>
+        <h3>危ないゾンビから処理する</h3>
+        <p>
+          防衛ラインに近いゾンビを優先して倒すと生存しやすくなります。別のゾンビの単語を打ち始めると、
+          狙いは自動で切り替わります。
+        </p>
+      </section>
+
+      <section>
+        <h2>難易度</h2>
+        <ul>
+          <li><strong>ベーシック</strong>: 五十音を一文字ずつ練習する入門モード。</li>
+          <li><strong>イージー</strong>: 短い単語中心。初心者向け。</li>
+          <li><strong>ノーマル</strong>: 速度と単語長のバランス型。</li>
+          <li><strong>ハード</strong>: 長い単語と強いゾンビが増える上級者向け。</li>
+          <li><strong>ハードコア</strong>: 生還率最低の高難度。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>エンドレスとランキング</h2>
+        <p>
+          エンドレスモード「夜は明けない」では、HPが尽きるまで生存時間を伸ばします。
+          ランキングは難易度別に集計され、エンドレスでは生存時間が主な記録になります。
+        </p>
+        <p>
+          リザルト画面からXへ結果を共有できます。自己ベストを更新したら、ランキングとあわせて挑戦を広めてください。
+        </p>
+      </section>
+
+      <section class="wide">
+        <h2>よくある質問</h2>
+        <h3>スマホで遊べますか?</h3>
+        <p>PCキーボードでのローマ字入力を前提にしています。快適に遊ぶならPCブラウザがおすすめです。</p>
+        <h3>無料ですか?</h3>
+        <p>無料でプレイできます。インストールも不要です。</p>
+        <h3>寿司打やe-typingと何が違いますか?</h3>
+        <p>
+          ゾンビタイピングは、タイピング練習に防衛ゲームの判断を加えたブラウザゲームです。
+          単語を打つだけでなく、どのゾンビを先に倒すか、いつターゲットを切り替えるかも重要になります。
+        </p>
+      </section>
+    </div>
+
+    <footer>
+      <p><a href="./">ゾンビタイピングをプレイする</a> / <a href="https://github.com/thisisikemen/zombie-typing">GitHub</a></p>
+    </footer>
+  </main>
+</body>
+</html>

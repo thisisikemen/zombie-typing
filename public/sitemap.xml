@@ -12,4 +12,10 @@
       <image:caption>無料で遊べるブラウザ日本語タイピングゲーム</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://thisisikemen.github.io/zombie-typing/how-to-play.html</loc>
+    <lastmod>2026-07-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

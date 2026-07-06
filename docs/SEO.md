@@ -21,7 +21,7 @@
 - sitemap.xml
 - robots.txt
 - favicon / web manifest
-- タイトル画面内の検索可能な説明文
+- 遊び方モーダルから開ける攻略・練習ガイドページ
 
 ## 注意
 
