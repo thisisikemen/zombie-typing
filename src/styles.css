@@ -142,7 +142,7 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.95rem;
+  gap: 1.1rem;
   width: 100%;
   transform: translateY(-1.4rem); /* 下部の TIP バーぶん少し上へ */
 }
@@ -166,13 +166,19 @@ kbd {
 }
 .title-tagline .accent { color: var(--accent); }
 .title-seo-copy {
-  max-width: min(60rem, 88%);
-  font-size: 0.98rem;
-  line-height: 1.7;
+  position: absolute;
+  left: 50%;
+  bottom: 4.65rem;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(58rem, 82%);
+  font-size: 0.9rem;
+  line-height: 1.5;
   text-align: center;
-  color: rgba(232, 228, 216, 0.82);
+  color: rgba(232, 228, 216, 0.72);
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  pointer-events: none;
 }
 .menu-buttons {
   display: flex;
@@ -702,22 +708,22 @@ kbd {
 .modal-actions .plate-btn { min-width: 12rem; font-size: 1.1rem; padding: 0.8rem 1.6rem; }
 
 @media (max-aspect-ratio: 4 / 5) {
-  .title-content {
+  #screen-title .title-content {
     gap: 0.55rem;
     transform: translateY(0);
   }
-  .title-logo-img { width: min(37rem, 58%); }
-  .title-tagline {
+  #screen-title .title-logo-img { width: min(37rem, 58%); }
+  #screen-title .title-tagline {
     margin-top: -0.2rem;
     font-size: 1.15rem;
     letter-spacing: 0.08em;
   }
-  .title-seo-copy { display: none; }
-  .menu-buttons {
+  #screen-title .title-seo-copy { display: none; }
+  #screen-title .menu-buttons {
     gap: 0.45rem;
     margin-top: 0.2rem;
   }
-  .plate-btn {
+  #screen-title .plate-btn {
     min-width: 16rem;
     padding: 0.75rem 1.8rem 0.85rem;
     font-size: 1.25rem;
