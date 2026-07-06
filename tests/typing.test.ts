@@ -226,6 +226,24 @@ describe('表示用 API', () => {
   });
 });
 
+describe('記号・句読点(ベーシック練習用)', () => {
+  it('、 = カンマ、。 = ピリオド', () => {
+    expect(completes('、', ',')).toBe(true);
+    expect(completes('。', '.')).toBe(true);
+  });
+
+  it('? と ! はそのまま打てる', () => {
+    expect(completes('?', '?')).toBe(true);
+    expect(completes('!', '!')).toBe(true);
+  });
+
+  it('ん 一文字の単語は nn で確定する', () => {
+    const s = createTypingSession('ん');
+    expect(s.input('n')).toBe('advance');
+    expect(s.input('n')).toBe('complete');
+  });
+});
+
 describe('進捗率', () => {
   it('かな単位で単調に進む', () => {
     const s = createTypingSession('としょかん');

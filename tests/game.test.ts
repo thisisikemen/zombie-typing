@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FIELD, PLAYER, TIERS, type Tier } from '../src/config';
+import { BASIC, FIELD, PLAYER, TIERS, type Tier } from '../src/config';
 import { Game, type Zombie } from '../src/core/game';
 import { getDifficulty, getMode } from '../src/core/modes';
 import { TypingSession } from '../src/core/typing/engine';
@@ -7,6 +7,8 @@ import { WordPool } from '../src/core/words';
 
 const normal = getDifficulty(getMode('dawn'), 'normal');
 const endless = getDifficulty(getMode('endless'), 'endless');
+const basic = getDifficulty(getMode('dawn'), 'basic');
+const hardcore = getDifficulty(getMode('dawn'), 'hardcore');
 
 /** 決定的な擬似乱数(テスト用) */
 function lcg(seed = 1): () => number {
@@ -292,6 +294,34 @@ describe('ダメージ・終了判定', () => {
     g.zombies.push(makeZombie('とけい', 3, FIELD.lineX + 1));
     g.update(0.1);
     expect(g.status).toBe('gameover');
+  });
+});
+
+describe('ベーシック(五十音練習)', () => {
+  it('五十音順に一文字ずつ、一列(固定Y)にスポーンする', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    // 1体目
+    for (let i = 0; i < 20 && g.zombies.length < 1; i++) g.update(0.5);
+    expect(g.zombies[0].word.kana).toBe(BASIC.sequence[0]); // あ
+    expect(g.zombies[0].y).toBe(BASIC.rowY);
+    // 1体目を倒すと次の文字が出る
+    g.handleKey('a');
+    expect(g.kills).toBe(1);
+    for (let i = 0; i < 40 && g.zombies.length < 1; i++) g.update(0.5);
+    expect(g.zombies[0].word.kana).toBe(BASIC.sequence[1]); // い
+    expect(g.zombies[0].y).toBe(BASIC.rowY);
+  });
+
+  it('同時に出るのは最大数まで', () => {
+    const g = new Game(basic, new WordPool([]), lcg());
+    for (let t = 0; t < 60; t += 0.5) g.update(0.5);
+    expect(g.zombies.length).toBeLessThanOrEqual(BASIC.maxOnScreen);
+  });
+
+  it('ベーシックはランキング対象外、ハードコアは対象', () => {
+    expect(basic.ranked).toBe(false);
+    expect(hardcore.ranked ?? true).toBe(true);
+    expect(hardcore.duration).toBe(180);
   });
 });
 

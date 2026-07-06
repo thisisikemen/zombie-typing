@@ -6,7 +6,7 @@
 
 import type { Tier } from '../config';
 
-export type DifficultyId = 'easy' | 'normal' | 'hard' | 'endless';
+export type DifficultyId = 'basic' | 'easy' | 'normal' | 'hard' | 'hardcore' | 'endless';
 export type ModeId = 'dawn' | 'endless';
 export type RankMetric = 'score' | 'survival';
 export type BackgroundId = 'night' | 'endless';
@@ -28,6 +28,10 @@ export interface DifficultyDef {
   duration: number;
   /** true の場合、制限時間クリアはなく HP 0 のみで終了する */
   endless?: boolean;
+  /** true の場合、五十音を順番に練習するモード(一列歩行+キーボードガイド) */
+  practice?: boolean;
+  /** false の場合、ランキング登録の対象外(既定 true) */
+  ranked?: boolean;
   /** カードに出す時間/条件表示 */
   durationHint?: string;
   /** ベスト記録・ランキングで重視する指標 */
@@ -61,6 +65,25 @@ export const MODES: ModeDef[] = [
     label: '夜明けまで',
     desc: '日没から夜明けまで生き延びたらクリア。HP が尽きたらゲームオーバー。',
     difficulties: [
+      {
+        id: 'basic',
+        label: 'ベーシック',
+        wordHint: '五十音を一文字ずつ',
+        zombieHint: '超入門・キーボードガイド付き',
+        duration: 90,
+        practice: true,
+        ranked: false,
+        color: '#6ec8e8',
+        regenScale: 1.0,
+        speedScale: 1.0,
+        maxZombies: 2,
+        concurrentRampSec: 1,
+        tiers: {
+          1: { weight: 1, kanaRange: [1, 1] },
+          2: { weight: 0, kanaRange: [4, 5] },
+          3: { weight: 0, kanaRange: [8, 10] },
+        },
+      },
       {
         id: 'easy',
         label: 'イージー',
@@ -110,6 +133,23 @@ export const MODES: ModeDef[] = [
           1: { weight: 0.2, kanaRange: [5, 7] },
           2: { weight: 0.42, kanaRange: [7, 10] },
           3: { weight: 0.38, kanaRange: [8, 13] },
+        },
+      },
+      {
+        id: 'hardcore',
+        label: 'ハードコア',
+        wordHint: 'かな 8 文字以上中心',
+        zombieHint: '生還率最低・最凶の夜',
+        duration: 180,
+        color: '#a45ae0',
+        regenScale: 1.85,
+        speedScale: 1.28,
+        maxZombies: 12,
+        concurrentRampSec: 7,
+        tiers: {
+          1: { weight: 0.12, kanaRange: [6, 8] },
+          2: { weight: 0.4, kanaRange: [8, 11] },
+          3: { weight: 0.48, kanaRange: [9, 13] },
         },
       },
     ],

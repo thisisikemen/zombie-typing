@@ -6,6 +6,7 @@
 import {
   FIELD,
   HUD_COLORS,
+  KEYGUIDE,
   LABEL_COLORS,
   LASER,
   PLAYER,
@@ -202,13 +203,18 @@ export class Renderer {
 
       if (!scene.demo) {
         this.drawHud(ctx, game);
-        // 下部の操作ヒント(邪魔にならない薄さで)
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.font = '600 15px "Hiragino Kaku Gothic ProN", sans-serif';
-        ctx.fillStyle = 'rgba(232, 228, 216, 0.48)';
-        ctx.fillText('Space / Enter: ターゲット切り替え(解除)　　Esc: 一時停止', W / 2 + 60, H - 14);
-        ctx.restore();
+        if (game.difficulty.practice) {
+          // ベーシック: e-typing 風のキーボード+指ガイド
+          this.drawKeyboardGuide(ctx, game);
+        } else {
+          // 下部の操作ヒント(邪魔にならない薄さで)
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.font = '600 15px "Hiragino Kaku Gothic ProN", sans-serif';
+          ctx.fillStyle = 'rgba(232, 228, 216, 0.48)';
+          ctx.fillText('Space / Enter: ターゲット切り替え(解除)　　Esc: 一時停止', W / 2 + 60, H - 14);
+          ctx.restore();
+        }
       }
     } else {
       this.drawSoldier(ctx);
@@ -904,6 +910,140 @@ export class Renderer {
     g.addColorStop(1, `rgba(120, 4, 4, ${alpha})`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
+  }
+
+  /**
+   * ベーシック用のキーボード+指ガイド(e-typing 風)。
+   * 次に打つキーと担当の指をオレンジで示す。ゾンビはこのパネルより上を歩く。
+   */
+  private drawKeyboardGuide(ctx: CanvasRenderingContext2D, game: Game): void {
+    const K = KEYGUIDE.keySize;
+    const G = KEYGUIDE.keyGap;
+    const rows: string[][] = [
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^'],
+      ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '@', '['],
+      ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', ':', ']'],
+      ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'],
+    ];
+    const rowOffsets = [0, 22, 34, 58];
+
+    // 次に打つキー(ロックオン中 or 一番手前のゾンビ)
+    const target =
+      (game.targetId !== null ? game.getZombie(game.targetId) : undefined) ??
+      [...game.zombies].sort((a, b) => a.x - b.x)[0];
+    const nextRaw = target?.session.remainingRomaji()[0] ?? null;
+    // 記号はシフトが要る: ! = Shift+1(右シフト) / ? = Shift+/(左シフト)
+    let nextKey = nextRaw;
+    let shiftSide: 'left' | 'right' | null = null;
+    if (nextRaw === '!') {
+      nextKey = '1';
+      shiftSide = 'right';
+    } else if (nextRaw === '?') {
+      nextKey = '/';
+      shiftSide = 'left';
+    }
+
+    const rowW = 12 * K + 11 * G;
+    const panelW = rowW + 110;
+    const panelX = W / 2 - panelW / 2;
+    const panelY = KEYGUIDE.top;
+    const panelH = H - 10 - panelY;
+
+    ctx.save();
+    // パネル
+    ctx.fillStyle = 'rgba(8, 8, 10, 0.86)';
+    roundRect(ctx, panelX, panelY, panelW, panelH, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(122, 112, 96, 0.55)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, panelX, panelY, panelW, panelH, 10);
+    ctx.stroke();
+
+    const keysX = panelX + (panelW - rowW) / 2;
+    const keysY = panelY + 12;
+
+    const drawKey = (x: number, y: number, w: number, label: string, hot: boolean) => {
+      ctx.fillStyle = hot ? '#ff9a2a' : '#201d1a';
+      if (hot) {
+        ctx.shadowColor = 'rgba(255, 154, 42, 0.9)';
+        ctx.shadowBlur = 12;
+      }
+      roundRect(ctx, x, y, w, K, 5);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = hot ? '#ffd9a8' : '#4a453c';
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, x, y, w, K, 5);
+      ctx.stroke();
+      ctx.fillStyle = hot ? '#241505' : '#c8c2b4';
+      ctx.font = `700 ${label.length > 2 ? 12 : 17}px ui-monospace, Menlo, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label.length === 1 ? label.toUpperCase() : label, x + w / 2, y + K / 2 + 1);
+    };
+
+    // 4 段のキー
+    rows.forEach((row, r) => {
+      const y = keysY + r * (K + G);
+      let x = keysX + rowOffsets[r];
+      if (r === 3) {
+        // 左シフト
+        drawKey(keysX - 6, y, rowOffsets[3] + K, 'shift', shiftSide === 'left');
+        x = keysX + rowOffsets[3] + K + G - 6 + 6;
+      }
+      for (const key of row) {
+        drawKey(x, y, K, key, nextKey === key);
+        x += K + G;
+      }
+      if (r === 3) {
+        // 右シフト
+        drawKey(x, y, keysX + rowW - x + 6, 'shift', shiftSide === 'right');
+      }
+    });
+
+    // スペースバー
+    const spaceY = keysY + 4 * (K + G);
+    drawKey(keysX + rowW / 2 - 120, spaceY, 240, 'space', false);
+
+    // 指ガイド(左右 5 本ずつ・次のキーの担当指を点灯)
+    const fingerOfKey: Record<string, number> = {
+      '1': 0, q: 0, a: 0, z: 0,
+      '2': 1, w: 1, s: 1, x: 1,
+      '3': 2, e: 2, d: 2, c: 2,
+      '4': 3, '5': 3, r: 3, t: 3, f: 3, g: 3, v: 3, b: 3,
+      '6': 6, '7': 6, y: 6, u: 6, h: 6, j: 6, n: 6, m: 6,
+      '8': 7, i: 7, k: 7, ',': 7,
+      '9': 8, o: 8, l: 8, '.': 8,
+      '0': 9, '-': 9, '^': 9, p: 9, '@': 9, '[': 9, ';': 9, ':': 9, ']': 9, '/': 9,
+    };
+    const hotFingers = new Set<number>();
+    if (nextKey && fingerOfKey[nextKey] !== undefined) hotFingers.add(fingerOfKey[nextKey]);
+    if (shiftSide === 'left') hotFingers.add(0); // 左小指でシフト
+    if (shiftSide === 'right') hotFingers.add(9); // 右小指でシフト
+
+    const heights = [26, 36, 42, 36, 22, 22, 36, 42, 36, 26]; // 小指〜親指〜小指
+    const fw = 34;
+    const fGap = 10;
+    const handGap = 46;
+    const totalFW = 10 * fw + 9 * fGap + (handGap - fGap);
+    let fx = W / 2 - totalFW / 2;
+    const fBottom = panelY + panelH - 8;
+    for (let i = 0; i < 10; i++) {
+      const h = heights[i];
+      const hot = hotFingers.has(i);
+      ctx.fillStyle = hot ? '#ff9a2a' : 'rgba(148, 142, 130, 0.5)';
+      if (hot) {
+        ctx.shadowColor = 'rgba(255, 154, 42, 0.9)';
+        ctx.shadowBlur = 10;
+      }
+      roundRect(ctx, fx, fBottom - h, fw, h, 12);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      fx += fw + (i === 4 ? handGap : fGap);
+    }
+
+    ctx.restore();
+    ctx.textBaseline = 'alphabetic';
   }
 
   // ---------- オーバーレイ ----------

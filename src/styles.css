@@ -253,6 +253,55 @@ kbd {
   transform: translateY(-5px) scale(1.02);
   outline: none;
 }
+
+/* カルーセル(難易度が4つ以上のモード): 中央3枚+左右に見切れカード */
+.difficulty-cards.carousel {
+  --card-step: 19.2rem; /* カード幅 17.4rem + gap 1.8rem */
+  --peek: 6.8rem;       /* 見切れカードの覗き幅 */
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.carousel-viewport {
+  width: calc(3 * 17.4rem + 2 * 1.8rem + 2 * var(--peek));
+  max-width: calc(100vw - 10rem); /* 狭い画面でも矢印が画面内に残るように */
+  overflow: hidden;
+  padding: 0.7rem 0 0.4rem; /* ホバー浮き上がりの余白 */
+}
+.carousel-track {
+  display: flex;
+  gap: 1.8rem;
+  transition: transform 0.28s ease;
+  will-change: transform;
+}
+.carousel-track .diff-card { flex-shrink: 0; }
+.diff-card.peek {
+  opacity: 0.42;
+  transform: scale(0.94);
+  pointer-events: none;
+  filter: saturate(0.55) brightness(0.75);
+}
+.carousel-arrow {
+  width: 3.4rem;
+  height: 5.2rem;
+  font-size: 1.5rem;
+  font-family: inherit;
+  color: #d8d4c8;
+  background: rgba(10, 9, 8, 0.72);
+  border: 2px solid #585247;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+.carousel-arrow:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.carousel-arrow:disabled { opacity: 0.22; cursor: default; }
+
+.unranked-note { color: #8fb9cc; font-size: 0.85rem; letter-spacing: 0.04em; }
 .diff-card h3 {
   position: absolute;
   top: 5.5%;

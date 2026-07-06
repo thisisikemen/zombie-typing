@@ -173,6 +173,7 @@ async function boot(): Promise<void> {
       diffId: currentDiff.id,
       diffLabel: currentDiff.label,
       rankBy: currentDiff.rankBy ?? 'score',
+      ranked: currentDiff.ranked !== false,
       endless: currentDiff.endless === true,
       newRecord,
     });
@@ -197,6 +198,7 @@ async function boot(): Promise<void> {
     onGotoModeSelect: () => gotoModeSelect(),
     onResume: () => {
       if (state === 'paused') {
+        audio.play('resume'); // ボルトリリース
         state = 'playing';
         ui.show('none');
       }
@@ -239,12 +241,14 @@ async function boot(): Promise<void> {
         if (action.kind === 'typing') game?.handleKey(action.key);
         else if (action.kind === 'enter') game?.releaseTarget();
         else if (action.kind === 'escape') {
+          audio.play('pause'); // 拳銃を構える
           state = 'paused';
           ui.show('pause');
         }
         break;
       case 'paused':
         if (action.kind === 'escape') {
+          audio.play('resume'); // ボルトリリース
           state = 'playing';
           ui.show('none');
         }
@@ -295,6 +299,7 @@ async function boot(): Promise<void> {
     const x = ((e.clientX - rect.left) / rect.width) * 1600;
     const y = ((e.clientY - rect.top) / rect.height) * 900;
     if (x < 260 && y < 96) {
+      audio.play('pause'); // 拳銃を構える
       state = 'paused';
       ui.show('pause');
     }

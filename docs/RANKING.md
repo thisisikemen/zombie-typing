@@ -1,5 +1,91 @@
 # オンラインランキングのセットアップ(Supabase・無料)
 
+> ## 【2026-07 追加】ハードコア / エンドレス対応の移行 SQL
+>
+> ハードコア(スコア順)と「夜は明けない」(生存時間順)をランキングに
+> 追加するため、Supabase の SQL Editor で以下を実行する。実行するまでは
+> 既存ランキングは今まで通り動き、新しい 2 つのボードだけが動かない
+> (クライアントはフォールバック済みなので壊れない)。
+
+```sql
+-- 難易度に hardcore / endless を追加
+alter table public.scores drop constraint scores_difficulty_check;
+alter table public.scores add constraint scores_difficulty_check
+  check (difficulty in ('easy','normal','hard','hardcore','endless'));
+
+-- 生存秒数カラム(エンドレスの順位付け用)
+alter table public.scores add column if not exists survival_seconds integer not null default 0
+  constraint survival_range check (survival_seconds between 0 and 86400);
+
+-- endless はスコア×撃破数の整合チェックの対象外にする
+alter table public.scores drop constraint plausible_score;
+alter table public.scores add constraint plausible_score check (
+  difficulty = 'endless'
+  or (score <= kills * 1200 and (kills = 0 or score >= kills * 100))
+);
+
+-- submit_score を survival 対応版に差し替え(旧シグネチャは削除)
+drop function if exists public.submit_score(uuid, text, text, int, int, int, real);
+
+create or replace function public.submit_score(
+  p_device_key uuid,
+  p_difficulty text,
+  p_name text,
+  p_score int,
+  p_kills int,
+  p_wpm int,
+  p_accuracy real,
+  p_survival_seconds int default 0
+) returns int
+language plpgsql security definer set search_path = public as $$
+declare
+  v_row scores%rowtype;
+  v_better boolean;
+  v_rank int;
+begin
+  select * into v_row from scores
+    where device_key = p_device_key and difficulty = p_difficulty;
+  if found then
+    if v_row.updated_at > now() - interval '15 seconds' then
+      raise exception 'too many submissions';
+    end if;
+    -- エンドレスは生存時間、それ以外はスコアでベスト判定
+    v_better := case when p_difficulty = 'endless'
+      then p_survival_seconds > v_row.survival_seconds
+      else p_score > v_row.score end;
+    if v_better then
+      update scores set name = p_name, score = p_score, kills = p_kills,
+        wpm = p_wpm, accuracy = p_accuracy,
+        survival_seconds = p_survival_seconds, updated_at = now()
+        where id = v_row.id;
+    else
+      update scores set name = p_name, updated_at = now() where id = v_row.id;
+    end if;
+  else
+    insert into scores (device_key, difficulty, name, score, kills, wpm, accuracy, survival_seconds)
+    values (p_device_key, p_difficulty, p_name, p_score, p_kills, p_wpm, p_accuracy, p_survival_seconds);
+  end if;
+
+  if p_difficulty = 'endless' then
+    select count(*) + 1 into v_rank from scores s
+      where s.difficulty = p_difficulty and s.survival_seconds >
+        (select survival_seconds from scores
+          where device_key = p_device_key and difficulty = p_difficulty);
+  else
+    select count(*) + 1 into v_rank from scores s
+      where s.difficulty = p_difficulty and s.score >
+        (select score from scores
+          where device_key = p_device_key and difficulty = p_difficulty);
+  end if;
+  return v_rank;
+end $$;
+
+grant execute on function public.submit_score to anon, authenticated;
+```
+
+---
+
+
 ランキングのクライアント側は完成済みで、現在は「この端末内」(localStorage)で
 動いている。世界ランキングにするには無料の Supabase プロジェクトを 1 つ作り、
 下の SQL を実行して、URL と anon キーを `src/ui/ranking.ts` の `ONLINE_CONFIG` に

@@ -7,23 +7,31 @@
  *   キーを入れると自動でオンラインモードになる(手順は docs/RANKING.md)
  */
 
+export type RankMetric = 'score' | 'survival';
+
 export interface RankEntry {
   name: string;
   score: number;
   kills: number;
   wpm: number;
   accuracy: number; // 0〜1
+  /** 生存秒数(エンドレスの順位付けに使う) */
+  survival: number;
   ts: number;
 }
 
 export interface RankingBackend {
-  /** スコア順の上位リストを返す */
-  load(difficulty: string): Promise<RankEntry[]>;
+  /** 指標順の上位リストを返す */
+  load(difficulty: string, metric: RankMetric): Promise<RankEntry[]>;
   /** 登録して順位(1始まり)を返す */
-  submit(difficulty: string, entry: RankEntry): Promise<number>;
+  submit(difficulty: string, entry: RankEntry, metric: RankMetric): Promise<number>;
   /** 登録済みスコアの名前を変更する */
   rename(name: string): Promise<void>;
   readonly online: boolean;
+}
+
+function metricValue(e: RankEntry, metric: RankMetric): number {
+  return metric === 'survival' ? e.survival : e.score;
 }
 
 /**
@@ -87,20 +95,22 @@ class LocalBackend implements RankingBackend {
     return `zombie-typing:ranking:${difficulty}`;
   }
 
-  async load(difficulty: string): Promise<RankEntry[]> {
+  async load(difficulty: string, metric: RankMetric): Promise<RankEntry[]> {
     try {
       const raw = localStorage.getItem(this.key(difficulty));
       const list = raw ? (JSON.parse(raw) as RankEntry[]) : [];
-      return list.sort((a, b) => b.score - a.score || a.ts - b.ts);
+      return list
+        .map((e) => ({ ...e, survival: (e as Partial<RankEntry>).survival ?? 0 }))
+        .sort((a, b) => metricValue(b, metric) - metricValue(a, metric) || a.ts - b.ts);
     } catch {
       return [];
     }
   }
 
-  async submit(difficulty: string, entry: RankEntry): Promise<number> {
-    const list = await this.load(difficulty);
+  async submit(difficulty: string, entry: RankEntry, metric: RankMetric): Promise<number> {
+    const list = await this.load(difficulty, metric);
     list.push(entry);
-    list.sort((a, b) => b.score - a.score || a.ts - b.ts);
+    list.sort((a, b) => metricValue(b, metric) - metricValue(a, metric) || a.ts - b.ts);
     const rank = list.indexOf(entry) + 1;
     try {
       localStorage.setItem(this.key(difficulty), JSON.stringify(list.slice(0, MAX_ENTRIES)));
@@ -112,7 +122,7 @@ class LocalBackend implements RankingBackend {
 
   async rename(name: string): Promise<void> {
     // ローカルの記録は全部この端末のものなので、まとめて改名する
-    for (const diff of ['easy', 'normal', 'hard']) {
+    for (const diff of ['easy', 'normal', 'hard', 'hardcore', 'endless']) {
       try {
         const raw = localStorage.getItem(this.key(diff));
         if (!raw) continue;
@@ -148,12 +158,17 @@ class OnlineBackend implements RankingBackend {
     };
   }
 
-  async load(difficulty: string): Promise<RankEntry[]> {
-    const res = await fetch(
+  async load(difficulty: string, metric: RankMetric): Promise<RankEntry[]> {
+    const orderCol = metric === 'survival' ? 'survival_seconds' : 'score';
+    const query = (withSurvival: boolean) =>
       `${this.url}/rest/v1/scores?difficulty=eq.${difficulty}` +
-        `&select=name,score,kills,wpm,accuracy,updated_at&order=score.desc&limit=${MAX_ENTRIES}`,
-      { headers: this.headers() },
-    );
+      `&select=name,score,kills,wpm,accuracy,updated_at${withSurvival ? ',survival_seconds' : ''}` +
+      `&order=${withSurvival ? orderCol : 'score'}.desc&limit=${MAX_ENTRIES}`;
+    let res = await fetch(query(true), { headers: this.headers() });
+    if (!res.ok && metric === 'score') {
+      // サーバー側に survival_seconds カラムが無い(SQL 未実行)場合のフォールバック
+      res = await fetch(query(false), { headers: this.headers() });
+    }
     if (!res.ok) throw new Error(`ranking load failed: ${res.status}`);
     const rows = (await res.json()) as {
       name: string;
@@ -161,6 +176,7 @@ class OnlineBackend implements RankingBackend {
       kills: number;
       wpm: number;
       accuracy: number;
+      survival_seconds: number | null;
       updated_at: string;
     }[];
     return rows.map((r) => ({
@@ -169,24 +185,36 @@ class OnlineBackend implements RankingBackend {
       kills: r.kills,
       wpm: r.wpm,
       accuracy: r.accuracy,
+      survival: r.survival_seconds ?? 0,
       ts: Date.parse(r.updated_at),
     }));
   }
 
-  async submit(difficulty: string, entry: RankEntry): Promise<number> {
-    const res = await fetch(`${this.url}/rest/v1/rpc/submit_score`, {
+  async submit(difficulty: string, entry: RankEntry, _metric: RankMetric): Promise<number> {
+    const payload: Record<string, unknown> = {
+      p_device_key: deviceKey(),
+      p_difficulty: difficulty,
+      p_name: entry.name,
+      p_score: entry.score,
+      p_kills: entry.kills,
+      p_wpm: entry.wpm,
+      p_accuracy: entry.accuracy,
+      p_survival_seconds: Math.round(entry.survival),
+    };
+    let res = await fetch(`${this.url}/rest/v1/rpc/submit_score`, {
       method: 'POST',
       headers: this.headers(),
-      body: JSON.stringify({
-        p_device_key: deviceKey(),
-        p_difficulty: difficulty,
-        p_name: entry.name,
-        p_score: entry.score,
-        p_kills: entry.kills,
-        p_wpm: entry.wpm,
-        p_accuracy: entry.accuracy,
-      }),
+      body: JSON.stringify(payload),
     });
+    if (res.status === 404) {
+      // サーバー側の RPC が旧シグネチャ(survival 未対応)の場合のフォールバック
+      delete payload.p_survival_seconds;
+      res = await fetch(`${this.url}/rest/v1/rpc/submit_score`, {
+        method: 'POST',
+        headers: this.headers(),
+        body: JSON.stringify(payload),
+      });
+    }
     if (!res.ok) throw new Error(`ranking submit failed: ${res.status}`);
     const rank = (await res.json()) as number;
     return rank;

@@ -30,6 +30,8 @@ export interface ResultData {
   diffId: string;
   diffLabel: string;
   rankBy: RankMetric;
+  /** ランキング登録の対象か(ベーシックは false) */
+  ranked: boolean;
   endless: boolean;
   newRecord: boolean;
 }
@@ -87,6 +89,8 @@ export class UI {
   private shareData: ResultData | null = null;
   /** ランキングモーダルで表示中の難易度 */
   private rankingDiff = 'normal';
+  /** カルーセルの左端カード位置(難易度が 4 つ以上のモード用) */
+  private carouselOffset = 1;
   /** 直近のリザルトで自動登録された順位 */
   private lastRank: number | null = null;
   private activeMode: ModeDef = MODES[0];
@@ -258,10 +262,12 @@ export class UI {
   private renderRanking(): void {
     const tabs = $('ranking-tabs');
     tabs.innerHTML = '';
-    if (!this.activeMode.difficulties.some((diff) => diff.id === this.rankingDiff)) {
-      this.rankingDiff = this.activeMode.difficulties[0]?.id ?? this.rankingDiff;
+    // ランキング対象の難易度だけタブに出す(ベーシックは対象外)
+    const rankedDiffs = this.activeMode.difficulties.filter((diff) => diff.ranked !== false);
+    if (!rankedDiffs.some((diff) => diff.id === this.rankingDiff)) {
+      this.rankingDiff = rankedDiffs[0]?.id ?? this.rankingDiff;
     }
-    for (const diff of this.activeMode.difficulties) {
+    for (const diff of rankedDiffs) {
       const tab = document.createElement('button');
       tab.className = `ranking-tab${diff.id === this.rankingDiff ? ' active' : ''}`;
       tab.textContent = diff.label;
@@ -273,23 +279,20 @@ export class UI {
       tabs.appendChild(tab);
     }
 
-    const activeDiff = this.activeMode.difficulties.find((diff) => diff.id === this.rankingDiff);
-    if (activeDiff?.rankBy === 'survival') {
-      $('ranking-note').textContent = 'エンドレスランキングはゲーム完成後に追加予定です';
-      $('ranking-list').innerHTML =
-        '<li class="ranking-empty">まずはゲーム本編を完成させています。</li>';
-      return;
-    }
+    const activeDiff = rankedDiffs.find((diff) => diff.id === this.rankingDiff);
+    const metric = activeDiff?.rankBy ?? 'score';
 
     $('ranking-note').textContent = rankingBackend.online
-      ? '世界ランキング(上位100位)'
+      ? metric === 'survival'
+        ? '世界ランキング(生存時間・上位100位)'
+        : '世界ランキング(上位100位)'
       : 'この端末内のランキングです(オンラインランキングは準備中)';
 
     const list = $('ranking-list');
     list.innerHTML = '<li class="ranking-empty">読み込み中…</li>';
     const requested = this.rankingDiff;
     rankingBackend
-      .load(requested)
+      .load(requested, metric)
       .then((entries) => {
         if (this.rankingDiff !== requested) return; // タブが切り替わっていたら破棄
         if (entries.length === 0) {
@@ -297,15 +300,20 @@ export class UI {
           return;
         }
         list.innerHTML = entries
-          .map(
-            (e, i) => `
+          .map((e, i) => {
+            const main = metric === 'survival' ? formatTime(e.survival) : e.score.toLocaleString();
+            const sub =
+              metric === 'survival'
+                ? `スコア ${e.score.toLocaleString()}・撃破 ${e.kills}・WPM ${e.wpm}`
+                : `撃破 ${e.kills}・WPM ${e.wpm}・${(e.accuracy * 100).toFixed(1)}%`;
+            return `
         <li class="ranking-row${i < 3 ? ` top${i + 1}` : ''}">
           <span class="rk-pos">${i + 1}</span>
           <span class="rk-main"><span class="rk-name">${escapeHtml(e.name)}</span>
-            <span class="rk-sub">撃破 ${e.kills}・WPM ${e.wpm}・${(e.accuracy * 100).toFixed(1)}%</span></span>
-          <span class="rk-score">${e.score.toLocaleString()}</span>
-        </li>`,
-          )
+            <span class="rk-sub">${sub}</span></span>
+          <span class="rk-score">${main}</span>
+        </li>`;
+          })
           .join('');
       })
       .catch(() => {
@@ -322,18 +330,15 @@ export class UI {
       const tab = document.createElement('button');
       tab.className = `mode-tab${mode.id === this.activeMode.id ? ' active' : ''}`;
       tab.setAttribute('aria-label', mode.label);
-      if (mode.id === 'dawn') {
-        const img = document.createElement('img');
-        img.src = `${import.meta.env.BASE_URL}assets/ui/tab-active.png`;
-        img.alt = mode.label;
-        tab.appendChild(img);
-      } else {
-        tab.classList.add('text-tab');
-        tab.textContent = mode.label;
-      }
+      const img = document.createElement('img');
+      // モードごとのタブ画像(dawn=夜明けまで / endless=夜は明けない)
+      img.src = `${import.meta.env.BASE_URL}assets/ui/${mode.id === 'endless' ? 'tab-endless.png' : 'tab-active.png'}`;
+      img.alt = mode.label;
+      tab.appendChild(img);
       tab.onclick = () => {
         this.cb.onUiSound('bolt');
         this.activeMode = mode;
+        this.carouselOffset = mode.difficulties.length > 3 ? 1 : 0;
         this.buildModeSelect();
       };
       tabs.appendChild(tab);
@@ -349,10 +354,14 @@ export class UI {
       tabs.appendChild(locked);
     }
 
-    const cards = $('difficulty-cards');
-    cards.innerHTML = '';
-    cards.classList.toggle('single', this.activeMode.difficulties.length === 1);
-    for (const diff of this.activeMode.difficulties) {
+    const cardsHost = $('difficulty-cards');
+    cardsHost.innerHTML = '';
+    const diffs = this.activeMode.difficulties;
+    cardsHost.classList.toggle('single', diffs.length === 1);
+    const carousel = diffs.length > 3;
+    cardsHost.classList.toggle('carousel', carousel);
+
+    const buildCard = (diff: DifficultyDef): HTMLButtonElement => {
       const card = document.createElement('button');
       card.className = 'diff-card';
       card.style.setProperty('--card', uiUrl(`card-${diff.id}.png`));
@@ -366,11 +375,13 @@ export class UI {
         diff.durationHint ??
         (mm > 0 ? `${mm}分${ss > 0 ? `${ss}秒` : ''}` : `${diff.duration}秒`);
       const bestText =
-        best && diff.rankBy === 'survival'
-          ? `最長 ${formatTime(best.survival ?? 0)}`
-          : best
-            ? `ベスト ${best.score.toLocaleString()}`
-            : '';
+        diff.ranked === false
+          ? '<span class="unranked-note">※ランキング対象外</span>'
+          : best && diff.rankBy === 'survival'
+            ? `最長 ${formatTime(best.survival ?? 0)}`
+            : best
+              ? `ベスト ${best.score.toLocaleString()}`
+              : '';
       card.innerHTML = `
         <h3>${diff.label}</h3>
         <ul class="diff-specs">
@@ -384,12 +395,72 @@ export class UI {
         if (performance.now() - this.shownAt < 300) return; // すり抜けクリック防止
         this.cb.onSelectDifficulty(this.activeMode, diff);
       };
-      cards.appendChild(card);
+      return card;
+    };
+
+    if (!carousel) {
+      for (const diff of diffs) cardsHost.appendChild(buildCard(diff));
+      return;
     }
+
+    // 5 枚などはカルーセル: 中央に 3 枚、左右は半分見切れ+半透明で気配を見せる
+    const maxOffset = diffs.length - 3;
+    this.carouselOffset = Math.max(0, Math.min(maxOffset, this.carouselOffset));
+
+    const viewport = document.createElement('div');
+    viewport.className = 'carousel-viewport';
+    const track = document.createElement('div');
+    track.className = 'carousel-track';
+    const cardEls = diffs.map((diff) => {
+      const el = buildCard(diff);
+      track.appendChild(el);
+      return el;
+    });
+    viewport.appendChild(track);
+
+    const arrowL = document.createElement('button');
+    arrowL.className = 'carousel-arrow left';
+    arrowL.innerHTML = '&#9664;';
+    arrowL.setAttribute('aria-label', '前の難易度');
+    const arrowR = document.createElement('button');
+    arrowR.className = 'carousel-arrow right';
+    arrowR.innerHTML = '&#9654;';
+    arrowR.setAttribute('aria-label', '次の難易度');
+
+    const apply = () => {
+      track.style.transform = `translateX(calc(var(--peek) - ${this.carouselOffset} * var(--card-step)))`;
+      cardEls.forEach((el, i) => {
+        const visible = i >= this.carouselOffset && i < this.carouselOffset + 3;
+        el.classList.toggle('peek', !visible);
+      });
+      arrowL.disabled = this.carouselOffset <= 0;
+      arrowR.disabled = this.carouselOffset >= maxOffset;
+    };
+    arrowL.onclick = () => {
+      if (this.carouselOffset > 0) {
+        this.cb.onUiSound('bolt');
+        this.carouselOffset--;
+        apply();
+      }
+    };
+    arrowR.onclick = () => {
+      if (this.carouselOffset < maxOffset) {
+        this.cb.onUiSound('bolt');
+        this.carouselOffset++;
+        apply();
+      }
+    };
+
+    cardsHost.appendChild(arrowL);
+    cardsHost.appendChild(viewport);
+    cardsHost.appendChild(arrowR);
+    apply();
   }
 
+  /** 数字キーでの難易度選択(カルーセル時は見えている 3 枚に対応) */
   selectDifficultyByIndex(idx: number): boolean {
-    const diff = this.activeMode.difficulties[idx];
+    const base = this.activeMode.difficulties.length > 3 ? this.carouselOffset : 0;
+    const diff = this.activeMode.difficulties[base + idx];
     if (!diff) return false;
     this.cb.onSelectDifficulty(this.activeMode, diff);
     return true;
@@ -456,9 +527,10 @@ export class UI {
       stats.innerHTML += `<div class="result-new-record">NEW RECORD!</div>`;
     }
 
-    // ランキングへ自動登録(登録し忘れ防止)
+    // ランキングへ自動登録(登録し忘れ防止)。ランキング対象外の難易度では出さない
     const register = $('result-register');
-    const canRegister = data.rankBy === 'score' && data.score > 0;
+    const metricValue = data.rankBy === 'survival' ? data.survival : data.score;
+    const canRegister = data.ranked && metricValue > 0;
     register.style.display = canRegister ? '' : 'none';
     $('register-status').textContent = '';
     const nameInput = $<HTMLInputElement>('result-name');
@@ -473,10 +545,11 @@ export class UI {
         kills: data.kills,
         wpm: data.wpm,
         accuracy: data.accuracy,
+        survival: Math.round(data.survival),
         ts: Date.now(),
       };
       rankingBackend
-        .submit(data.diffId, entry)
+        .submit(data.diffId, entry, data.rankBy)
         .then((rank) => {
           this.lastRank = rank;
           this.setRegisterStatus(name);

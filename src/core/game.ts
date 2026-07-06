@@ -4,7 +4,7 @@
  * 将来のオンライン化ではこのモジュールをサーバーへ移植する想定(仕様 §1)。
  */
 
-import { BONUS, COMBO, ENDLESS, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
+import { BASIC, BONUS, COMBO, ENDLESS, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
 import type { DifficultyDef, TierSpawnRule } from './modes';
 import { TypingSession } from './typing/engine';
 import type { WordEntry, WordPool } from './words';
@@ -114,6 +114,8 @@ export class Game {
   private spawnTimer = 0;
   private nextId = 1;
   private recentKana: string[] = [];
+  /** ベーシック: 次に出す文字の通し番号(五十音順・ループ) */
+  private practiceIndex = 0;
   /** ロック(または重複候補)開始以降の全打鍵列(正打・ミス問わず時系列。自動切替の判定用) */
   private recentKeys: string[] = [];
   private static readonly RECENT_KEYS_MAX = 32;
@@ -429,6 +431,12 @@ export class Game {
   }
 
   private trySpawn(): void {
+    // ベーシック(五十音練習): 決まった並びの一文字を一列に出す
+    if (this.difficulty.practice) {
+      this.trySpawnPractice();
+      return;
+    }
+
     if (this.zombies.length >= this.allowedConcurrent()) return;
 
     // 予算内で出せる Tier を重み付き抽選
@@ -483,6 +491,30 @@ export class Game {
       speedMultiplier: 1.0, // 「速いゾンビ」導入用パラメータ(仕様 §7)
       walkTime: this.rng() * 10,
       exclusive: picked.exclusive,
+    };
+    this.zombies.push(z);
+    this.events.push({ type: 'spawn', zombieId: z.id });
+  }
+
+  /** ベーシック用スポーン: 五十音順に一文字ずつ、一列に歩かせる */
+  private trySpawnPractice(): void {
+    if (this.zombies.length >= BASIC.maxOnScreen) return;
+    // 直前のゾンビが少し進むまで待つ(重なり防止)
+    if (this.zombies.some((z) => z.x > FIELD.spawnX - BASIC.minSpacing)) return;
+
+    const ch = BASIC.sequence[this.practiceIndex % BASIC.sequence.length];
+    this.practiceIndex++;
+    const z: Zombie = {
+      id: this.nextId++,
+      tier: 1,
+      word: { display: ch, kana: ch },
+      session: new TypingSession(ch),
+      x: FIELD.spawnX,
+      y: BASIC.rowY,
+      speed: TIERS[1].speed * BASIC.speedScale * this.difficulty.speedScale,
+      speedMultiplier: 1.0,
+      walkTime: this.rng() * 10,
+      exclusive: true,
     };
     this.zombies.push(z);
     this.events.push({ type: 'spawn', zombieId: z.id });
