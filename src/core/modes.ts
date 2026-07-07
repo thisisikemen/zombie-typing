@@ -68,7 +68,7 @@ export const MODES: ModeDef[] = [
       {
         id: 'basic',
         label: 'ベーシック',
-        wordHint: '五十音を一文字ずつ',
+        wordHint: '五十音 → 短い単語へ',
         zombieHint: '超入門・キーボードガイド付き',
         duration: 90,
         durationHint: '無制限',

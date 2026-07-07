@@ -48,6 +48,16 @@ function countdownSteps(quick: boolean, endless = false): CountdownStep[] {
 
 async function boot(): Promise<void> {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+
+  // SEOティッカー: 静的HTMLには紹介文を1つだけ置き(検索エンジン向け)、
+  // 表示上の継ぎ目ないループ用の複製はここで行う
+  const tickerTrack = document.getElementById('ticker-track');
+  if (tickerTrack && tickerTrack.children.length === 1) {
+    const clone = tickerTrack.children[0].cloneNode(true) as HTMLElement;
+    clone.setAttribute('aria-hidden', 'true');
+    tickerTrack.appendChild(clone);
+  }
+
   const assets = await loadAssets();
   const renderer = new Renderer(canvas, assets);
   const audio = new AudioSystem();

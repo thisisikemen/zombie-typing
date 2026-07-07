@@ -616,6 +616,31 @@ kbd {
 .result-stats .label-note { font-size: 0.78rem; color: rgba(160, 154, 140, 0.8); font-weight: 600; }
 
 /* ---------- アドバイスメッセージ(TIP) ---------- */
+/* 電光掲示板風ティッカー: 画面上は控えめだが、検索エンジンには読める紹介文 */
+.seo-ticker {
+  position: absolute;
+  bottom: 4rem; /* TIPS バーの真上 */
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(207, 201, 186, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+.ticker-track {
+  display: inline-block;
+  animation: ticker-scroll 95s linear infinite;
+}
+.ticker-track .ticker-text { display: inline-block; padding-right: 2.5em; }
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 .tips-bar {
   position: absolute;
   bottom: 1rem;
@@ -738,7 +763,8 @@ kbd {
     font-size: 1.25rem;
   }
   .title-footer,
-  #screen-title .tips-bar {
+  #screen-title .tips-bar,
+  #screen-title .seo-ticker {
     display: none;
   }
 }

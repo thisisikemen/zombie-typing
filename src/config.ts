@@ -88,6 +88,8 @@ export const BASIC = {
   spawnIntervalSec: 5.0,
   /** 歩行速度の倍率(ゆっくり) */
   speedScale: 0.75,
+  /** 2周目以降(ランダム出題)の1周あたりの出題数 */
+  randomLapLength: 30,
   /** 練習する文字の並び(五十音 → 濁音・半濁音 → 記号) */
   sequence: [
     'あ', 'い', 'う', 'え', 'お',

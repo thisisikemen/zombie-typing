@@ -362,6 +362,28 @@ describe('ベーシック(五十音練習)', () => {
     expect(g.survivalTime()).toBeGreaterThan(199);
   });
 
+  it('2周目はランダム一文字、3周目は二文字の単語、4周目は三文字の単語になる', () => {
+    const g = new Game(basic, new WordPool(), lcg(5));
+    const kanas: string[] = [];
+    const need = BASIC.sequence.length + BASIC.randomLapLength * 2 + 3;
+    for (let t = 0; t < 1200 && kanas.length < need; t += 0.25) {
+      g.update(0.25);
+      for (const z of [...g.zombies]) {
+        kanas.push(z.word.kana);
+        g.removeZombie(z.id);
+      }
+    }
+    const seq = BASIC.sequence.length;
+    const lap2 = kanas.slice(seq, seq + BASIC.randomLapLength);
+    const lap3 = kanas.slice(seq + BASIC.randomLapLength, seq + BASIC.randomLapLength * 2);
+    const lap4 = kanas.slice(seq + BASIC.randomLapLength * 2, need);
+    expect(lap2.every((k) => [...k].length === 1)).toBe(true);
+    expect(lap3.every((k) => [...k].length === 2)).toBe(true);
+    expect(lap4.every((k) => [...k].length === 3)).toBe(true);
+    // ランダム一文字に記号(ー、。?!)は出ない
+    expect(lap2.every((k) => !['ー', '、', '。', '？', '！'].includes(k))).toBe(true);
+  });
+
   it('五十音を一周して「あ」に戻ると practiceLooped が立つ(終了案内表示用)', () => {
     const g = new Game(basic, new WordPool([]), lcg());
     for (let t = 0; t < 420 && !g.practiceLooped; t += 0.25) {

@@ -114,8 +114,10 @@ export class Game {
   private spawnTimer = 0;
   private nextId = 1;
   private recentKana: string[] = [];
-  /** ベーシック: 次に出す文字の通し番号(五十音順・ループ) */
+  /** ベーシック: 現在の周回内で出した数 */
   private practiceIndex = 0;
+  /** ベーシック: 周回数。0=五十音順、以降はランダム1文字→2文字語→3文字語のループ */
+  private practiceLap = 0;
   /** ベーシック: 最後に湧いた時刻(一定テンポ湧きの基準。初回は即出す) */
   private lastPracticeSpawnAt = -Infinity;
   /** ベーシック: 五十音を一周して「あ」に戻ったか(HUD の終了案内表示用) */
@@ -510,21 +512,19 @@ export class Game {
     this.events.push({ type: 'spawn', zombieId: z.id });
   }
 
-  /** ベーシック用スポーン: 五十音順に一文字ずつ、一定テンポで一列に歩かせる。
+  /** ベーシック用スポーン: 周回に応じた出題を一定テンポで一列に歩かせる。
       force=true(撃破直後)はテンポを待たずに即出す */
   private trySpawnPractice(force = false): void {
     if (this.zombies.length >= BASIC.maxOnScreen) return;
     if (!force && this.time - this.lastPracticeSpawnAt < BASIC.spawnIntervalSec) return;
 
     this.lastPracticeSpawnAt = this.time;
-    const ch = BASIC.sequence[this.practiceIndex % BASIC.sequence.length];
-    this.practiceIndex++;
-    if (this.practiceIndex > BASIC.sequence.length) this.practiceLooped = true;
+    const word = this.nextPracticeWord();
     const z: Zombie = {
       id: this.nextId++,
       tier: 1,
-      word: { display: ch, kana: ch },
-      session: new TypingSession(ch),
+      word,
+      session: new TypingSession(word.kana),
       // 撃破直後の即時出現は画面右端に出してすぐ見える(打てる)ようにする
       x: force ? FIELD.width : FIELD.spawnX,
       y: BASIC.rowY,
@@ -535,6 +535,50 @@ export class Game {
     };
     this.zombies.push(z);
     this.events.push({ type: 'spawn', zombieId: z.id });
+  }
+
+  /** ベーシックの出題: 1周目=五十音順 → 2周目=ランダム一文字 →
+      3周目=二文字の単語 → 4周目=三文字の単語 → 以降ランダム1〜3文字のループ */
+  private nextPracticeWord(): WordEntry {
+    if (this.practiceLap >= 1) this.practiceLooped = true; // 一周後は終了案内を出す
+
+    if (this.practiceLap === 0) {
+      const ch = BASIC.sequence[this.practiceIndex];
+      this.advancePracticeLap(BASIC.sequence.length);
+      return { display: ch, kana: ch };
+    }
+
+    const stage = (this.practiceLap - 1) % 3; // 0=一文字 / 1=二文字 / 2=三文字
+    this.advancePracticeLap(BASIC.randomLapLength);
+    const onScreen = new Set(this.zombies.map((z) => z.word.kana));
+
+    if (stage > 0) {
+      // 実在する単語(漢字表示つき)から選ぶ。初手キーの重複も避ける
+      const blocked = new Set<string>();
+      for (const z of this.zombies) for (const k of z.session.currentKeys()) blocked.add(k);
+      const len = stage + 1;
+      const picked = this.pool.pick(this.rng, [len, len], blocked, onScreen, new Set(this.recentKana));
+      if (picked) {
+        this.recentKana.push(picked.word.kana);
+        if (this.recentKana.length > SPAWN.recentWordMemory) this.recentKana.shift();
+        return picked.word;
+      }
+      // 在庫がなければランダム一文字にフォールバック
+    }
+
+    // ランダム一文字(記号 ー、。?! は除外。画面上と同じ文字も避ける)
+    const kanaPool = BASIC.sequence.slice(0, -5).filter((c) => !onScreen.has(c));
+    const ch = kanaPool[Math.floor(this.rng() * kanaPool.length)];
+    return { display: ch, kana: ch };
+  }
+
+  /** ベーシックの周回カウントを進める */
+  private advancePracticeLap(lapLength: number): void {
+    this.practiceIndex++;
+    if (this.practiceIndex >= lapLength) {
+      this.practiceIndex = 0;
+      this.practiceLap++;
+    }
   }
 
   /** 直近のゾンビと高さが近すぎないよう数回リトライしつつ Y を選ぶ */
