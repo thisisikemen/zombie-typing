@@ -128,10 +128,21 @@ export class UI {
       cb.onUiSound('bolt');
       this.openSettings();
     };
-    $('btn-retry').onclick = () => cb.onRetry();
-    $('btn-result-mode').onclick = () => cb.onGotoModeSelect();
-    $('btn-result-title').onclick = () => cb.onBackToTitle();
+    // リザルトを離れるボタンは、名前入力が書き換えられていれば自動で確定させる
+    $('btn-retry').onclick = () => {
+      this.commitResultName();
+      cb.onRetry();
+    };
+    $('btn-result-mode').onclick = () => {
+      this.commitResultName();
+      cb.onGotoModeSelect();
+    };
+    $('btn-result-title').onclick = () => {
+      this.commitResultName();
+      cb.onBackToTitle();
+    };
     $('btn-share').onclick = () => this.share();
+    $('btn-pause-retry').onclick = () => cb.onRetry();
     $('btn-resume').onclick = () => cb.onResume();
     $('btn-giveup').onclick = () => cb.onGiveUp();
     $('btn-settings-close').onclick = () => this.closeModals();
@@ -232,6 +243,14 @@ export class UI {
   /** ポーズの離脱ボタン: 練習(ベーシック)は「終了する」、それ以外は「あきらめる」 */
   setPauseQuitLabel(practice: boolean): void {
     $('btn-giveup').textContent = practice ? '終了する' : 'あきらめる';
+  }
+
+  /** リザルトの名前入力が「変更」ボタン未押下のままでも、書き換えがあれば確定させる */
+  commitResultName(): void {
+    const input = document.getElementById('result-name') as HTMLInputElement | null;
+    if (!input) return;
+    const name = sanitizeName(input.value);
+    if (name && name !== loadPlayerName()) void this.applyRename(input.value, 'result');
   }
 
   isModalOpen(): boolean {

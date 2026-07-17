@@ -276,8 +276,10 @@ async function boot(): Promise<void> {
         break;
       case 'result':
         if (action.kind === 'typing' && action.key === 'r') {
+          ui.commitResultName(); // 名前入力が書き換え途中でも確定させる
           startGame(currentMode, currentDiff, true); // R で即リスタート(仕様 §12)
         } else if (action.kind === 'escape') {
+          ui.commitResultName();
           gotoModeSelect();
         }
         break;

@@ -23,6 +23,19 @@
 3. URL検査 → トップと how-to-play.html の両方で「インデックス登録をリクエスト」
 4. 数日後、Search Console の「ページ」でインデックス状況を確認
 
+## Bing(= Microsoft Edge の検索)対応
+
+Edge の既定検索は Bing。Google にインデックスされても Bing には別途登録が必要。
+
+1. **Bing Webmaster Tools**(https://www.bing.com/webmasters)にサインイン
+2. 「Google Search Console からインポート」を選ぶと、GSC で確認済みのサイトを
+   **ワンクリックで所有権確認ごと引き継げる**(いちばん簡単。先に GSC 登録を済ませること)
+3. サイトマップ `https://thisisikemen.github.io/zombie-typing/sitemap.xml` を送信
+4. 「URL 検査」でトップと how-to-play.html を検査し、インデックス登録をリクエスト
+5. 数日〜2週間で Bing / Edge の検索に出始める(新規サイトは Google より遅めが普通)
+
+コード側の追加対応は不要(Bing も同じ sitemap / meta / 構造化データを読む)。
+
 ## 独自ドメインについて(結論: 取るなら今)
 
 **GitHub Pages 自体は検索順位のペナルティ対象ではない。** ただし:

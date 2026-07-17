@@ -119,6 +119,15 @@ export const KEYGUIDE = {
   keyGap: 5,
 } as const;
 
+/** エナジー(水色シールド)。ノーミス撃破で溜まり、被弾時に HP より先に消費される。
+    「ミスをしない人ほど得をする」ための蓄積型ボーナス */
+export const ENERGY = {
+  /** 撃破1体あたりの獲得量 = min(コンボ数, gainCap)。連続ノーミスほど1体が重い */
+  gainCap: 4,
+  /** 蓄積上限 */
+  max: 50,
+} as const;
+
 export const COMBO = {
   /** ボーナス発動のコンボ閾値(この倍数ごとに発動) */
   bonusThreshold: 10,
@@ -157,6 +166,8 @@ export const HUD_COLORS = {
   hpHigh: '#5ad45a',
   hpMid: '#ffd24a',
   hpLow: '#ff4444',
+  /** エナジー(水色シールド)ゲージ */
+  energy: '#54c8ea',
   timeBar: '#9ab8ff',
   text: '#e8e8f0',
 } as const;

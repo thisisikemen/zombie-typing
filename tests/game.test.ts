@@ -329,6 +329,31 @@ describe('ベーシック(五十音練習)', () => {
     expect(g.zombies[0].x).toBe(FIELD.width); // 画面右端に出てすぐ見える
   });
 
+  it('撃破でエナジーが貯まり、被弾はエナジーから先に減る', () => {
+    const g = new Game(normal, new WordPool([]), lcg());
+    g.zombies.push(makeZombie('ねこ'));
+    for (const k of 'neko') g.handleKey(k);
+    expect(g.kills).toBe(1);
+    expect(g.energy).toBe(1); // コンボ1 → min(1, gainCap)
+    g.energy = 10;
+    g.zombies.push(makeZombie('とけい', 3, FIELD.lineX + 1)); // Tier3 = 20ダメージ
+    g.update(0.1);
+    expect(g.energy).toBe(0); // 10 をエナジーが吸収
+    expect(g.hp).toBe(PLAYER.maxHp - 10); // HP には残り 10 だけ届く
+  });
+
+  it('自動切替は一致が長い後方より、手前で一致するゾンビを優先する', () => {
+    const g = new Game(normal, new WordPool([]), lcg());
+    const a = makeZombie('さくらもち', 1, 900);
+    const near = makeZombie('らんち', 1, 500);
+    const far = makeZombie('くらんぼや', 1, 1400);
+    g.zombies.push(a, near, far);
+    for (const k of 'sakura') g.handleKey(k); // さくらもち をロックして途中まで正打
+    expect(g.targetId).toBe(a.id);
+    g.handleKey('n'); // ミス。後方(len5一致)より手前の らんち(len3一致)へ
+    expect(g.targetId).toBe(near.id);
+  });
+
   it('2体以上いるときに1体倒しても即出現しない(重なり防止・通常テンポ待ち)', () => {
     const g = new Game(basic, new WordPool([]), lcg());
     for (let t = 0; t < 10 && g.zombies.length < 2; t += 0.25) g.update(0.25);

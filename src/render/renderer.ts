@@ -56,6 +56,7 @@ export class Renderer {
   private zombieFlash = new Map<number, number>();
   private stars: Star[] = [];
   private displayHp = PLAYER.maxHp;
+  private displayEnergy = 0;
   private comboPop = 0;
   private lastCombo = 0;
   private sparkTimer = 0;
@@ -86,6 +87,7 @@ export class Renderer {
   /** 新しいゲーム開始時に HUD 内部状態をリセットする */
   resetForNewGame(): void {
     this.displayHp = PLAYER.maxHp;
+    this.displayEnergy = 0;
     this.lastCombo = 0;
     this.comboPop = 0;
     this.zombieFlash.clear();
@@ -779,7 +781,9 @@ export class Renderer {
     panel(268, 420);
     label('HP', 282);
     this.displayHp += (game.hp - this.displayHp) * 0.15;
+    this.displayEnergy += (game.energy - this.displayEnergy) * 0.15;
     const hpRatio = Math.max(0, this.displayHp / PLAYER.maxHp);
+    const energyRatio = Math.max(0, this.displayEnergy / PLAYER.maxHp);
     const hpColor = hpRatio > 0.5 ? HUD_COLORS.hpHigh : hpRatio > 0.25 ? HUD_COLORS.hpMid : HUD_COLORS.hpLow;
     const barX = 318;
     const barW = 250;
@@ -787,13 +791,27 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     roundRect(ctx, barX, barY, barW, 24, 4);
     ctx.fill();
-    if (hpRatio > 0.01) {
-      const hg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-      hg.addColorStop(0, hpColor);
-      hg.addColorStop(1, hpRatio > 0.5 ? '#b8e04a' : hpColor);
-      ctx.fillStyle = hg;
-      roundRect(ctx, barX + 2, barY + 2, (barW - 4) * hpRatio, 20, 3);
+    // エナジー(水色)が左から重なり、被弾時はここから先に減る。緑(HP)はその後ろ
+    const innerW = barW - 4;
+    const eW = Math.min(innerW, innerW * energyRatio);
+    if (eW > 1) {
+      const eg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      eg.addColorStop(0, HUD_COLORS.energy);
+      eg.addColorStop(1, '#9ae4f8');
+      ctx.fillStyle = eg;
+      roundRect(ctx, barX + 2, barY + 2, eW, 20, 3);
       ctx.fill();
+    }
+    if (hpRatio > 0.01) {
+      const gW = Math.min(innerW - eW, innerW * hpRatio);
+      if (gW > 1) {
+        const hg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+        hg.addColorStop(0, hpColor);
+        hg.addColorStop(1, hpRatio > 0.5 ? '#b8e04a' : hpColor);
+        ctx.fillStyle = hg;
+        roundRect(ctx, barX + 2 + eW, barY + 2, gW, 20, 3);
+        ctx.fill();
+      }
     }
     ctx.strokeStyle = 'rgba(255,255,255,0.25)';
     ctx.lineWidth = 1;
@@ -806,6 +824,12 @@ export class Renderer {
     ctx.font = '700 16px sans-serif';
     ctx.fillStyle = 'rgba(216,212,200,0.6)';
     ctx.fillText('/100', 682, boxY + 44);
+    // エナジー残量(水色の数値)
+    if (game.energy > 0) {
+      ctx.fillStyle = HUD_COLORS.energy;
+      ctx.font = '700 13px sans-serif';
+      ctx.fillText(`エナジー +${Math.ceil(game.energy)}`, 682, boxY + 60);
+    }
     // シールド残り
     if (game.shieldTime > 0) {
       ctx.textAlign = 'left';

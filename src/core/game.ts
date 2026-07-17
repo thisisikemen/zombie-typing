@@ -4,7 +4,7 @@
  * 将来のオンライン化ではこのモジュールをサーバーへ移植する想定(仕様 §1)。
  */
 
-import { BASIC, BONUS, COMBO, ENDLESS, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
+import { BASIC, BONUS, COMBO, ENDLESS, ENERGY, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
 import type { DifficultyDef, TierSpawnRule } from './modes';
 import { TypingSession } from './typing/engine';
 import type { WordEntry, WordPool } from './words';
@@ -59,7 +59,11 @@ const BONUS_EFFECTS: Record<BonusEffectId, BonusEffect> = {
   heal: {
     id: 'heal',
     apply(game) {
-      game.hp = Math.min(PLAYER.maxHp, game.hp + BONUS.healAmount);
+      // HP 満タン付近では回復が無駄にならないよう、あふれた分はエナジーへ回す
+      const healed = Math.min(PLAYER.maxHp - game.hp, BONUS.healAmount);
+      game.hp += healed;
+      const overflow = BONUS.healAmount - healed;
+      if (overflow > 0) game.energy = Math.min(ENERGY.max, game.energy + overflow);
       return `HP回復 +${BONUS.healAmount}`;
     },
   },
@@ -92,6 +96,8 @@ export class Game {
 
   time = 0;
   hp: number = PLAYER.maxHp;
+  /** エナジー(水色シールド)。ノーミス撃破で溜まり、被弾時に HP より先に減る */
+  energy = 0;
   score = 0;
   combo = 0;
   maxCombo = 0;
@@ -303,6 +309,8 @@ export class Game {
    *   最初の数打が現在のターゲットに食われていても拾える
    * - 誤爆防止: 一致は 2 打以上必要。そもそもミスにならない限り発動しない
    *   (狙ったターゲットに正しく打てている間は絶対に横取りされない)
+   * - 候補が複数あるときは「手前(ラインに近い)のゾンビ」を最優先する。
+   *   後方のゾンビの方が長く一致していても、手前が一致するなら手前へ
    */
   private tryAutoSwitch(key: string): boolean {
     this.pushRecentKey(key);
@@ -310,18 +318,17 @@ export class Game {
     if (this.targetId !== null) excluded.add(this.targetId);
 
     let best: { z: Zombie; s: TypingSession; len: number; cont: boolean } | null = null;
+    // 優先度: 手前(x が小さい) > 一致の長さ > 「続きから」
     const better = (len: number, cont: boolean, z: Zombie) =>
       !best ||
-      len > best.len ||
-      (len === best.len && cont && !best.cont) ||
-      (len === best.len && cont === best.cont && z.x < best.z.x);
+      z.x < best.z.x ||
+      (z.x === best.z.x && (len > best.len || (len === best.len && cont && !best.cont)));
 
     for (const z of this.zombies) {
       if (excluded.has(z.id)) continue;
       const hasProgress = !z.session.isComplete() && z.session.typedRomaji().length > 0;
       // このゾンビに一致する最長のサフィックスを探す
       for (let len = this.recentKeys.length; len >= 2; len--) {
-        if (best && best.len > len) break; // これより短い一致では勝てない
         const suffix = this.recentKeys.slice(-len);
         // 続きから(入力進捗のあるゾンビの残りを打っているケース)
         if (hasProgress) {
@@ -394,6 +401,8 @@ export class Game {
   private onZombieKilled(z: Zombie): void {
     this.combo++;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
+    // ノーミス連続撃破が深いほどエナジー(被弾を肩代わりする水色ゲージ)が多く貯まる
+    this.energy = Math.min(ENERGY.max, this.energy + Math.min(this.combo, ENERGY.gainCap));
     const comboBonus = Math.min(COMBO.comboScoreCap, this.combo * COMBO.scorePerCombo);
     const gained = TIERS[z.tier].score + comboBonus;
     this.score += gained;
@@ -427,7 +436,10 @@ export class Game {
     let damage = TIERS[z.tier].damage * (1 - p); // 入力進捗によるダメージ軽減(仕様 §6)
     if (this.shieldTime > 0) damage *= 1 - BONUS.shieldReduction;
     const applied = Math.round(damage);
-    this.hp -= applied;
+    // まずエナジー(水色ゲージ)が肩代わりし、残りが HP に届く
+    const absorbed = Math.min(this.energy, applied);
+    this.energy -= absorbed;
+    this.hp -= applied - absorbed;
     if (COMBO.resetOnCross) this.combo = 0;
     this.removeZombie(z.id);
     this.events.push({ type: 'crossed', zombieId: z.id, damage: applied, tier: z.tier, y: z.y });
