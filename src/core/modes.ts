@@ -41,6 +41,8 @@ export interface DifficultyDef {
   /** リザルト画面専用背景 */
   resultBackgroundId?: BackgroundId;
   tiers: Record<Tier, TierSpawnRule>;
+  /** ラスボスの単語かな長レンジ(未指定ならボスは出ない) */
+  bossKana?: readonly [number, number];
   color: string;
   /** スポーン強度(予算回復への乗算) */
   regenScale: number;
@@ -91,6 +93,7 @@ export const MODES: ModeDef[] = [
         wordHint: 'かな 2〜5 文字',
         zombieHint: '弱ゾンビ中心・初心者向け',
         duration: 90,
+        bossKana: [8, 10],
         color: '#5ad45a',
         regenScale: 1.0,
         speedScale: 1.0,
@@ -108,6 +111,7 @@ export const MODES: ModeDef[] = [
         wordHint: 'かな 3〜9 文字',
         zombieHint: 'バランス型・中級者向け',
         duration: 120,
+        bossKana: [10, 13],
         color: '#ffd24a',
         regenScale: 1.3,
         speedScale: 1.1,
@@ -125,6 +129,7 @@ export const MODES: ModeDef[] = [
         wordHint: 'かな 7 文字以上中心',
         zombieHint: '強ゾンビの大群・上級者向け',
         duration: 180,
+        bossKana: [12, 15],
         color: '#ff4444',
         regenScale: 1.55,
         speedScale: 1.18,
@@ -142,6 +147,7 @@ export const MODES: ModeDef[] = [
         wordHint: 'かな 8 文字以上中心',
         zombieHint: '生還率最低・最凶の夜',
         duration: 180,
+        bossKana: [13, 16],
         color: '#a45ae0',
         regenScale: 1.85,
         speedScale: 1.28,
@@ -171,6 +177,7 @@ export const MODES: ModeDef[] = [
         rankBy: 'survival',
         backgroundId: 'endless',
         resultBackgroundId: 'endless',
+        bossKana: [12, 15],
         color: '#d7d1c4',
         regenScale: 1.22,
         speedScale: 1.08,

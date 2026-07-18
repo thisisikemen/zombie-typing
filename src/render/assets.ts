@@ -23,6 +23,8 @@ export interface Assets {
   soldierBody: CanvasImageSource;
   soldierArms: CanvasImageSource;
   zombies: Record<Tier, CanvasImageSource[]>;
+  /** ラスボス歩行フレーム(専用素材が無ければ Tier3 を流用し、大きさとオーラで差別化) */
+  boss: CanvasImageSource[];
   /** HUD 左上のタイトルロゴ(無ければテキスト描画) */
   logo: HTMLImageElement | null;
 }
@@ -323,6 +325,12 @@ export async function loadAssets(): Promise<Assets> {
     }
   }
 
+  // ラスボス(専用素材 zombie_boss_walk_1..4.png。無ければ Tier3 を流用)
+  const bossImgs = await Promise.all(
+    [1, 2, 3, 4].map((i) => tryLoadImage(url(`zombie_boss_walk_${i}.png`))),
+  );
+  const boss = bossImgs.every((f) => f !== null) ? (bossImgs as HTMLImageElement[]) : zombies[3];
+
   return {
     bg,
     bgEndless,
@@ -330,6 +338,7 @@ export async function loadAssets(): Promise<Assets> {
     soldierBody: body ?? makeSoldierBody(),
     soldierArms: arms ?? makeSoldierArms(),
     zombies,
+    boss,
     logo,
   };
 }

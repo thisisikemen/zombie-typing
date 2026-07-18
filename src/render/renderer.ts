@@ -4,6 +4,7 @@
  */
 
 import {
+  BOSS,
   FIELD,
   HUD_COLORS,
   KEYGUIDE,
@@ -18,6 +19,11 @@ import type { Game, GameEvent, Zombie } from '../core/game';
 import type { Assets } from './assets';
 import { Effects } from './effects';
 import { skyAt } from './sky';
+
+/** 見た目の大きさ倍率(ラスボスは専用値) */
+function zombieScale(z: Zombie): number {
+  return z.boss ? BOSS.scale : TIERS[z.tier].scale;
+}
 
 export interface Scene {
   game: Game | null;
@@ -209,12 +215,25 @@ export class Renderer {
           // ベーシック: e-typing 風のキーボード+指ガイド
           this.drawKeyboardGuide(ctx, game);
         } else {
-          // 下部の操作ヒント(邪魔にならない薄さで)
+          // 下部の操作ヒント(邪魔にならない薄さで、2パターンをゆっくり交互表示)
+          const cycle = 16;
+          const t = (game.time % cycle) / cycle;
+          let aAlpha: number;
+          if (t < 0.44) aAlpha = 1;
+          else if (t < 0.5) aAlpha = 1 - (t - 0.44) / 0.06;
+          else if (t < 0.94) aAlpha = 0;
+          else aAlpha = (t - 0.94) / 0.06;
           ctx.save();
           ctx.textAlign = 'center';
           ctx.font = '600 15px "Hiragino Kaku Gothic ProN", sans-serif';
-          ctx.fillStyle = 'rgba(232, 228, 216, 0.48)';
-          ctx.fillText('Space / Enter: ターゲット切り替え(解除)　　Esc: 一時停止', W / 2 + 60, H - 14);
+          if (aAlpha > 0.01) {
+            ctx.fillStyle = `rgba(232, 228, 216, ${0.48 * aAlpha})`;
+            ctx.fillText('Space / Enter: ターゲット切り替え(解除)　　Esc: 一時停止', W / 2 + 60, H - 14);
+          }
+          if (aAlpha < 0.99) {
+            ctx.fillStyle = `rgba(232, 228, 216, ${0.48 * (1 - aAlpha)})`;
+            ctx.fillText('Esc か左上のロゴで一時停止　　やり直し・あきらめるもそこから', W / 2 + 60, H - 14);
+          }
           ctx.restore();
         }
       }
@@ -425,7 +444,7 @@ export class Renderer {
   }
 
   private chestY(z: Zombie): number {
-    return z.y - ZOMBIE_ANIM.baseHeight * TIERS[z.tier].scale * 0.55;
+    return z.y - ZOMBIE_ANIM.baseHeight * zombieScale(z) * 0.55;
   }
 
   private updateAim(game: Game, dt: number): void {
@@ -561,11 +580,11 @@ export class Renderer {
   // ---------- ゾンビ ----------
 
   private drawZombie(ctx: CanvasRenderingContext2D, z: Zombie): void {
-    const frames = this.assets.zombies[z.tier];
+    const frames = z.boss ? this.assets.boss : this.assets.zombies[z.tier];
     const frame = frames[Math.floor(z.walkTime * ZOMBIE_ANIM.walkFps) % frames.length];
     const iw = (frame as HTMLImageElement).naturalWidth || (frame as HTMLCanvasElement).width;
     const ih = (frame as HTMLImageElement).naturalHeight || (frame as HTMLCanvasElement).height;
-    const h = ZOMBIE_ANIM.baseHeight * TIERS[z.tier].scale;
+    const h = ZOMBIE_ANIM.baseHeight * zombieScale(z);
     const w = h * (iw / ih);
     const bounce = Math.sin(z.walkTime * Math.PI * 2 * ZOMBIE_ANIM.bounceFreq) * ZOMBIE_ANIM.bounceAmp;
 
@@ -575,12 +594,16 @@ export class Renderer {
     // 影
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.beginPath();
-    ctx.ellipse(z.x, z.y + 4, w * 0.42, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(z.x, z.y + 4, w * 0.42, z.boss ? 12 : 8, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const flash = this.zombieFlash.get(z.id) ?? 0;
     if (flash > 0) ctx.filter = 'brightness(1.65) saturate(1.2)';
-    if (z.tier === 3) {
+    if (z.boss) {
+      // ラスボスは強い禍々しさで「うわ、やばい」を演出
+      ctx.shadowColor = 'rgba(255, 20, 10, 0.55)';
+      ctx.shadowBlur = 28;
+    } else if (z.tier === 3) {
       // Tier3 は禍々しいオーラ(控えめに)
       ctx.shadowColor = 'rgba(255, 30, 20, 0.35)';
       ctx.shadowBlur = 16;
@@ -598,7 +621,7 @@ export class Renderer {
   private drawLabel(ctx: CanvasRenderingContext2D, game: Game, z: Zombie, showRomaji: boolean): void {
     const locked = game.targetId === z.id;
     const duplicate = game.candidateIds.includes(z.id);
-    const h = ZOMBIE_ANIM.baseHeight * TIERS[z.tier].scale;
+    const h = ZOMBIE_ANIM.baseHeight * zombieScale(z);
 
     ctx.save();
     ctx.textBaseline = 'alphabetic';
@@ -791,8 +814,17 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     roundRect(ctx, barX, barY, barW, 24, 4);
     ctx.fill();
-    // エナジー(水色)が左から重なり、被弾時はここから先に減る。緑(HP)はその後ろ
+    // 緑 = HP(最大 100%)。エナジーは「100% を超えた分」だけで、
+    // 水色として左から重なる(被弾時は水色から先に減る)
     const innerW = barW - 4;
+    if (hpRatio > 0.01) {
+      const hg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      hg.addColorStop(0, hpColor);
+      hg.addColorStop(1, hpRatio > 0.5 ? '#b8e04a' : hpColor);
+      ctx.fillStyle = hg;
+      roundRect(ctx, barX + 2, barY + 2, innerW * Math.min(1, hpRatio), 20, 3);
+      ctx.fill();
+    }
     const eW = Math.min(innerW, innerW * energyRatio);
     if (eW > 1) {
       const eg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
@@ -801,17 +833,6 @@ export class Renderer {
       ctx.fillStyle = eg;
       roundRect(ctx, barX + 2, barY + 2, eW, 20, 3);
       ctx.fill();
-    }
-    if (hpRatio > 0.01) {
-      const gW = Math.min(innerW - eW, innerW * hpRatio);
-      if (gW > 1) {
-        const hg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-        hg.addColorStop(0, hpColor);
-        hg.addColorStop(1, hpRatio > 0.5 ? '#b8e04a' : hpColor);
-        ctx.fillStyle = hg;
-        roundRect(ctx, barX + 2 + eW, barY + 2, gW, 20, 3);
-        ctx.fill();
-      }
     }
     ctx.strokeStyle = 'rgba(255,255,255,0.25)';
     ctx.lineWidth = 1;

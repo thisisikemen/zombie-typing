@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BASIC, FIELD, PLAYER, TIERS, type Tier } from '../src/config';
+import { BASIC, BOSS, FIELD, PLAYER, TIERS, type Tier } from '../src/config';
 import { Game, type Zombie } from '../src/core/game';
 import { getDifficulty, getMode } from '../src/core/modes';
 import { TypingSession } from '../src/core/typing/engine';
@@ -329,17 +329,27 @@ describe('ベーシック(五十音練習)', () => {
     expect(g.zombies[0].x).toBe(FIELD.width); // 画面右端に出てすぐ見える
   });
 
-  it('撃破でエナジーが貯まり、被弾はエナジーから先に減る', () => {
+  it('HP満タン時の撃破報酬は 100% 超のエナジーとして貯まり、被弾はエナジーから先に減る', () => {
     const g = new Game(normal, new WordPool([]), lcg());
     g.zombies.push(makeZombie('ねこ'));
     for (const k of 'neko') g.handleKey(k);
     expect(g.kills).toBe(1);
-    expect(g.energy).toBe(1); // コンボ1 → min(1, gainCap)
+    expect(g.energy).toBeCloseTo(0.25); // gainBase × min(コンボ1, comboCap)
+    expect(g.hp).toBe(PLAYER.maxHp); // HP は 100 のまま
     g.energy = 10;
     g.zombies.push(makeZombie('とけい', 3, FIELD.lineX + 1)); // Tier3 = 20ダメージ
     g.update(0.1);
     expect(g.energy).toBe(0); // 10 をエナジーが吸収
     expect(g.hp).toBe(PLAYER.maxHp - 10); // HP には残り 10 だけ届く
+  });
+
+  it('HP が減っているときの撃破報酬は緑(HP)の回復に使われ、水色にはならない', () => {
+    const g = new Game(normal, new WordPool([]), lcg());
+    g.hp = 90;
+    g.zombies.push(makeZombie('ねこ'));
+    for (const k of 'neko') g.handleKey(k);
+    expect(g.hp).toBeCloseTo(90.25);
+    expect(g.energy).toBe(0);
   });
 
   it('自動切替は一致が長い後方より、手前で一致するゾンビを優先する', () => {
@@ -422,6 +432,58 @@ describe('ベーシック(五十音練習)', () => {
     expect(basic.ranked).toBe(false);
     expect(hardcore.ranked ?? true).toBe(true);
     expect(hardcore.duration).toBe(180);
+  });
+});
+
+describe('ラスボス', () => {
+  it('夜明けまでモードでは残り30秒でボスが1体だけ出る', () => {
+    const g = new Game(normal, new WordPool(), lcg(3));
+    let bossAt = -1;
+    let bossCount = 0;
+    for (let t = 0; t < 120; t += 0.5) {
+      g.update(0.5);
+      for (const z of [...g.zombies]) {
+        if (z.boss) {
+          bossCount++;
+          if (bossAt < 0) bossAt = g.time;
+        }
+        g.removeZombie(z.id);
+      }
+    }
+    expect(bossCount).toBe(1);
+    expect(bossAt).toBeGreaterThanOrEqual(90); // duration 120 - 30
+    expect(bossAt).toBeLessThan(92);
+  });
+
+  it('エンドレスでは約90秒ごとにボスが出続ける', () => {
+    const g = new Game(endless, new WordPool(), lcg(3));
+    const bossTimes: number[] = [];
+    for (let t = 0; t < 200; t += 0.5) {
+      g.update(0.5);
+      for (const z of [...g.zombies]) {
+        if (z.boss) bossTimes.push(g.time);
+        g.removeZombie(z.id);
+      }
+    }
+    expect(bossTimes.length).toBe(2);
+    expect(bossTimes[0]).toBeGreaterThanOrEqual(90);
+    expect(bossTimes[1]).toBeGreaterThanOrEqual(180);
+  });
+
+  it('ボスは1文字も削らずライン超えされると50ダメージ', () => {
+    const g = new Game(normal, new WordPool([]), lcg());
+    g.zombies.push({ ...makeZombie('ぜつぼうのふちからのせいかん', 3, FIELD.lineX + 1), boss: true });
+    g.update(0.1);
+    expect(g.hp).toBe(PLAYER.maxHp - BOSS.damage);
+  });
+
+  it('ベーシックにはボスは出ない', () => {
+    const g = new Game(basic, new WordPool(), lcg());
+    for (let t = 0; t < 200; t += 0.5) {
+      g.update(0.5);
+      expect(g.zombies.some((z) => z.boss)).toBe(false);
+      for (const z of [...g.zombies]) g.removeZombie(z.id);
+    }
   });
 });
 

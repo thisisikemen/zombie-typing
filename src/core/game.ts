@@ -4,7 +4,7 @@
  * 将来のオンライン化ではこのモジュールをサーバーへ移植する想定(仕様 §1)。
  */
 
-import { BASIC, BONUS, COMBO, ENDLESS, ENERGY, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
+import { BASIC, BONUS, BOSS, COMBO, ENDLESS, ENERGY, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
 import type { DifficultyDef, TierSpawnRule } from './modes';
 import { TypingSession } from './typing/engine';
 import type { WordEntry, WordPool } from './words';
@@ -22,6 +22,8 @@ export interface Zombie {
   walkTime: number;
   /** スポーン時に初手キー排他が効いていたか(デバッグ・演出用) */
   exclusive: boolean;
+  /** ラスボス(巨体・鈍足・大ダメージ)か */
+  boss?: boolean;
 }
 
 export type GameEvent =
@@ -78,6 +80,7 @@ const BONUS_EFFECTS: Record<BonusEffectId, BonusEffect> = {
     id: 'overcharge',
     apply(game) {
       const targets = [...game.zombies]
+        .filter((z) => !z.boss) // ボスは自動撃破の対象外
         .sort((a, b) => a.tier - b.tier || a.x - b.x)
         .slice(0, BONUS.overchargeKills);
       for (const z of targets) {
@@ -132,6 +135,9 @@ export class Game {
   private recentKeys: string[] = [];
   private static readonly RECENT_KEYS_MAX = 32;
 
+  /** 次にボスを出す時刻(ボスなしの難易度は Infinity) */
+  private nextBossAt = Infinity;
+
   constructor(
     difficulty: DifficultyDef,
     private readonly pool: WordPool,
@@ -139,6 +145,11 @@ export class Game {
   ) {
     this.difficulty = difficulty;
     this.duration = difficulty.duration;
+    if (difficulty.bossKana) {
+      this.nextBossAt = difficulty.endless
+        ? BOSS.endlessIntervalSec
+        : Math.max(0, difficulty.duration - BOSS.dawnLeadSec);
+    }
   }
 
   isEndless(): boolean {
@@ -194,6 +205,9 @@ export class Game {
       this.spawnTimer -= SPAWN.interval;
       this.trySpawn();
     }
+
+    // --- ラスボス(予算とは独立に、決まった時刻に出す) ---
+    if (this.time >= this.nextBossAt) this.trySpawnBoss();
 
     // --- 終了判定 ---
     if (this.hp <= 0) {
@@ -401,10 +415,14 @@ export class Game {
   private onZombieKilled(z: Zombie): void {
     this.combo++;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
-    // ノーミス連続撃破が深いほどエナジー(被弾を肩代わりする水色ゲージ)が多く貯まる
-    this.energy = Math.min(ENERGY.max, this.energy + Math.min(this.combo, ENERGY.gainCap));
+    // ノーミス連続撃破の報酬: まず HP を少しずつ回復し、
+    // 満タンを超えた分だけがエナジー(100% 超の水色オーバーヒール)になる
+    const gain = ENERGY.gainBase * Math.min(this.combo, ENERGY.comboCap);
+    const healed = Math.min(PLAYER.maxHp - this.hp, gain);
+    this.hp += healed;
+    this.energy = Math.min(ENERGY.max, this.energy + (gain - healed));
     const comboBonus = Math.min(COMBO.comboScoreCap, this.combo * COMBO.scorePerCombo);
-    const gained = TIERS[z.tier].score + comboBonus;
+    const gained = (z.boss ? BOSS.score : TIERS[z.tier].score) + comboBonus;
     this.score += gained;
     this.kills++;
     this.removeZombie(z.id);
@@ -433,7 +451,8 @@ export class Game {
 
   private onZombieCrossed(z: Zombie): void {
     const p = z.session.progress();
-    let damage = TIERS[z.tier].damage * (1 - p); // 入力進捗によるダメージ軽減(仕様 §6)
+    const baseDamage = z.boss ? BOSS.damage : TIERS[z.tier].damage;
+    let damage = baseDamage * (1 - p); // 入力進捗によるダメージ軽減(仕様 §6)
     if (this.shieldTime > 0) damage *= 1 - BONUS.shieldReduction;
     const applied = Math.round(damage);
     // まずエナジー(水色ゲージ)が肩代わりし、残りが HP に届く
@@ -544,6 +563,41 @@ export class Game {
       speedMultiplier: 1.0,
       walkTime: this.rng() * 10,
       exclusive: true,
+    };
+    this.zombies.push(z);
+    this.events.push({ type: 'spawn', zombieId: z.id });
+  }
+
+  /** ラスボス: 巨体・鈍足・大ダメージ。単語は難易度ごとの bossKana から選ぶ。
+      在庫が引けなかったフレームは次の update で再試行する */
+  private trySpawnBoss(): void {
+    const range = this.difficulty.bossKana;
+    if (!range) {
+      this.nextBossAt = Infinity;
+      return;
+    }
+    const blockedKeys = new Set<string>();
+    for (const z of this.zombies) for (const k of z.session.currentKeys()) blockedKeys.add(k);
+    const onScreen = new Set(this.zombies.map((z) => z.word.kana));
+    const picked = this.pool.pick(this.rng, range, blockedKeys, onScreen, new Set(this.recentKana));
+    if (!picked) return;
+
+    this.nextBossAt = this.isEndless() ? this.time + BOSS.endlessIntervalSec : Infinity;
+    this.recentKana.push(picked.word.kana);
+    if (this.recentKana.length > SPAWN.recentWordMemory) this.recentKana.shift();
+
+    const z: Zombie = {
+      id: this.nextId++,
+      tier: 3,
+      boss: true,
+      word: picked.word,
+      session: new TypingSession(picked.word.kana),
+      x: FIELD.spawnX,
+      y: BOSS.y,
+      speed: BOSS.speed,
+      speedMultiplier: 1.0,
+      walkTime: this.rng() * 10,
+      exclusive: picked.exclusive,
     };
     this.zombies.push(z);
     this.events.push({ type: 'spawn', zombieId: z.id });

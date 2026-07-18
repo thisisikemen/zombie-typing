@@ -78,6 +78,27 @@ export const ENDLESS = {
   tierWeightRampSec: 420,
 } as const;
 
+/** ラスボスゾンビ(巨体・鈍足・大ダメージ・長文)。
+    夜明けまで各難易度は「残り dawnLeadSec 秒」に1体、
+    エンドレスは endlessIntervalSec ごとに出現する。
+    単語のかな長は難易度ごとの bossKana(modes.ts)で指定 */
+export const BOSS = {
+  /** ライン超え時の基礎ダメージ(1文字も削らないとこれを喰らう) */
+  damage: 50,
+  /** 歩行速度 px/s(どの Tier よりも遅い。難易度の speedScale は掛けない) */
+  speed: 26,
+  /** 撃破基礎スコア */
+  score: 2000,
+  /** 見た目の大きさ倍率(Tier3=1.5 より大) */
+  scale: 2.1,
+  /** 足元 Y(最前列固定。手前レイヤーに描かれ他ゾンビと重なりにくい) */
+  y: 848,
+  /** 夜明けまでモード: 終了の何秒前に出すか */
+  dawnLeadSec: 30,
+  /** エンドレス: 出現間隔(秒) */
+  endlessIntervalSec: 90,
+} as const;
+
 /** ベーシック(五十音練習)の設定 */
 export const BASIC = {
   /** ゾンビが歩く一列の足元 Y(キーボードガイドに重ならない高さ) */
@@ -119,13 +140,16 @@ export const KEYGUIDE = {
   keyGap: 5,
 } as const;
 
-/** エナジー(水色シールド)。ノーミス撃破で溜まり、被弾時に HP より先に消費される。
-    「ミスをしない人ほど得をする」ための蓄積型ボーナス */
+/** エナジー = 100% 超のオーバーヒール(水色)。
+    ノーミス撃破の報酬はまず緑(HP)の回復に使われ、HP 満タンのときだけ
+    100% を超えた分が水色として貯まる。被弾時は水色から先に減る。
+    寿司打のボーナス程度の「ちょっとずつ確実に積み上がる」バランス */
 export const ENERGY = {
-  /** 撃破1体あたりの獲得量 = min(コンボ数, gainCap)。連続ノーミスほど1体が重い */
-  gainCap: 4,
-  /** 蓄積上限 */
-  max: 50,
+  /** 撃破1体あたりの獲得量 = gainBase × min(コンボ数, comboCap) */
+  gainBase: 0.25,
+  comboCap: 4,
+  /** オーバーヒール(100% 超過分)の上限。ノーミス上級者で最大 130% */
+  max: 30,
 } as const;
 
 export const COMBO = {
