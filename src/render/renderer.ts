@@ -63,6 +63,9 @@ export class Renderer {
   private stars: Star[] = [];
   private displayHp = PLAYER.maxHp;
   private displayEnergy = 0;
+  /** HP+エナジーが増えた瞬間に出す「+N」ポップ(ゲージ下に浮かんで消える) */
+  private gainPops: { text: string; t: number }[] = [];
+  private lastVitality = -1;
   private comboPop = 0;
   private lastCombo = 0;
   private sparkTimer = 0;
@@ -94,6 +97,8 @@ export class Renderer {
   resetForNewGame(): void {
     this.displayHp = PLAYER.maxHp;
     this.displayEnergy = 0;
+    this.gainPops = [];
+    this.lastVitality = -1;
     this.lastCombo = 0;
     this.comboPop = 0;
     this.zombieFlash.clear();
@@ -164,6 +169,8 @@ export class Renderer {
     }
     for (const k of this.killLabels) k.t += dt;
     this.killLabels = this.killLabels.filter((k) => k.t < 0.32);
+    for (const p of this.gainPops) p.t += dt;
+    this.gainPops = this.gainPops.filter((p) => p.t < 0.9);
     this.effects.update(dt);
 
     const ctx = this.ctx;
@@ -850,6 +857,25 @@ export class Renderer {
       ctx.fillStyle = HUD_COLORS.energy;
       ctx.font = '700 13px sans-serif';
       ctx.fillText(`エナジー +${Math.ceil(game.energy)}`, 682, boxY + 60);
+    }
+
+    // HP+エナジーが増えた瞬間の「+N」ポップ(ノーミスの報酬を見える化)
+    const vitality = game.hp + game.energy;
+    if (this.lastVitality >= 0) {
+      const delta = vitality - this.lastVitality;
+      if (delta > 0.01) {
+        const text = delta >= 1 ? `+${Math.round(delta)}` : `+${delta.toFixed(1)}`;
+        this.gainPops.push({ text, t: 0 });
+        if (this.gainPops.length > 6) this.gainPops.shift();
+      }
+    }
+    this.lastVitality = vitality;
+    for (const p of this.gainPops) {
+      const life = p.t / 0.9;
+      ctx.textAlign = 'center';
+      ctx.font = '900 16px sans-serif';
+      ctx.fillStyle = `rgba(255, 210, 74, ${1 - life})`;
+      ctx.fillText(p.text, barX + 125, barY + 44 - life * 18);
     }
     // シールド残り
     if (game.shieldTime > 0) {

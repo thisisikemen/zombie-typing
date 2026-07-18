@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BASIC, BOSS, FIELD, PLAYER, TIERS, type Tier } from '../src/config';
+import { BASIC, BOSS, ENERGY, FIELD, PLAYER, TIERS, type Tier } from '../src/config';
 import { Game, type Zombie } from '../src/core/game';
 import { getDifficulty, getMode } from '../src/core/modes';
 import { TypingSession } from '../src/core/typing/engine';
@@ -436,8 +436,10 @@ describe('ベーシック(五十音練習)', () => {
 });
 
 describe('ラスボス', () => {
-  it('夜明けまでモードでは残り30秒でボスが1体だけ出る', () => {
+  it('夜明けまでモードでは「残り10秒でライン到達」から逆算した時刻にボスが1体だけ出る', () => {
     const g = new Game(normal, new WordPool(), lcg(3));
+    const travel = (FIELD.spawnX - FIELD.lineX) / BOSS.speed;
+    const expected = normal.duration - travel - BOSS.arriveLeadSec;
     let bossAt = -1;
     let bossCount = 0;
     for (let t = 0; t < 120; t += 0.5) {
@@ -451,8 +453,34 @@ describe('ラスボス', () => {
       }
     }
     expect(bossCount).toBe(1);
-    expect(bossAt).toBeGreaterThanOrEqual(90); // duration 120 - 30
-    expect(bossAt).toBeLessThan(92);
+    expect(bossAt).toBeGreaterThanOrEqual(expected);
+    expect(bossAt).toBeLessThan(expected + 2);
+  });
+
+  it('ボスは放置すると制限時間の約10秒前に防衛ラインへ到達する', () => {
+    const g = new Game(normal, new WordPool(), lcg(3));
+    let bossCrossAt = -1;
+    let prevHp = g.hp;
+    for (let t = 0; t < 120 && bossCrossAt < 0; t += 0.25) {
+      // ボス以外は湧いた直後に除去して、ボスのライン超えだけを観測する
+      for (const z of [...g.zombies]) {
+        if (!z.boss) g.removeZombie(z.id);
+      }
+      g.update(0.25);
+      if (prevHp - g.hp >= 45) bossCrossAt = g.time; // 50ダメージ = ボスのライン超え
+      prevHp = g.hp;
+    }
+    expect(bossCrossAt).toBeGreaterThan(normal.duration - 14);
+    expect(bossCrossAt).toBeLessThan(normal.duration - 6);
+  });
+
+  it('ミスするとエナジーが減る', () => {
+    const g = new Game(normal, new WordPool([]), lcg());
+    g.energy = 5;
+    g.zombies.push(makeZombie('ねこ'));
+    g.handleKey('x'); // どの単語にも合わないキー → ミス
+    expect(g.missKeys).toBe(1);
+    expect(g.energy).toBe(5 - ENERGY.missPenalty);
   });
 
   it('エンドレスでは約90秒ごとにボスが出続ける', () => {

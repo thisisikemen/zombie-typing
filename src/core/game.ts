@@ -146,9 +146,11 @@ export class Game {
     this.difficulty = difficulty;
     this.duration = difficulty.duration;
     if (difficulty.bossKana) {
+      // 鈍足のまま「残り arriveLeadSec 秒」で防衛ラインに到達するよう出現時刻を逆算
+      const travelSec = (FIELD.spawnX - FIELD.lineX) / BOSS.speed;
       this.nextBossAt = difficulty.endless
         ? BOSS.endlessIntervalSec
-        : Math.max(0, difficulty.duration - BOSS.dawnLeadSec);
+        : Math.max(0, difficulty.duration - travelSec - BOSS.arriveLeadSec);
     }
   }
 
@@ -409,6 +411,8 @@ export class Game {
   private registerMiss(): void {
     this.missKeys++;
     this.combo = 0;
+    // 貯めたエナジー(100% 超のオーバーヒール)はミスで削れていく
+    this.energy = Math.max(0, this.energy - ENERGY.missPenalty);
     this.events.push({ type: 'miss' });
   }
 

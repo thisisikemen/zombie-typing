@@ -86,15 +86,15 @@ export const BOSS = {
   /** ライン超え時の基礎ダメージ(1文字も削らないとこれを喰らう) */
   damage: 50,
   /** 歩行速度 px/s(どの Tier よりも遅い。難易度の speedScale は掛けない) */
-  speed: 26,
+  speed: 34,
   /** 撃破基礎スコア */
   score: 2000,
   /** 見た目の大きさ倍率(Tier3=1.5 より大) */
-  scale: 2.1,
+  scale: 2.4,
   /** 足元 Y(最前列固定。手前レイヤーに描かれ他ゾンビと重なりにくい) */
   y: 848,
-  /** 夜明けまでモード: 終了の何秒前に出すか */
-  dawnLeadSec: 30,
+  /** 夜明けまでモード: 「残りこの秒数」で防衛ラインに到達するよう出現時刻を逆算する */
+  arriveLeadSec: 10,
   /** エンドレス: 出現間隔(秒) */
   endlessIntervalSec: 90,
 } as const;
@@ -150,6 +150,8 @@ export const ENERGY = {
   comboCap: 4,
   /** オーバーヒール(100% 超過分)の上限。ノーミス上級者で最大 130% */
   max: 30,
+  /** ミス1打あたりの減少量(貯めた分はミスで削れていく) */
+  missPenalty: 1.0,
 } as const;
 
 export const COMBO = {
