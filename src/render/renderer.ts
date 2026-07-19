@@ -5,6 +5,7 @@
 
 import {
   BOSS,
+  ENERGY,
   FIELD,
   HUD_COLORS,
   KEYGUIDE,
@@ -63,8 +64,8 @@ export class Renderer {
   private stars: Star[] = [];
   private displayHp = PLAYER.maxHp;
   private displayEnergy = 0;
-  /** HP+エナジーが増えた瞬間に出す「+N」ポップ(ゲージ下に浮かんで消える) */
-  private gainPops: { text: string; t: number }[] = [];
+  /** HP+エナジーの増減ポップ(ゲージ下に浮かんで消える。+は水色 / −は灰色) */
+  private gainPops: { text: string; t: number; neg: boolean }[] = [];
   private lastVitality = -1;
   private comboPop = 0;
   private lastCombo = 0;
@@ -588,12 +589,17 @@ export class Renderer {
 
   private drawZombie(ctx: CanvasRenderingContext2D, z: Zombie): void {
     const frames = z.boss ? this.assets.boss : this.assets.zombies[z.tier];
-    const frame = frames[Math.floor(z.walkTime * ZOMBIE_ANIM.walkFps) % frames.length];
+    // ボスはコマ送りを遅くして、巨体が重々しく歩いて見えるようにする
+    const walkFps = z.boss ? BOSS.walkFps : ZOMBIE_ANIM.walkFps;
+    const frame = frames[Math.floor(z.walkTime * walkFps) % frames.length];
     const iw = (frame as HTMLImageElement).naturalWidth || (frame as HTMLCanvasElement).width;
     const ih = (frame as HTMLImageElement).naturalHeight || (frame as HTMLCanvasElement).height;
     const h = ZOMBIE_ANIM.baseHeight * zombieScale(z);
     const w = h * (iw / ih);
-    const bounce = Math.sin(z.walkTime * Math.PI * 2 * ZOMBIE_ANIM.bounceFreq) * ZOMBIE_ANIM.bounceAmp;
+    const bounce =
+      Math.sin(z.walkTime * Math.PI * 2 * ZOMBIE_ANIM.bounceFreq) *
+      ZOMBIE_ANIM.bounceAmp *
+      (z.boss ? 0.4 : 1);
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -813,7 +819,6 @@ export class Renderer {
     this.displayHp += (game.hp - this.displayHp) * 0.15;
     this.displayEnergy += (game.energy - this.displayEnergy) * 0.15;
     const hpRatio = Math.max(0, this.displayHp / PLAYER.maxHp);
-    const energyRatio = Math.max(0, this.displayEnergy / PLAYER.maxHp);
     const hpColor = hpRatio > 0.5 ? HUD_COLORS.hpHigh : hpRatio > 0.25 ? HUD_COLORS.hpMid : HUD_COLORS.hpLow;
     const barX = 318;
     const barW = 250;
@@ -821,61 +826,73 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     roundRect(ctx, barX, barY, barW, 24, 4);
     ctx.fill();
-    // 緑 = HP(最大 100%)。エナジーは「100% を超えた分」だけで、
-    // 水色として左から重なる(被弾時は水色から先に減る)
+    // ゲージ全体 = 130(HP 100 + エナジー上限 30)。
+    // 緑 = HP、その右に水色 = 100% 超のエナジー。100 の位置に目盛りを引く
     const innerW = barW - 4;
+    const totalScale = PLAYER.maxHp + ENERGY.max;
     if (hpRatio > 0.01) {
       const hg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
       hg.addColorStop(0, hpColor);
       hg.addColorStop(1, hpRatio > 0.5 ? '#b8e04a' : hpColor);
       ctx.fillStyle = hg;
-      roundRect(ctx, barX + 2, barY + 2, innerW * Math.min(1, hpRatio), 20, 3);
+      roundRect(ctx, barX + 2, barY + 2, innerW * Math.min(1, this.displayHp / totalScale), 20, 3);
       ctx.fill();
     }
-    const eW = Math.min(innerW, innerW * energyRatio);
+    const gW = innerW * Math.min(1, this.displayHp / totalScale);
+    const eW = Math.min(innerW - gW, (innerW * this.displayEnergy) / totalScale);
     if (eW > 1) {
       const eg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
       eg.addColorStop(0, HUD_COLORS.energy);
       eg.addColorStop(1, '#9ae4f8');
       ctx.fillStyle = eg;
-      roundRect(ctx, barX + 2, barY + 2, eW, 20, 3);
+      roundRect(ctx, barX + 2 + gW, barY + 2, eW, 20, 3);
       ctx.fill();
     }
+    // 100% の目盛り
+    const tickX = barX + 2 + innerW * (PLAYER.maxHp / totalScale);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(tickX, barY + 2, 1.5, 20);
     ctx.strokeStyle = 'rgba(255,255,255,0.25)';
     ctx.lineWidth = 1;
     roundRect(ctx, barX, barY, barW, 24, 4);
     ctx.stroke();
+    // 数値は HP+エナジーの合計。100 を超えている間は水色
+    const total = Math.max(0, Math.ceil(game.hp + game.energy));
     ctx.textAlign = 'right';
     ctx.font = '900 30px sans-serif';
-    ctx.fillStyle = hpColor;
-    ctx.fillText(`${Math.max(0, Math.ceil(game.hp))}`, 648, boxY + 44);
+    ctx.fillStyle = total > PLAYER.maxHp ? HUD_COLORS.energy : hpColor;
+    ctx.fillText(`${total}`, 648, boxY + 44);
     ctx.font = '700 16px sans-serif';
     ctx.fillStyle = 'rgba(216,212,200,0.6)';
     ctx.fillText('/100', 682, boxY + 44);
-    // エナジー残量(水色の数値)
-    if (game.energy > 0) {
-      ctx.fillStyle = HUD_COLORS.energy;
-      ctx.font = '700 13px sans-serif';
-      ctx.fillText(`エナジー +${Math.ceil(game.energy)}`, 682, boxY + 60);
-    }
 
-    // HP+エナジーが増えた瞬間の「+N」ポップ(ノーミスの報酬を見える化)
+    // HP+エナジーの増減ポップ(+は水色 / −は灰色。バーの外へはみ出してOK)
     const vitality = game.hp + game.energy;
     if (this.lastVitality >= 0) {
       const delta = vitality - this.lastVitality;
-      if (delta > 0.01) {
-        const text = delta >= 1 ? `+${Math.round(delta)}` : `+${delta.toFixed(1)}`;
-        this.gainPops.push({ text, t: 0 });
+      if (Math.abs(delta) > 0.01) {
+        const abs = Math.abs(delta);
+        const num = abs >= 1 ? `${Math.round(abs)}` : `${abs.toFixed(1)}`;
+        this.gainPops.push({ text: `${delta > 0 ? '+' : '-'}${num}`, t: 0, neg: delta < 0 });
         if (this.gainPops.length > 6) this.gainPops.shift();
       }
     }
     this.lastVitality = vitality;
     for (const p of this.gainPops) {
       const life = p.t / 0.9;
+      const punch = p.t < 0.12 ? ((0.12 - p.t) / 0.12) * 10 : 0; // 出た瞬間「ばんっ」と大きく
       ctx.textAlign = 'center';
-      ctx.font = '900 16px sans-serif';
-      ctx.fillStyle = `rgba(255, 210, 74, ${1 - life})`;
-      ctx.fillText(p.text, barX + 125, barY + 44 - life * 18);
+      ctx.font = `900 ${26 + punch}px sans-serif`;
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = `rgba(0, 0, 0, ${0.75 * (1 - life)})`;
+      ctx.lineWidth = 4;
+      const px = barX + 125;
+      const py = barY + 62 - life * 22;
+      ctx.strokeText(p.text, px, py);
+      ctx.fillStyle = p.neg
+        ? `rgba(168, 164, 152, ${1 - life})`
+        : `rgba(84, 200, 234, ${1 - life})`;
+      ctx.fillText(p.text, px, py);
     }
     // シールド残り
     if (game.shieldTime > 0) {

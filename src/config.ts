@@ -85,8 +85,10 @@ export const ENDLESS = {
 export const BOSS = {
   /** ライン超え時の基礎ダメージ(1文字も削らないとこれを喰らう) */
   damage: 50,
-  /** 歩行速度 px/s(どの Tier よりも遅い。難易度の speedScale は掛けない) */
-  speed: 34,
+  /** 歩行速度 px/s(Tier3 と同等。他ゾンビ同様に難易度の speedScale を掛ける) */
+  speed: 40,
+  /** 歩行アニメのコマ送り速度(巨体がゆっくり歩いて見えるよう通常より遅く) */
+  walkFps: 3.2,
   /** 撃破基礎スコア */
   score: 2000,
   /** 見た目の大きさ倍率(Tier3=1.5 より大) */

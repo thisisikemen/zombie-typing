@@ -146,8 +146,8 @@ export class Game {
     this.difficulty = difficulty;
     this.duration = difficulty.duration;
     if (difficulty.bossKana) {
-      // 鈍足のまま「残り arriveLeadSec 秒」で防衛ラインに到達するよう出現時刻を逆算
-      const travelSec = (FIELD.spawnX - FIELD.lineX) / BOSS.speed;
+      // 「残り arriveLeadSec 秒」で防衛ラインに到達するよう出現時刻を逆算
+      const travelSec = (FIELD.spawnX - FIELD.lineX) / (BOSS.speed * difficulty.speedScale);
       this.nextBossAt = difficulty.endless
         ? BOSS.endlessIntervalSec
         : Math.max(0, difficulty.duration - travelSec - BOSS.arriveLeadSec);
@@ -598,7 +598,7 @@ export class Game {
       session: new TypingSession(picked.word.kana),
       x: FIELD.spawnX,
       y: BOSS.y,
-      speed: BOSS.speed,
+      speed: BOSS.speed * this.difficulty.speedScale,
       speedMultiplier: 1.0,
       walkTime: this.rng() * 10,
       exclusive: picked.exclusive,
