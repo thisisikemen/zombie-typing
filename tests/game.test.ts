@@ -515,6 +515,42 @@ describe('ラスボス', () => {
   });
 });
 
+describe('VS 自己ベスト(ゴースト)', () => {
+  const vsNormal = getDifficulty(getMode('vs'), 'normal');
+
+  it('ゴーストが自動でゾンビを倒してスコアを稼ぐ', () => {
+    const g = new Game(vsNormal, new WordPool(), lcg(1), {
+      bestScore: 8000,
+      wpm: 240,
+      accuracy: 1,
+    });
+    for (let t = 0; t < 30; t += 0.1) g.update(0.1);
+    expect(g.ghost).not.toBeNull();
+    expect(g.ghost!.kills).toBeGreaterThan(0);
+    expect(g.ghost!.score).toBeGreaterThan(0);
+    expect(g.score).toBe(0); // プレイヤーは何もしていないので 0 のまま
+  });
+
+  it('ライン超えのダメージはゴーストにも同じだけ入る(防衛ラインは共有)', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(), {
+      bestScore: 1000,
+      wpm: 1,
+      accuracy: 1,
+    });
+    g.zombies.push(makeZombie('とけい', 3, FIELD.lineX + 1)); // Tier3 = 20ダメージ
+    g.update(0.1);
+    expect(g.hp).toBe(PLAYER.maxHp - 20);
+    expect(g.ghost!.hp).toBe(PLAYER.maxHp - 20);
+  });
+
+  it('VS の難易度はランキング対象外で、ベーシックは存在しない', () => {
+    const vs = getMode('vs');
+    expect(vs.difficulties.every((d) => d.ranked === false)).toBe(true);
+    expect(vs.difficulties.some((d) => d.practice)).toBe(false);
+    expect(vs.difficulties.map((d) => d.id)).toEqual(['easy', 'normal', 'hard', 'hardcore']);
+  });
+});
+
 describe('スポーン制御', () => {
   it('時間経過でゾンビがスポーンし、同時数上限を守る', () => {
     const g = new Game(normal, new WordPool(), lcg(7));

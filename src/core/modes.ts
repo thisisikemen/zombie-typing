@@ -7,7 +7,7 @@
 import type { Tier } from '../config';
 
 export type DifficultyId = 'basic' | 'easy' | 'normal' | 'hard' | 'hardcore' | 'endless';
-export type ModeId = 'dawn' | 'endless';
+export type ModeId = 'dawn' | 'vs' | 'endless';
 export type RankMetric = 'score' | 'survival';
 export type BackgroundId = 'night' | 'endless';
 
@@ -192,6 +192,19 @@ export const MODES: ModeDef[] = [
     ],
   },
 ];
+
+// VS 自己ベスト: 夜明けまでの easy〜hardcore と同じバランスで、
+// 半透明のゴースト(自己ベストの自分)と同じ戦場のゾンビを取り合う。
+// スコアはハンデ付き(ゴーストに取られる)なのでランキング対象外
+const vsMode: ModeDef = {
+  id: 'vs',
+  label: 'VS 自己ベスト',
+  desc: 'ゴースト=自己ベストの自分と同じ戦場で撃ち合う。スコアで勝てば自己ベストを塗り替える。',
+  difficulties: MODES[0].difficulties
+    .filter((d) => !d.practice)
+    .map((d) => ({ ...d, ranked: false })),
+};
+MODES.splice(1, 0, vsMode);
 
 export function getMode(id: ModeId): ModeDef {
   const m = MODES.find((m) => m.id === id);

@@ -26,10 +26,35 @@ export interface Zombie {
   boss?: boolean;
 }
 
+/** VS 自己ベスト: ゴースト(過去の自分)の再現パラメータ */
+export interface GhostProfile {
+  /** 自己ベストのスコア(ゴーストはこのペースに沿って稼ぐ) */
+  bestScore: number;
+  /** 打鍵速度(1分あたりの正打数) */
+  wpm: number;
+  /** 正確率 0〜1(この確率を外れた打鍵はミス=コンボ断絶) */
+  accuracy: number;
+}
+
+/** VS 自己ベスト: ゴーストの進行状態 */
+export interface GhostState {
+  hp: number;
+  score: number;
+  combo: number;
+  maxCombo: number;
+  kills: number;
+  targetId: number | null;
+  /** ゴースト専用の入力進捗(プレイヤーの進捗とは独立) */
+  session: TypingSession | null;
+  /** HP が尽きて戦闘不能になったか */
+  down: boolean;
+}
+
 export type GameEvent =
   | { type: 'shot'; zombieId: number }
   | { type: 'miss' }
   | { type: 'kill'; zombieId: number; x: number; y: number; tier: Tier; gained: number; kana: string }
+  | { type: 'ghostkill'; zombieId: number; x: number; y: number; tier: Tier; gained: number }
   | { type: 'autokill'; zombieId: number; x: number; y: number; tier: Tier }
   | { type: 'crossed'; zombieId: number; damage: number; tier: Tier; y: number }
   | { type: 'lock'; zombieId: number }
@@ -138,13 +163,32 @@ export class Game {
   /** 次にボスを出す時刻(ボスなしの難易度は Infinity) */
   private nextBossAt = Infinity;
 
+  /** VS 自己ベスト: ゴーストの状態(VS モード以外は null) */
+  ghost: GhostState | null = null;
+  private readonly ghostProfile: GhostProfile | null;
+  private ghostKeyTimer = 0;
+
   constructor(
     difficulty: DifficultyDef,
     private readonly pool: WordPool,
     private readonly rng: () => number = Math.random,
+    ghostProfile: GhostProfile | null = null,
   ) {
     this.difficulty = difficulty;
     this.duration = difficulty.duration;
+    this.ghostProfile = ghostProfile;
+    if (ghostProfile) {
+      this.ghost = {
+        hp: PLAYER.maxHp,
+        score: 0,
+        combo: 0,
+        maxCombo: 0,
+        kills: 0,
+        targetId: null,
+        session: null,
+        down: false,
+      };
+    }
     if (difficulty.bossKana) {
       // 「残り arriveLeadSec 秒」で防衛ラインに到達するよう出現時刻を逆算
       const travelSec = (FIELD.spawnX - FIELD.lineX) / (BOSS.speed * difficulty.speedScale);
@@ -210,6 +254,9 @@ export class Game {
 
     // --- ラスボス(予算とは独立に、決まった時刻に出す) ---
     if (this.time >= this.nextBossAt) this.trySpawnBoss();
+
+    // --- VS 自己ベスト: ゴーストの自動プレイ ---
+    this.updateGhost(dt);
 
     // --- 終了判定 ---
     if (this.hp <= 0) {
@@ -463,6 +510,14 @@ export class Game {
     const absorbed = Math.min(this.energy, applied);
     this.energy -= absorbed;
     this.hp -= applied - absorbed;
+    // VS: ライン超えはゴーストにも同じダメージ(防衛ラインは共有)
+    if (this.ghost && !this.ghost.down) {
+      this.ghost.hp -= applied;
+      if (this.ghost.hp <= 0) {
+        this.ghost.hp = 0;
+        this.ghost.down = true;
+      }
+    }
     if (COMBO.resetOnCross) this.combo = 0;
     this.removeZombie(z.id);
     this.events.push({ type: 'crossed', zombieId: z.id, damage: applied, tier: z.tier, y: z.y });
@@ -570,6 +625,64 @@ export class Game {
     };
     this.zombies.push(z);
     this.events.push({ type: 'spawn', zombieId: z.id });
+  }
+
+  /** VS 自己ベスト: ゴーストが自己ベストの WPM・正確率で自動タイピングする。
+      スコアが自己ベストの進行ペースからずれたら打鍵速度を微調整して、
+      最終スコアが自己ベスト付近に着地するようにする */
+  private updateGhost(dt: number): void {
+    const g = this.ghost;
+    const p = this.ghostProfile;
+    if (!g || !p || g.down) return;
+
+    // ターゲット確保(手前優先)。プレイヤーと同じゾンビを狙うこともある(早押し)
+    let target = g.targetId !== null ? this.getZombie(g.targetId) : undefined;
+    if (!target) {
+      target = [...this.zombies].sort((a, b) => a.x - b.x)[0];
+      if (!target) return;
+      g.targetId = target.id;
+      g.session = new TypingSession(target.word.kana);
+    }
+
+    // 打鍵速度(keys/sec)。自己ベストのスコア軌道に沿うようペース補正
+    let kps = p.wpm / 60;
+    if (this.duration > 0) {
+      const pace = p.bestScore * Math.min(1, this.time / this.duration);
+      if (g.score < pace * 0.95) kps *= 1.35;
+      else if (g.score > pace * 1.05) kps *= 0.6;
+    }
+
+    this.ghostKeyTimer += dt * kps;
+    while (this.ghostKeyTimer >= 1) {
+      this.ghostKeyTimer -= 1;
+      if (!g.session) break;
+      if (this.rng() > p.accuracy) {
+        g.combo = 0; // ミス(進捗なし・コンボ断絶)
+        continue;
+      }
+      const key = g.session.remainingRomaji()[0];
+      if (!key) break;
+      if (g.session.input(key) === 'complete') {
+        this.onGhostKilled(target);
+        break;
+      }
+    }
+  }
+
+  private onGhostKilled(z: Zombie): void {
+    const g = this.ghost;
+    if (!g) return;
+    g.combo++;
+    g.maxCombo = Math.max(g.maxCombo, g.combo);
+    const gained =
+      (z.boss ? BOSS.score : TIERS[z.tier].score) +
+      Math.min(COMBO.comboScoreCap, g.combo * COMBO.scorePerCombo);
+    g.score += gained;
+    g.kills++;
+    this.removeZombie(z.id); // プレイヤーがロック中でも横取りされる(早押し対決)
+    g.targetId = null;
+    g.session = null;
+    this.events.push({ type: 'ghostkill', zombieId: z.id, x: z.x, y: z.y, tier: z.tier, gained });
   }
 
   /** ラスボス: 巨体・鈍足・大ダメージ。単語は難易度ごとの bossKana から選ぶ。

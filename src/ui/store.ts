@@ -16,6 +16,8 @@ export interface BestRecord {
   accuracy: number;
   cleared: boolean;
   survival?: number;
+  /** VS 自己ベストのゴースト再現に使う(古い記録には無い) */
+  wpm?: number;
 }
 
 const SETTINGS_KEY = 'zombie-typing:settings';

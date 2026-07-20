@@ -238,6 +238,19 @@ kbd {
 }
 .mode-tab.locked { cursor: default; opacity: 0.75; }
 .mode-tab.locked img { height: 3.7rem; }
+/* VS 自己ベストのテキストタブ: 画像タブとサイズ感を揃える */
+.mode-tab.text-tab { min-width: 13.5rem; transition: height 0.15s ease, font-size 0.15s ease, filter 0.15s ease; }
+.mode-tab.text-tab:not(.active):not(.locked) {
+  height: 3.7rem;
+  min-width: 12rem;
+  font-size: 1.15rem;
+  filter: saturate(0.25) brightness(0.8);
+}
+.mode-tab.text-tab.active {
+  color: #ffd9a8;
+  border-color: #b8823c;
+  filter: drop-shadow(0 0 12px rgba(255, 190, 80, 0.35));
+}
 
 .difficulty-cards {
   display: flex;
@@ -522,6 +535,13 @@ kbd {
   background: rgba(0, 0, 0, 0.7);
 }
 .ranking-note { font-size: 0.9rem; color: var(--ui-dim); margin-bottom: 0.6rem; }
+/* スコアの仕組みのヒント(タイトル直下) */
+.ranking-hint {
+  font-size: 0.85rem;
+  color: #8fb9cc;
+  letter-spacing: 0.04em;
+  margin: -0.5rem 0 0.8rem;
+}
 .ranking-list {
   list-style: none;
   max-height: 44vh;

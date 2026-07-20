@@ -35,6 +35,8 @@ export interface ResultData {
   endless: boolean;
   /** ベーシック(練習)か。「終了する」で抜けた場合は SCORE 見出しになる */
   practice: boolean;
+  /** VS 自己ベストの結果(通常モードは null) */
+  vs: { ghostScore: number; win: boolean } | null;
   newRecord: boolean;
 }
 
@@ -290,8 +292,12 @@ export class UI {
   private renderRanking(): void {
     const tabs = $('ranking-tabs');
     tabs.innerHTML = '';
-    // ランキング対象の難易度だけタブに出す(ベーシックは対象外)
-    const rankedDiffs = this.activeMode.difficulties.filter((diff) => diff.ranked !== false);
+    // ランキング対象の難易度だけタブに出す(ベーシックは対象外)。
+    // VS のようにランキング対象が無いモードを開いているときは「夜明けまで」の集計を見せる
+    const sourceMode = this.activeMode.difficulties.some((d) => d.ranked !== false)
+      ? this.activeMode
+      : MODES[0];
+    const rankedDiffs = sourceMode.difficulties.filter((diff) => diff.ranked !== false);
     if (!rankedDiffs.some((diff) => diff.id === this.rankingDiff)) {
       this.rankingDiff = rankedDiffs[0]?.id ?? this.rankingDiff;
     }
@@ -358,11 +364,17 @@ export class UI {
       const tab = document.createElement('button');
       tab.className = `mode-tab${mode.id === this.activeMode.id ? ' active' : ''}`;
       tab.setAttribute('aria-label', mode.label);
-      const img = document.createElement('img');
-      // モードごとのタブ画像(dawn=夜明けまで / endless=夜は明けない)
-      img.src = `${import.meta.env.BASE_URL}assets/ui/${mode.id === 'endless' ? 'tab-endless.png' : 'tab-active.png'}`;
-      img.alt = mode.label;
-      tab.appendChild(img);
+      if (mode.id === 'vs') {
+        // VS 自己ベストは専用画像がないためテキストタブ
+        tab.classList.add('text-tab');
+        tab.textContent = 'VS 自己ベスト';
+      } else {
+        const img = document.createElement('img');
+        // モードごとのタブ画像(dawn=夜明けまで / endless=夜は明けない)
+        img.src = `${import.meta.env.BASE_URL}assets/ui/${mode.id === 'endless' ? 'tab-endless.png' : 'tab-active.png'}`;
+        img.alt = mode.label;
+        tab.appendChild(img);
+      }
       tab.onclick = () => {
         this.cb.onUiSound('bolt');
         this.activeMode = mode;
@@ -402,14 +414,19 @@ export class UI {
       const durText =
         diff.durationHint ??
         (mm > 0 ? `${mm}分${ss > 0 ? `${ss}秒` : ''}` : `${diff.duration}秒`);
+      const ghostBest = this.activeMode.id === 'vs' ? loadBest('dawn', diff.id) : null;
       const bestText =
-        diff.ranked === false
-          ? '<span class="unranked-note">※ランキング対象外</span>'
-          : best && diff.rankBy === 'survival'
-            ? `最長 ${formatTime(best.survival ?? 0)}`
-            : best
-              ? `ベスト ${best.score.toLocaleString()}`
-              : '';
+        this.activeMode.id === 'vs'
+          ? ghostBest
+            ? `ゴースト ${ghostBest.score.toLocaleString()}`
+            : '<span class="unranked-note">記録なし → 初期ゴーストと対戦</span>'
+          : diff.ranked === false
+            ? '<span class="unranked-note">※ランキング対象外</span>'
+            : best && diff.rankBy === 'survival'
+              ? `最長 ${formatTime(best.survival ?? 0)}`
+              : best
+                ? `ベスト ${best.score.toLocaleString()}`
+                : '';
       card.innerHTML = `
         <h3>${diff.label}</h3>
         <ul class="diff-specs">
@@ -510,16 +527,28 @@ export class UI {
       screen.style.backgroundImage = 'none';
     }
 
-    $('result-sub').textContent = practiceScore
-      ? '練習おつかれさま!'
-      : data.endless
-        ? '夜はまだ終わらない…'
-        : data.cleared
-          ? '夜明けまで生き延びた!'
-          : '防衛ラインは破られた…';
+    $('result-sub').textContent =
+      data.vs && data.cleared
+        ? `あなた ${data.score.toLocaleString()} ─ ${data.vs.ghostScore.toLocaleString()} ゴースト`
+        : practiceScore
+          ? '練習おつかれさま!'
+          : data.endless
+            ? '夜はまだ終わらない…'
+            : data.cleared
+              ? '夜明けまで生き延びた!'
+              : '防衛ラインは破られた…';
     const heading = $('result-heading');
-    heading.textContent = practiceScore ? 'SCORE' : data.cleared ? 'CLEAR' : 'GAME OVER';
-    heading.className = data.cleared ? 'clear' : 'gameover';
+    heading.textContent =
+      data.vs && data.cleared
+        ? data.vs.win
+          ? 'WIN'
+          : 'LOSE'
+        : practiceScore
+          ? 'SCORE'
+          : data.cleared
+            ? 'CLEAR'
+            : 'GAME OVER';
+    heading.className = data.cleared && (!data.vs || data.vs.win) ? 'clear' : 'gameover';
 
     const rows: [string, string, string][] =
       data.rankBy === 'survival'

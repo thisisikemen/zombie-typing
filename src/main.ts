@@ -5,16 +5,16 @@
  */
 
 import { AudioSystem, type SfxName } from './audio/sfx';
-import { COUNTDOWN } from './config';
+import { COUNTDOWN, VS } from './config';
 import { DemoBot } from './core/bot';
-import { Game, type GameEvent } from './core/game';
+import { Game, type GameEvent, type GhostProfile } from './core/game';
 import { MODES, type DifficultyDef, type ModeDef } from './core/modes';
 import { WordPool } from './core/words';
 import { initKeyboard } from './input/keyboard';
 import { loadAssets } from './render/assets';
 import { Renderer, type Scene } from './render/renderer';
 import { UI } from './ui/screens';
-import { loadSettings, saveBest, saveSettings, type Settings } from './ui/store';
+import { loadBest, loadSettings, saveBest, saveSettings, type Settings } from './ui/store';
 
 type AppState =
   | 'loading'
@@ -116,7 +116,23 @@ async function boot(): Promise<void> {
   function startGame(mode: ModeDef, diff: DifficultyDef, quick: boolean): void {
     currentMode = mode;
     currentDiff = diff;
-    game = new Game(diff, pool);
+    // VS 自己ベスト: 夜明けまでの自己ベストからゴーストを作る(記録が無ければ初期ゴースト)
+    let ghostProfile: GhostProfile | null = null;
+    if (mode.id === 'vs') {
+      const best = loadBest('dawn', diff.id);
+      if (best) {
+        // 古い記録に WPM が無い場合は撃破数と制限時間から推定する
+        const estWpm = Math.round((best.kills * VS.estimateKeysPerKill) / (diff.duration / 60));
+        ghostProfile = {
+          bestScore: best.score,
+          wpm: Math.min(400, Math.max(80, best.wpm ?? estWpm)),
+          accuracy: best.accuracy > 0 ? best.accuracy : VS.defaultProfile.accuracy,
+        };
+      } else {
+        ghostProfile = { ...VS.defaultProfile };
+      }
+    }
+    game = new Game(diff, pool, Math.random, ghostProfile);
     demoGame = null;
     endFade = null;
     goTimer = 0;
@@ -160,8 +176,10 @@ async function boot(): Promise<void> {
     const survival = game.survivalTime();
     // WPM = 正打キー数 / 分(Eタイピング準拠)
     const wpm = survival > 0 ? Math.round(game.correctKeys / (survival / 60)) : 0;
+    // VS 自己ベストの記録は「夜明けまで」と共有する(勝てば自己ベストが塗り替わる)
+    const bestModeId = currentMode.id === 'vs' ? 'dawn' : currentMode.id;
     const newRecord = saveBest(
-      currentMode.id,
+      bestModeId,
       currentDiff.id,
       {
         score: game.score,
@@ -170,6 +188,7 @@ async function boot(): Promise<void> {
         accuracy: game.accuracy(),
         cleared,
         survival,
+        wpm,
       },
       currentDiff.rankBy ?? 'score',
     );
@@ -189,6 +208,9 @@ async function boot(): Promise<void> {
       ranked: currentDiff.ranked !== false,
       endless: currentDiff.endless === true,
       practice: currentDiff.practice === true,
+      vs: game.ghost
+        ? { ghostScore: Math.round(game.ghost.score), win: cleared && game.score > game.ghost.score }
+        : null,
       newRecord,
     });
   }

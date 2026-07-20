@@ -13,6 +13,7 @@ import {
   PLAYER,
   SOLDIER,
   TIERS,
+  VS,
   ZOMBIE_ANIM,
 } from '../config';
 import type { Game, GameEvent, Zombie } from '../core/game';
@@ -56,6 +57,7 @@ export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private time = 0;
   private aimAngle = 0;
+  private ghostAim = 0;
   private laserPulse = 0;
   private lineFlash = 0;
   private muzzleFlash = 0;
@@ -99,6 +101,7 @@ export class Renderer {
     this.displayEnergy = 0;
     this.gainPops = [];
     this.lastVitality = -1;
+    this.ghostAim = 0;
     this.lastCombo = 0;
     this.comboPop = 0;
     this.zombieFlash.clear();
@@ -140,6 +143,11 @@ export class Renderer {
         }
         case 'autokill':
           this.effects.explosion(ev.x, ev.y, 0.7 + ev.tier * 0.3, ['#9ad0ff', '#5a8aff', '#ffffff']);
+          break;
+        case 'ghostkill':
+          // ゴーストの撃破は薄赤の控えめな爆発+得点表示
+          this.effects.explosion(ev.x, ev.y, 0.55 + ev.tier * 0.25, ['#ffb8b0', '#c88880', '#f2e6e2']);
+          this.effects.floatText(ev.x, ev.y - 150, `+${ev.gained}`, 'rgba(255, 156, 148, 0.85)');
           break;
         case 'crossed':
           this.effects.flashDamage();
@@ -204,6 +212,17 @@ export class Renderer {
       const sorted = [...game.zombies].sort((a, b) => a.y - b.y);
       for (const z of sorted) this.drawZombie(ctx, z);
 
+      // VS: ゴースト兵士(上段・半透明)とその薄赤レーザーを先に描く
+      if (game.ghost) {
+        this.drawSoldier(
+          ctx,
+          VS.ghostSoldierY,
+          this.ghostAim,
+          game.ghost.down ? 0.25 : VS.ghostAlpha,
+          false,
+        );
+        this.drawGhostLaser(ctx, game);
+      }
       this.drawSoldier(ctx);
       this.drawLaser(ctx, game);
       this.effects.drawWorld(ctx);
@@ -214,6 +233,13 @@ export class Renderer {
       }
       const target = game.targetId !== null ? game.getZombie(game.targetId) : undefined;
       if (target) this.drawLabel(ctx, game, target, scene.showRomaji);
+      // VS: ゴーストが狙っているゾンビの足元に進捗バー(薄赤)
+      if (game.ghost && !game.ghost.down && game.ghost.targetId !== null) {
+        const gz = game.getZombie(game.ghost.targetId);
+        if (gz && game.ghost.session) {
+          this.drawGhostLockBar(ctx, gz, game.ghost.session.progress());
+        }
+      }
       this.drawKillLabels(ctx);
 
       if (!scene.demo) {
@@ -424,17 +450,17 @@ export class Renderer {
     return { w, h };
   }
 
-  /** 肩ピボットのワールド座標 */
-  private shoulderPos(): [number, number] {
+  /** 肩ピボットのワールド座標(soldierY で上下段を切り替え) */
+  private shoulderPos(soldierY: number = FIELD.soldierY): [number, number] {
     const { w, h } = this.bodyMetrics();
     return [
       FIELD.soldierX - w / 2 + w * SOLDIER.shoulderRatioX,
-      FIELD.soldierY - h + h * SOLDIER.shoulderRatioY,
+      soldierY - h + h * SOLDIER.shoulderRatioY,
     ];
   }
 
   /** 銃口のワールド座標(腕の回転を反映) */
-  private muzzlePos(): [number, number] {
+  private muzzlePos(soldierY: number = FIELD.soldierY, aim: number = this.aimAngle): [number, number] {
     const img = this.assets.soldierArms;
     const iw = (img as HTMLImageElement).naturalWidth || (img as HTMLCanvasElement).width;
     const ih = (img as HTMLImageElement).naturalHeight || (img as HTMLCanvasElement).height;
@@ -444,9 +470,9 @@ export class Renderer {
     const py = SOLDIER.armsPivotRatioY * ah;
     const mx = SOLDIER.muzzleRatioX * aw - px;
     const my = SOLDIER.muzzleRatioY * ah - py;
-    const [shx, shy] = this.shoulderPos();
-    const cos = Math.cos(this.aimAngle);
-    const sin = Math.sin(this.aimAngle);
+    const [shx, shy] = this.shoulderPos(soldierY);
+    const cos = Math.cos(aim);
+    const sin = Math.sin(aim);
     return [shx + mx * cos - my * sin, shy + mx * sin + my * cos];
   }
 
@@ -470,6 +496,19 @@ export class Renderer {
       const k = Math.min(1, 3 * dt);
       this.aimAngle += (desired - this.aimAngle) * k;
     }
+
+    // VS: ゴースト兵士(上段)の照準
+    if (game.ghost) {
+      const gz = game.ghost.targetId !== null ? game.getZombie(game.ghost.targetId) : undefined;
+      if (gz && !game.ghost.down) {
+        const [shx, shy] = this.shoulderPos(VS.ghostSoldierY);
+        const d = Math.atan2(this.chestY(gz) - shy, gz.x - shx);
+        this.ghostAim += (d - this.ghostAim) * Math.min(1, LASER.lockLerp * dt);
+      } else {
+        const d = Math.sin(this.time * LASER.idleSweepSpeed + 1.7) * (LASER.idleSweepDeg * Math.PI / 180);
+        this.ghostAim += (d - this.ghostAim) * Math.min(1, 3 * dt);
+      }
+    }
   }
 
   private nearestCandidate(game: Game): Zombie | undefined {
@@ -481,17 +520,25 @@ export class Renderer {
     return best;
   }
 
-  private drawSoldier(ctx: CanvasRenderingContext2D): void {
+  private drawSoldier(
+    ctx: CanvasRenderingContext2D,
+    soldierY: number = FIELD.soldierY,
+    aim: number = this.aimAngle,
+    alpha = 1,
+    withMuzzleFlash = true,
+  ): void {
     const { w, h } = this.bodyMetrics();
+    ctx.save();
     ctx.imageSmoothingEnabled = false;
+    ctx.globalAlpha = alpha;
 
     // 影
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
-    ctx.ellipse(FIELD.soldierX, FIELD.soldierY + 4, w * 0.55, 9, 0, 0, Math.PI * 2);
+    ctx.ellipse(FIELD.soldierX, soldierY + 4, w * 0.55, 9, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.drawImage(this.assets.soldierBody, FIELD.soldierX - w / 2, FIELD.soldierY - h, w, h);
+    ctx.drawImage(this.assets.soldierBody, FIELD.soldierX - w / 2, soldierY - h, w, h);
 
     // 腕 + 銃(肩ピボットで回転)
     const img = this.assets.soldierArms;
@@ -499,25 +546,138 @@ export class Renderer {
     const ih = (img as HTMLImageElement).naturalHeight || (img as HTMLCanvasElement).height;
     const ah = SOLDIER.armsHeight;
     const aw = ah * (iw / ih);
-    const [shx, shy] = this.shoulderPos();
+    const [shx, shy] = this.shoulderPos(soldierY);
     ctx.save();
     ctx.translate(shx, shy);
-    ctx.rotate(this.aimAngle);
+    ctx.rotate(aim);
     ctx.drawImage(img, -SOLDIER.armsPivotRatioX * aw, -SOLDIER.armsPivotRatioY * ah, aw, ah);
     ctx.restore();
 
     // マズルフラッシュ
-    if (this.muzzleFlash > 0) {
-      const [mx, my] = this.muzzlePos();
-      ctx.save();
-      ctx.globalAlpha = this.muzzleFlash;
+    if (withMuzzleFlash && this.muzzleFlash > 0) {
+      const [mx, my] = this.muzzlePos(soldierY, aim);
+      ctx.globalAlpha = alpha * this.muzzleFlash;
       ctx.fillStyle = '#ffe9a0';
       ctx.beginPath();
       ctx.arc(mx, my, 6 + this.muzzleFlash * 7, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
+    ctx.restore();
     ctx.imageSmoothingEnabled = true;
+  }
+
+  /** VS: メイン HUD 直下のゴースト比較バー(HP・スコア・コンボ・撃破+リード表示) */
+  private drawGhostHud(ctx: CanvasRenderingContext2D, game: Game): void {
+    const g = game.ghost;
+    if (!g) return;
+    const y = 82;
+    const h = 30;
+    ctx.save();
+    ctx.fillStyle = 'rgba(10, 8, 8, 0.72)';
+    roundRect(ctx, 268, y, 700, h, 5);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 156, 148, 0.35)';
+    ctx.lineWidth = 1.2;
+    roundRect(ctx, 268, y, 700, h, 5);
+    ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const cy = y + h / 2 + 1;
+    ctx.font = '700 14px "Hiragino Kaku Gothic ProN", sans-serif';
+    ctx.fillStyle = VS.ghostLaserColor;
+    ctx.fillText('ゴースト', 282, cy);
+
+    if (g.down) {
+      ctx.fillStyle = 'rgba(216, 212, 200, 0.75)';
+      ctx.fillText('戦闘不能 ── 逃げ切れば勝ちだ', 366, cy);
+    } else {
+      // ミニ HP バー
+      const bx = 366;
+      const bw = 90;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      roundRect(ctx, bx, y + 9, bw, 12, 3);
+      ctx.fill();
+      const ratio = Math.max(0, g.hp / PLAYER.maxHp);
+      if (ratio > 0.02) {
+        ctx.fillStyle = VS.ghostLaserColor;
+        ctx.globalAlpha = 0.8;
+        roundRect(ctx, bx + 1, y + 10, (bw - 2) * ratio, 10, 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = 'rgba(216, 212, 200, 0.85)';
+      ctx.font = '700 14px ui-monospace, Menlo, monospace';
+      ctx.fillText(`スコア ${g.score.toLocaleString()}`, 478, cy);
+      ctx.fillText(`コンボ ${g.combo}`, 650, cy);
+      ctx.fillText(`撃破 ${g.kills}`, 760, cy);
+    }
+
+    // リード表示(あなたが勝っていれば緑、負けていれば薄赤)
+    const diff = game.score - g.score;
+    ctx.textAlign = 'right';
+    ctx.font = '900 15px ui-monospace, Menlo, monospace';
+    if (diff >= 0) {
+      ctx.fillStyle = HUD_COLORS.hpHigh;
+      ctx.fillText(`あなた +${diff.toLocaleString()}`, 954, cy);
+    } else {
+      ctx.fillStyle = VS.ghostLaserColor;
+      ctx.fillText(`ゴースト +${(-diff).toLocaleString()}`, 954, cy);
+    }
+    ctx.restore();
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  /** VS: ゴーストのロック進捗バー(狙われているゾンビの足元に薄赤で表示) */
+  private drawGhostLockBar(ctx: CanvasRenderingContext2D, z: Zombie, progress: number): void {
+    const w = 84;
+    const x = z.x - w / 2;
+    const y = z.y + 14;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    roundRect(ctx, x, y, w, 6, 3);
+    ctx.fill();
+    if (progress > 0.02) {
+      ctx.fillStyle = VS.ghostLaserColor;
+      ctx.globalAlpha = 0.85;
+      roundRect(ctx, x + 1, y + 1, (w - 2) * Math.min(1, progress), 4, 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /** VS: ゴーストのレーザー(薄い赤・控えめな光量) */
+  private drawGhostLaser(ctx: CanvasRenderingContext2D, game: Game): void {
+    const g = game.ghost;
+    if (!g || g.down) return;
+    const [mx, my] = this.muzzlePos(VS.ghostSoldierY, this.ghostAim);
+    const target = g.targetId !== null ? game.getZombie(g.targetId) : undefined;
+    let ex: number;
+    let ey: number;
+    if (target) {
+      const dist = Math.hypot(target.x - mx, this.chestY(target) - my);
+      ex = mx + Math.cos(this.ghostAim) * dist;
+      ey = my + Math.sin(this.ghostAim) * dist;
+    } else {
+      ex = mx + Math.cos(this.ghostAim) * 1900;
+      ey = my + Math.sin(this.ghostAim) * 1900;
+    }
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.14;
+    ctx.strokeStyle = VS.ghostLaserColor;
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(mx, my);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(mx, my);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.restore();
   }
 
   private drawLaser(ctx: CanvasRenderingContext2D, game: Game): void {
@@ -982,6 +1142,9 @@ export class Renderer {
       ? '--:--'
       : `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
     ctx.fillText(timeText, 1568, boxY + 50);
+
+    // VS: ゴーストの比較用ミニ HUD(メイン HUD の下の細い帯)
+    if (game.ghost) this.drawGhostHud(ctx, game);
 
     // 練習で五十音を一周したら、終了方法をさりげなく案内する
     if (game.isPractice() && game.practiceLooped) {
