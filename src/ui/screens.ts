@@ -95,6 +95,8 @@ export class UI {
   private carouselOffset = 1;
   /** 直近のリザルトで自動登録された順位 */
   private lastRank: number | null = null;
+  /** 今回のラン自体の順位(自己ベストと異なる場合の表示用) */
+  private lastCurrentRank: number | null = null;
   private activeMode: ModeDef = MODES[0];
   /** 画面切替直後の誤クリック(ダブルクリック等のすり抜け)防止 */
   private shownAt = 0;
@@ -567,6 +569,7 @@ export class UI {
     const nameInput = $<HTMLInputElement>('result-name');
     nameInput.value = loadPlayerName();
     this.lastRank = null;
+    this.lastCurrentRank = null;
     if (canRegister) {
       const name = sanitizeName(loadPlayerName());
       $('register-status').textContent = 'ランキングに登録中…';
@@ -581,8 +584,20 @@ export class UI {
       };
       rankingBackend
         .submit(data.diffId, entry, data.rankBy)
-        .then((rank) => {
+        .then(async (rank) => {
+          // submit が返すのは「保存されている自己ベスト」の順位。
+          // 自己ベスト未更新の回のために「今回のスコア自体の順位」も計算する
           this.lastRank = rank;
+          try {
+            const list = await rankingBackend.load(data.diffId, data.rankBy);
+            const current = data.rankBy === 'survival' ? Math.round(data.survival) : data.score;
+            const better = list.filter(
+              (e) => (data.rankBy === 'survival' ? e.survival : e.score) > current,
+            ).length;
+            this.lastCurrentRank = better + 1;
+          } catch {
+            this.lastCurrentRank = null;
+          }
           this.setRegisterStatus(name);
         })
         .catch(() => {
@@ -595,10 +610,16 @@ export class UI {
 
   private setRegisterStatus(name: string): void {
     const where = rankingBackend.online ? '世界' : 'この端末で';
-    $('register-status').textContent =
-      this.lastRank !== null
-        ? `${where} ${this.lastRank}位 にランクイン!(${name})`
-        : '';
+    if (this.lastRank === null) {
+      $('register-status').textContent = '';
+      return;
+    }
+    // 今回が自己ベスト未満なら「今回の順位(自己ベスト 順位)」を併記する
+    const text =
+      this.lastCurrentRank !== null && this.lastCurrentRank > this.lastRank
+        ? `${where} ${this.lastCurrentRank}位(自己ベスト ${this.lastRank}位)(${name})`
+        : `${where} ${this.lastRank}位 にランクイン!(${name})`;
+    $('register-status').textContent = text;
   }
 
   /** 名前を変更して各所へ反映(登録済みスコアの名前も更新される) */

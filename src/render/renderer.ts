@@ -5,7 +5,6 @@
 
 import {
   BOSS,
-  ENERGY,
   FIELD,
   HUD_COLORS,
   KEYGUIDE,
@@ -826,32 +825,27 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     roundRect(ctx, barX, barY, barW, 24, 4);
     ctx.fill();
-    // ゲージ全体 = 130(HP 100 + エナジー上限 30)。
-    // 緑 = HP、その右に水色 = 100% 超のエナジー。100 の位置に目盛りを引く
+    // ゲージは 100 基準(開始時に満タン)。緑 = HP。
+    // エナジー(100% 超のオーバーヒール)は緑の上に「左から」水色を重ねる。
+    // 被弾時は水色から先に減るので、左の水色 → 緑の順で削れて見える
     const innerW = barW - 4;
-    const totalScale = PLAYER.maxHp + ENERGY.max;
     if (hpRatio > 0.01) {
       const hg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
       hg.addColorStop(0, hpColor);
       hg.addColorStop(1, hpRatio > 0.5 ? '#b8e04a' : hpColor);
       ctx.fillStyle = hg;
-      roundRect(ctx, barX + 2, barY + 2, innerW * Math.min(1, this.displayHp / totalScale), 20, 3);
+      roundRect(ctx, barX + 2, barY + 2, innerW * Math.min(1, hpRatio), 20, 3);
       ctx.fill();
     }
-    const gW = innerW * Math.min(1, this.displayHp / totalScale);
-    const eW = Math.min(innerW - gW, (innerW * this.displayEnergy) / totalScale);
+    const eW = Math.min(innerW, (innerW * this.displayEnergy) / PLAYER.maxHp);
     if (eW > 1) {
       const eg = ctx.createLinearGradient(barX, 0, barX + barW, 0);
       eg.addColorStop(0, HUD_COLORS.energy);
       eg.addColorStop(1, '#9ae4f8');
       ctx.fillStyle = eg;
-      roundRect(ctx, barX + 2 + gW, barY + 2, eW, 20, 3);
+      roundRect(ctx, barX + 2, barY + 2, eW, 20, 3);
       ctx.fill();
     }
-    // 100% の目盛り
-    const tickX = barX + 2 + innerW * (PLAYER.maxHp / totalScale);
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.fillRect(tickX, barY + 2, 1.5, 20);
     ctx.strokeStyle = 'rgba(255,255,255,0.25)';
     ctx.lineWidth = 1;
     roundRect(ctx, barX, barY, barW, 24, 4);
