@@ -198,7 +198,10 @@ export class Game {
   private ghostKeyTimer = 0;
   private ghostTimelineIndex = 0;
   private ghostKillTimelineIndex = 0;
-  private ghostLastShotAtMs = 0;
+  /** 現在の単語を打つ絶対時刻。元プレイの単語内リズムを0.9秒後へ平行移動する */
+  private ghostTargetShotScheduleMs: number[] = [];
+  private ghostTargetShotIndex = 0;
+  private ghostTargetTimelineEndIndex = 0;
 
   constructor(
     difficulty: DifficultyDef,
@@ -670,6 +673,13 @@ export class Game {
     if (!g || !p || g.down) return;
 
     const timeline = p.shotTimesMs;
+    if (
+      timeline?.length &&
+      p.killTimesMs?.length &&
+      this.ghostKillTimelineIndex >= p.killTimesMs.length
+    ) {
+      return;
+    }
     // ターゲット確保。再現不能な狙い選びで弱くならないよう、常に手前を優先する。
     let target = g.targetId !== null ? this.getZombie(g.targetId) : undefined;
     if (!target) {
@@ -677,10 +687,18 @@ export class Game {
       if (!target) return;
       g.targetId = target.id;
       g.session = new TypingSession(target.word.kana);
-      this.ghostReactionTimer = timeline?.length
+      const reactionSec = timeline?.length
         ? VS.timelineReactionMinSec +
           this.rng() * (VS.timelineReactionMaxSec - VS.timelineReactionMinSec)
         : VS.reactionMinSec + this.rng() * (VS.reactionMaxSec - VS.reactionMinSec);
+      this.ghostReactionTimer = reactionSec;
+      if (timeline?.length) {
+        this.prepareGhostTargetSchedule(
+          p,
+          g.session.remainingRomaji().length,
+          this.time * 1000 + reactionSec * 1000,
+        );
+      }
       if (!timeline?.length) {
         this.ghostKeyTimer = 0;
       }
@@ -693,42 +711,21 @@ export class Game {
       if (this.ghostReactionTimer > 0.000001) return;
     }
 
-    // 勝ったプレイの正打時刻を使い、認識猶予後は人工的な待ちやミスを重ねない。
+    // 絶対時刻への「追いつき連射」はせず、保存された単語内の打鍵間隔で再生する。
     if (timeline?.length) {
-      const killTimeline = p.killTimesMs;
-      if (killTimeline?.length && this.ghostKillTimelineIndex >= killTimeline.length) return;
       const nowMs = this.time * 1000;
-      const recordedShotDue = timeline[this.ghostTimelineIndex];
-      const recordedKillDue = killTimeline?.[this.ghostKillTimelineIndex];
-      if (recordedShotDue === undefined && recordedKillDue === undefined) return;
-      let due = recordedShotDue ?? recordedKillDue!;
-      if (recordedKillDue !== undefined && g.session) {
-        const remainingKeys = Math.max(1, g.session.remainingRomaji().length);
-        let recordedShotsBeforeKill = 0;
-        for (
-          let i = this.ghostTimelineIndex;
-          i < timeline.length && timeline[i] <= recordedKillDue;
-          i++
-        ) {
-          recordedShotsBeforeKill++;
-        }
-        if (remainingKeys === 1) {
-          // 短い単語でも元の自己ベストより早く撃破しない。
-          due = Math.max(due, recordedKillDue);
-        } else if (remainingKeys > recordedShotsBeforeKill) {
-          // 今回の単語の方が長い場合だけ、元の撃破時刻へ間に合うよう余分な打鍵を補う。
-          const catchupDue =
-            this.ghostLastShotAtMs +
-            Math.max(0, recordedKillDue - this.ghostLastShotAtMs) / remainingKeys;
-          due = Math.min(due, catchupDue);
-        }
-      }
+      const due = this.ghostTargetShotScheduleMs[this.ghostTargetShotIndex];
+      if (due === undefined) return;
       if (nowMs + 0.5 < due) return;
-      if (recordedShotDue !== undefined) this.ghostTimelineIndex++;
+      this.ghostTargetShotIndex++;
+      // 正打の時刻差にはミスや迷いによる間も含まれる。正確率はコンボ状態にも反映する。
+      if (this.rng() > p.accuracy) g.combo = 0;
       const killsBefore = g.kills;
       this.fireGhostKey(target, g);
-      this.ghostLastShotAtMs = nowMs;
-      if (g.kills > killsBefore) this.ghostKillTimelineIndex++;
+      if (g.kills > killsBefore) {
+        this.ghostTimelineIndex = this.ghostTargetTimelineEndIndex;
+        this.ghostKillTimelineIndex++;
+      }
       return;
     }
 
@@ -757,6 +754,54 @@ export class Game {
       g.combo = 0;
     }
     this.fireGhostKey(target, g);
+  }
+
+  /** 保存した1単語分の正打間隔を、今回の単語長へ補間して0.9秒後から再生する。 */
+  private prepareGhostTargetSchedule(
+    profile: GhostProfile,
+    keyCount: number,
+    firstShotAtMs: number,
+  ): void {
+    const timeline = profile.shotTimesMs ?? [];
+    const start = this.ghostTimelineIndex;
+    const recordedKillAt = profile.killTimesMs?.[this.ghostKillTimelineIndex];
+    let end = start;
+    if (recordedKillAt !== undefined) {
+      while (end < timeline.length && timeline[end] <= recordedKillAt) end++;
+    } else if (start < timeline.length) {
+      end = Math.min(timeline.length, start + Math.max(1, keyCount));
+    }
+
+    let source = timeline.slice(start, end);
+    if (source.length === 0 && start < timeline.length) {
+      source = [timeline[start]];
+      end = start + 1;
+    }
+    this.ghostTargetTimelineEndIndex = end;
+    this.ghostTargetShotIndex = 0;
+
+    const count = Math.max(1, keyCount);
+    const minGapMs = VS.timelineMinKeyIntervalSec * 1000;
+    const fallbackGapMs = Math.max(minGapMs, 60000 / Math.max(1, profile.wpm));
+    const sourceOffsets = source.map((t) => t - (source[0] ?? t));
+    const offsets: number[] = [0];
+
+    for (let i = 1; i < count; i++) {
+      let offset: number;
+      if (sourceOffsets.length >= 2) {
+        // 単語長が違う場合も、元の加速・間の取り方を正規化して全体へ割り当てる。
+        const pos = (i * (sourceOffsets.length - 1)) / (count - 1);
+        const lo = Math.floor(pos);
+        const hi = Math.min(sourceOffsets.length - 1, lo + 1);
+        const mix = pos - lo;
+        offset = sourceOffsets[lo] + (sourceOffsets[hi] - sourceOffsets[lo]) * mix;
+      } else {
+        offset = fallbackGapMs * i;
+      }
+      offsets.push(Math.max(offset, offsets[i - 1] + minGapMs));
+    }
+
+    this.ghostTargetShotScheduleMs = offsets.map((offset) => firstShotAtMs + offset);
   }
 
   private fireGhostKey(target: Zombie, g: GhostState): void {

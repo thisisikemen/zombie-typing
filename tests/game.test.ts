@@ -557,6 +557,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(g.ghost!.session!.typedRomaji()).toBe('k');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(true);
 
+    g.update(0.39);
     expect(g.ghost!.kills).toBe(0);
     g.update(0.01);
     const events = g.drainEvents();
@@ -584,7 +585,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(g.ghost!.session!.typedRomaji()).not.toBe('');
   });
 
-  it('次回の単語が長くなっても0.9秒の認識猶予後は遅れを詰めて入力する', () => {
+  it('次回の単語が長くなっても、元の打鍵リズムを均等に補間して連射しない', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(5), {
       bestKills: 1,
       wpm: 120,
@@ -597,7 +598,51 @@ describe('VS 自己ベスト(ゴースト)', () => {
 
     for (let i = 0; i < 18; i++) g.update(0.05); // 900ms
     expect(g.ghost!.kills).toBe(0);
-    for (let i = 0; i < 4; i++) g.update(0.05); // 認識後、4打を詰めて入力
+    g.update(0.05); // 950ms: 最初の1打
+    expect(g.ghost!.session!.typedRomaji()).toBe('k');
+    g.update(0.05); // 1000ms: 元記録の間隔を補間するため、まだ次を打たない
+    expect(g.ghost!.session!.typedRomaji()).toBe('k');
+    for (let i = 0; i < 7; i++) g.update(0.05); // 1350ms: 4打目で撃破
+    expect(g.ghost!.kills).toBe(1);
+  });
+
+  it('保存時刻が同じ正打でも最低間隔を空け、一瞬で複数文字を打たない', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(6), {
+      bestKills: 1,
+      wpm: 300,
+      accuracy: 1,
+      shotTimesMs: [100, 100],
+      killTimesMs: [100],
+    });
+    g.zombies.push(makeZombie('か'));
+
+    g.update(0.01);
+    g.update(0.9); // 最初の1打
+    expect(g.ghost!.session!.typedRomaji()).toBe('k');
+    g.update(0.04);
+    expect(g.ghost!.kills).toBe(0);
+    g.update(0.01); // 最低50ms後に2打目
+    expect(g.ghost!.kills).toBe(1);
+  });
+
+  it('保存された速い打鍵と長い間を、単語内の癖として順番どおり再生する', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(9), {
+      bestKills: 1,
+      wpm: 240,
+      accuracy: 0.95,
+      shotTimesMs: [100, 250, 850],
+      killTimesMs: [850],
+    });
+    g.zombies.push(makeZombie('きゃ')); // canonical: kya
+
+    g.update(0.01);
+    g.update(0.9); // k
+    expect(g.ghost!.session!.typedRomaji()).toBe('k');
+    g.update(0.15); // 記録どおり150ms後に y
+    expect(g.ghost!.session!.typedRomaji()).toBe('ky');
+    g.update(0.59); // 次の正打まで600msの間を再現
+    expect(g.ghost!.kills).toBe(0);
+    g.update(0.01);
     expect(g.ghost!.kills).toBe(1);
   });
 
