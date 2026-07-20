@@ -147,7 +147,7 @@ export class Renderer {
         case 'kill': {
           if (game.ghost) {
             this.effects.explosion(ev.x, ev.y, 0.8 + ev.tier * 0.35, ['#ffd24a', '#ffb11b', '#fff1a6', '#8a5a0b']);
-            this.effects.floatText(ev.x, ev.y - 150, 'WIN', '#ffd24a', 38);
+            this.effects.floatText(ev.x, ev.y - 150, `あなた ${ev.kills}体`, '#ffd24a', 34);
             this.playerKillFlash = 1;
           } else {
             this.effects.explosion(ev.x, ev.y, 0.8 + ev.tier * 0.35, GORE_PALETTE);
@@ -164,7 +164,7 @@ export class Renderer {
           break;
         case 'ghostkill':
           this.effects.explosion(ev.x, ev.y, 0.65 + ev.tier * 0.28, ['#78bfff', '#397dcc', '#b8ddff', '#294f8c']);
-          this.effects.floatText(ev.x, ev.y - 150, 'LOSE', '#78bfff', 38);
+          this.effects.floatText(ev.x, ev.y - 150, `自己ベスト ${ev.kills}体`, '#78bfff', 34);
           this.ghostKillFlash = 1;
           break;
         case 'crossed':

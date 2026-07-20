@@ -114,11 +114,11 @@ export const VS = {
   /** 古い記録に WPM が無い場合の推定に使う 1 撃破あたりの平均打鍵数 */
   estimateKeysPerKill: 9,
   /** 集計値しかない初回相手用の反応時間。総合WPMを落とさないよう入力速度側で相殺する */
-  reactionMinSec: 0.18,
-  reactionMaxSec: 0.42,
+  reactionMinSec: 0.33,
+  reactionMaxSec: 0.4,
   /** 保存済みの走りを再生するとき、単語を目で認識して最初の一打を始めるまでの短い猶予 */
-  timelineReactionMinSec: 0.22,
-  timelineReactionMaxSec: 0.3,
+  timelineReactionMinSec: 0.33,
+  timelineReactionMaxSec: 0.4,
   /** 集計値から動く初回相手だけに加える打鍵間隔の揺らぎ */
   keyIntervalJitter: 0.18,
   /** 自己ベスト側の銃声はプレイヤーより少し小さくする */

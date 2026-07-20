@@ -60,8 +60,25 @@ export type GameEvent =
   | { type: 'shot'; zombieId: number }
   | { type: 'ghostshot'; zombieId: number }
   | { type: 'miss' }
-  | { type: 'kill'; zombieId: number; x: number; y: number; tier: Tier; gained: number; kana: string }
-  | { type: 'ghostkill'; zombieId: number; x: number; y: number; tier: Tier; gained: number }
+  | {
+      type: 'kill';
+      zombieId: number;
+      x: number;
+      y: number;
+      tier: Tier;
+      gained: number;
+      kana: string;
+      kills: number;
+    }
+  | {
+      type: 'ghostkill';
+      zombieId: number;
+      x: number;
+      y: number;
+      tier: Tier;
+      gained: number;
+      kills: number;
+    }
   | { type: 'autokill'; zombieId: number; x: number; y: number; tier: Tier }
   | { type: 'crossed'; zombieId: number; damage: number; tier: Tier; y: number }
   | { type: 'lock'; zombieId: number }
@@ -507,6 +524,7 @@ export class Game {
       tier: z.tier,
       gained,
       kana: z.session.kana,
+      kills: this.kills,
     });
 
     // コンボボーナス(閾値の倍数で発動・仕様 §10)
@@ -765,7 +783,15 @@ export class Game {
     this.removeZombie(z.id); // プレイヤーがロック中でも横取りされる(早押し対決)
     g.targetId = null;
     g.session = null;
-    this.events.push({ type: 'ghostkill', zombieId: z.id, x: z.x, y: z.y, tier: z.tier, gained });
+    this.events.push({
+      type: 'ghostkill',
+      zombieId: z.id,
+      x: z.x,
+      y: z.y,
+      tier: z.tier,
+      gained,
+      kills: g.kills,
+    });
   }
 
   /** ラスボス: 巨体・鈍足・大ダメージ。単語は難易度ごとの bossKana から選ぶ。
