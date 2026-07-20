@@ -36,7 +36,7 @@ export interface ResultData {
   /** ベーシック(練習)か。「終了する」で抜けた場合は SCORE 見出しになる */
   practice: boolean;
   /** VS 自己ベストの結果(通常モードは null) */
-  vs: { ghostKills: number; win: boolean } | null;
+  vs: { ghostKills: number; ghostAccuracy: number; ghostWpm: number; win: boolean } | null;
   newRecord: boolean;
 }
 
@@ -538,7 +538,7 @@ export class UI {
 
     $('result-sub').textContent =
       data.vs
-        ? `あなた ${data.kills}体 ─ ${data.vs.ghostKills}体 自己ベスト`
+        ? 'VS 自己ベスト'
         : practiceScore
           ? '練習おつかれさま!'
           : data.endless
@@ -559,23 +559,14 @@ export class UI {
             : 'GAME OVER';
     heading.className = data.vs
       ? data.vs.win
-        ? 'clear'
-        : 'gameover'
+        ? 'clear vs-result-heading'
+        : 'vs-lose vs-result-heading'
       : data.cleared
         ? 'clear'
         : 'gameover';
 
     const rows: [string, string, string][] =
-      data.vs
-        ? [
-            ['あなたの撃破数', `${data.kills}<span class="unit">体</span>`, 'gold'],
-            ['自己ベストの撃破数', `${data.vs.ghostKills}<span class="unit">体</span>`, ''],
-            ['正確率', `${(data.accuracy * 100).toFixed(1)}<span class="unit">%</span>`, ''],
-            ['ミスタイプ', `${data.misses}<span class="unit">回</span>`, ''],
-            ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
-            ['対戦時間', formatTime(data.survival), ''],
-          ]
-        : data.rankBy === 'survival'
+      data.rankBy === 'survival'
         ? [
             ['生存時間', formatTime(data.survival), 'gold'],
             ['スコア', data.score.toLocaleString(), ''],
@@ -603,12 +594,38 @@ export class UI {
             ['生存時間', formatTime(data.survival), ''],
           ];
     const stats = $('result-stats');
-    stats.innerHTML = rows
-      .map(
-        ([label, value, cls]) =>
-          `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-value ${cls}">${value}</span></div>`,
-      )
-      .join('');
+    stats.classList.toggle('vs-result-stats', data.vs !== null);
+    if (data.vs) {
+      const playerClass = data.vs.win ? 'winner' : 'loser';
+      const ghostClass = data.vs.win ? 'loser' : 'winner';
+      stats.innerHTML = `
+        <div class="vs-comparison" aria-label="今回のあなたと自己ベストの比較">
+          <section class="vs-competitor ${playerClass}">
+            <h3>あなた</h3>
+            <div class="vs-kills"><strong>${data.kills}</strong><span>体</span></div>
+            <div class="vs-metric"><span>正確率</span><strong>${(data.accuracy * 100).toFixed(1)}%</strong></div>
+            <div class="vs-metric"><span>WPM</span><strong>${data.wpm}</strong></div>
+          </section>
+          <div class="vs-divider" aria-hidden="true">VS</div>
+          <section class="vs-competitor ${ghostClass}">
+            <h3>自己ベスト</h3>
+            <div class="vs-kills"><strong>${data.vs.ghostKills}</strong><span>体</span></div>
+            <div class="vs-metric"><span>正確率</span><strong>${(data.vs.ghostAccuracy * 100).toFixed(1)}%</strong></div>
+            <div class="vs-metric"><span>WPM</span><strong>${data.vs.ghostWpm}</strong></div>
+          </section>
+        </div>
+        <div class="vs-result-details">
+          <div class="stat-row"><span class="stat-label">ミスタイプ</span><span class="stat-value">${data.misses}<span class="unit">回</span></span></div>
+          <div class="stat-row"><span class="stat-label">対戦時間</span><span class="stat-value">${formatTime(data.survival)}</span></div>
+        </div>`;
+    } else {
+      stats.innerHTML = rows
+        .map(
+          ([label, value, cls]) =>
+            `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-value ${cls}">${value}</span></div>`,
+        )
+        .join('');
+    }
     if (data.newRecord) {
       stats.innerHTML += data.vs
         ? `<div class="result-new-record">SELF BEST UPDATED!<span>次の対戦から、この走りが自己ベスト</span></div>`

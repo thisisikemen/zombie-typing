@@ -659,15 +659,23 @@ export class Game {
       if (!target) return;
       g.targetId = target.id;
       g.session = new TypingSession(target.word.kana);
+      this.ghostReactionTimer = timeline?.length
+        ? VS.timelineReactionMinSec +
+          this.rng() * (VS.timelineReactionMaxSec - VS.timelineReactionMinSec)
+        : VS.reactionMinSec + this.rng() * (VS.reactionMaxSec - VS.reactionMinSec);
       if (!timeline?.length) {
-        this.ghostReactionTimer =
-          VS.reactionMinSec + this.rng() * (VS.reactionMaxSec - VS.reactionMinSec);
         this.ghostKeyTimer = 0;
-        return;
       }
+      return;
     }
 
-    // 勝ったプレイの正打時刻をそのまま使う。人工的な反応待ちやミスは重ねない。
+    // 単語が現れた瞬間には撃たず、集中している人が文字を認識できる最小限だけ待つ。
+    if (this.ghostReactionTimer > 0) {
+      this.ghostReactionTimer = Math.max(0, this.ghostReactionTimer - dt);
+      return;
+    }
+
+    // 勝ったプレイの正打時刻を使い、認識猶予後は人工的な待ちやミスを重ねない。
     if (timeline?.length) {
       const killTimeline = p.killTimesMs;
       if (killTimeline?.length && this.ghostKillTimelineIndex >= killTimeline.length) return;
@@ -703,11 +711,6 @@ export class Game {
       this.fireGhostKey(target, g);
       this.ghostLastShotAtMs = nowMs;
       if (g.kills > killsBefore) this.ghostKillTimelineIndex++;
-      return;
-    }
-
-    if (this.ghostReactionTimer > 0) {
-      this.ghostReactionTimer = Math.max(0, this.ghostReactionTimer - dt);
       return;
     }
 

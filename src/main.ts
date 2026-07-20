@@ -78,6 +78,7 @@ async function boot(): Promise<void> {
   let demoBot = new DemoBot();
   let currentMode: ModeDef = MODES[0];
   let currentDiff: DifficultyDef = MODES[0].difficulties[1];
+  let currentGhostProfile: GhostProfile | null = null;
 
   let cdSteps: CountdownStep[] = [];
   let cdIndex = 0;
@@ -160,6 +161,7 @@ async function boot(): Promise<void> {
         };
       }
     }
+    currentGhostProfile = ghostProfile;
     game = new Game(diff, pool, Math.random, ghostProfile);
     demoGame = null;
     endFade = null;
@@ -258,7 +260,12 @@ async function boot(): Promise<void> {
       endless: currentDiff.endless === true,
       practice: currentDiff.practice === true,
       vs: game.ghost
-        ? { ghostKills: game.ghost.kills, win: vsWin }
+        ? {
+            ghostKills: game.ghost.kills,
+            ghostAccuracy: currentGhostProfile?.accuracy ?? VS.defaultProfile.accuracy,
+            ghostWpm: currentGhostProfile?.wpm ?? VS.defaultProfile.wpm,
+            win: vsWin,
+          }
         : null,
       newRecord,
     });

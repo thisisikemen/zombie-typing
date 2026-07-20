@@ -468,6 +468,14 @@ kbd {
   color: transparent;
   filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 26px rgba(200, 30, 15, 0.45));
 }
+#result-heading.vs-lose {
+  background: linear-gradient(180deg, #dedbd2 5%, #918d84 52%, #4d4a45 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 18px rgba(190, 185, 172, 0.22));
+}
+.vs-result-heading { margin-bottom: 0.1rem; }
 .result-stats {
   width: 100%;
   display: flex;
@@ -495,6 +503,75 @@ kbd {
 }
 .result-stats .stat-value .unit { font-size: 0.95rem; color: var(--ui-dim); margin-left: 0.25em; }
 .result-stats .stat-value.gold { color: var(--gold); font-size: 1.9rem; }
+.result-stats.vs-result-stats { gap: 0.45rem; }
+.vs-comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3.4rem minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.7rem;
+  width: 100%;
+}
+.vs-competitor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem 0.8rem;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  transition: color 0.2s ease, box-shadow 0.2s ease;
+}
+.vs-competitor.winner {
+  color: var(--gold);
+  border-color: rgba(255, 194, 58, 0.7);
+  box-shadow: inset 0 0 28px rgba(255, 183, 45, 0.08), 0 0 18px rgba(255, 183, 45, 0.14);
+}
+.vs-competitor.loser {
+  color: #89867f;
+  border-color: rgba(137, 134, 127, 0.38);
+  background: rgba(8, 8, 8, 0.5);
+}
+.vs-competitor h3 {
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+}
+.vs-kills {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  line-height: 0.95;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
+}
+.vs-kills strong {
+  font-size: 4rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.vs-kills span { margin-left: 0.25rem; font-size: 1.05rem; font-weight: 800; }
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #d6d0c2;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
+}
+.vs-metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 0.45rem;
+  border-top: 1px solid currentColor;
+  font-variant-numeric: tabular-nums;
+}
+.vs-metric span { font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em; }
+.vs-metric strong { font-size: 1.15rem; font-weight: 900; }
+.vs-result-details { width: 100%; }
 .result-new-record {
   text-align: center;
   color: var(--gold);
