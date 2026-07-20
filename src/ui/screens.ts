@@ -596,22 +596,34 @@ export class UI {
     const stats = $('result-stats');
     stats.classList.toggle('vs-result-stats', data.vs !== null);
     if (data.vs) {
-      const playerClass = data.vs.win ? 'winner' : 'loser';
-      const ghostClass = data.vs.win ? 'loser' : 'winner';
+      const compareClass = (mine: number, best: number): [string, string] => {
+        if (mine > best) return ['metric-win', 'metric-lose'];
+        if (mine < best) return ['metric-lose', 'metric-win'];
+        return ['metric-tie', 'metric-tie'];
+      };
+      const [playerKillsClass, ghostKillsClass] = compareClass(data.kills, data.vs.ghostKills);
+      // 表示上の小数1桁と色判定が食い違わないよう、正確率も同じ桁へ丸めて比較する。
+      const [playerAccuracyClass, ghostAccuracyClass] = compareClass(
+        Math.round(data.accuracy * 1000),
+        Math.round(data.vs.ghostAccuracy * 1000),
+      );
+      const [playerWpmClass, ghostWpmClass] = compareClass(data.wpm, data.vs.ghostWpm);
+      const playerOverallClass = data.vs.win ? 'overall-winner' : 'overall-loser';
+      const ghostOverallClass = data.vs.win ? 'overall-loser' : 'overall-winner';
       stats.innerHTML = `
         <div class="vs-comparison" aria-label="今回のあなたと自己ベストの比較">
-          <section class="vs-competitor ${playerClass}">
+          <section class="vs-competitor ${playerOverallClass}">
             <h3>あなた</h3>
-            <div class="vs-kills"><strong>${data.kills}</strong><span>体</span></div>
-            <div class="vs-metric"><span>正確率</span><strong>${(data.accuracy * 100).toFixed(1)}%</strong></div>
-            <div class="vs-metric"><span>WPM</span><strong>${data.wpm}</strong></div>
+            <div class="vs-kills ${playerKillsClass}"><strong>${data.kills}</strong><span>体</span></div>
+            <div class="vs-metric ${playerAccuracyClass}"><span>正確率</span><strong>${(data.accuracy * 100).toFixed(1)}%</strong></div>
+            <div class="vs-metric ${playerWpmClass}"><span>WPM</span><strong>${data.wpm}</strong></div>
           </section>
           <div class="vs-divider" aria-hidden="true">VS</div>
-          <section class="vs-competitor ${ghostClass}">
+          <section class="vs-competitor ${ghostOverallClass}">
             <h3>自己ベスト</h3>
-            <div class="vs-kills"><strong>${data.vs.ghostKills}</strong><span>体</span></div>
-            <div class="vs-metric"><span>正確率</span><strong>${(data.vs.ghostAccuracy * 100).toFixed(1)}%</strong></div>
-            <div class="vs-metric"><span>WPM</span><strong>${data.vs.ghostWpm}</strong></div>
+            <div class="vs-kills ${ghostKillsClass}"><strong>${data.vs.ghostKills}</strong><span>体</span></div>
+            <div class="vs-metric ${ghostAccuracyClass}"><span>正確率</span><strong>${(data.vs.ghostAccuracy * 100).toFixed(1)}%</strong></div>
+            <div class="vs-metric ${ghostWpmClass}"><span>WPM</span><strong>${data.vs.ghostWpm}</strong></div>
           </section>
         </div>
         <div class="vs-result-details">

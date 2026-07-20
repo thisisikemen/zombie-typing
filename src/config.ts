@@ -117,8 +117,8 @@ export const VS = {
   reactionMinSec: 0.18,
   reactionMaxSec: 0.42,
   /** 保存済みの走りを再生するとき、単語を目で認識して最初の一打を始めるまでの短い猶予 */
-  timelineReactionMinSec: 0.18,
-  timelineReactionMaxSec: 0.26,
+  timelineReactionMinSec: 0.22,
+  timelineReactionMaxSec: 0.3,
   /** 集計値から動く初回相手だけに加える打鍵間隔の揺らぎ */
   keyIntervalJitter: 0.18,
   /** 自己ベスト側の銃声はプレイヤーより少し小さくする */

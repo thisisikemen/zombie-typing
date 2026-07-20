@@ -565,7 +565,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(events.some((e) => e.type === 'ghostkill')).toBe(true);
   });
 
-  it('記録上の打鍵時刻を過ぎていても、新しい単語が出た直後の0.18秒間は撃たない', () => {
+  it('記録上の打鍵時刻を過ぎていても、新しい単語が出た直後の0.22秒間は撃たない', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(8), {
       bestKills: 1,
       wpm: 240,
@@ -576,7 +576,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(makeZombie('か'));
 
     g.update(0.5); // 記録時刻を過ぎた状態で単語を認識
-    g.update(0.17);
+    g.update(0.21);
     expect(g.ghost!.session!.typedRomaji()).toBe('');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
