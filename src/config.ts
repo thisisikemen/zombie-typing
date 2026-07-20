@@ -113,14 +113,11 @@ export const VS = {
   defaultProfile: { bestKills: 12, wpm: 140, accuracy: 0.92 },
   /** 古い記録に WPM が無い場合の推定に使う 1 撃破あたりの平均打鍵数 */
   estimateKeysPerKill: 9,
-  /** ゾンビを見つけてから撃ち始めるまでの、人間らしい反応時間 */
-  reactionMinSec: 0.38,
-  reactionMaxSec: 0.9,
-  /** 打鍵間隔の揺らぎと、考え込む小休止 */
-  keyIntervalJitter: 0.24,
-  hesitationChance: 0.055,
-  hesitationMinSec: 0.28,
-  hesitationMaxSec: 0.72,
+  /** 集計値しかない初回相手用の反応時間。総合WPMを落とさないよう入力速度側で相殺する */
+  reactionMinSec: 0.18,
+  reactionMaxSec: 0.42,
+  /** 集計値から動く初回相手だけに加える打鍵間隔の揺らぎ */
+  keyIntervalJitter: 0.18,
   /** 自己ベスト側の銃声はプレイヤーより少し小さくする */
   ghostShotVolume: 0.56,
 } as const;

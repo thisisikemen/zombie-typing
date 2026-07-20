@@ -503,6 +503,13 @@ kbd {
   padding-top: 0.5rem;
   animation: record-pulse 1.4s ease-in-out infinite;
 }
+.result-new-record span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: #d8d4c8;
+}
 @keyframes record-pulse {
   0%, 100% { text-shadow: 0 0 6px rgba(255, 194, 58, 0.4); }
   50% { text-shadow: 0 0 22px rgba(255, 194, 58, 0.9); }

@@ -34,6 +34,12 @@ export interface GhostProfile {
   wpm: number;
   /** 正確率 0〜1(この確率を外れた打鍵はミス=コンボ断絶) */
   accuracy: number;
+  /** 1撃破あたりの実測正打数。集計値からの初回再現を総合WPMへ合わせる */
+  keysPerKill?: number;
+  /** VSで勝ったプレイの正打時刻。あれば集計値より優先してそのテンポを再生する */
+  shotTimesMs?: readonly number[];
+  /** VSで勝ったプレイの撃破時刻。単語長が変わっても同じ撃破ペースへ合わせる */
+  killTimesMs?: readonly number[];
 }
 
 /** VS 自己ベスト: ゴーストの進行状態 */
@@ -133,6 +139,10 @@ export class Game {
   kills = 0;
   correctKeys = 0;
   missKeys = 0;
+  /** VSで勝った走りを次回再生するための、プレイヤー正打時刻 */
+  readonly playerShotTimesMs: number[] = [];
+  /** VSで勝った走りを次回の撃破ペースにするための、プレイヤー撃破時刻 */
+  readonly playerKillTimesMs: number[] = [];
   shieldTime = 0;
   status: GameStatus = 'running';
 
@@ -169,6 +179,9 @@ export class Game {
   private readonly ghostProfile: GhostProfile | null;
   private ghostReactionTimer = 0;
   private ghostKeyTimer = 0;
+  private ghostTimelineIndex = 0;
+  private ghostKillTimelineIndex = 0;
+  private ghostLastShotAtMs = 0;
 
   constructor(
     difficulty: DifficultyDef,
@@ -288,8 +301,7 @@ export class Game {
           if (!this.tryAutoSwitch(key)) this.registerMiss();
         } else {
           this.pushRecentKey(key);
-          this.correctKeys++;
-          this.events.push({ type: 'shot', zombieId: z.id });
+          this.registerCorrectShot(z.id);
           if (res === 'complete') this.onZombieKilled(z);
         }
         return;
@@ -308,8 +320,7 @@ export class Game {
         return;
       }
       this.pushRecentKey(key);
-      this.correctKeys++;
-      this.events.push({ type: 'shot', zombieId: accepting[0].id });
+      this.registerCorrectShot(accepting[0].id);
       let killed: Zombie | null = null;
       for (const z of accepting) {
         if (z.session.input(key) === 'complete') killed = z;
@@ -344,14 +355,12 @@ export class Game {
       this.targetId = z.id;
       this.events.push({ type: 'lock', zombieId: z.id });
       const res = z.session.input(key);
-      this.correctKeys++;
-      this.events.push({ type: 'shot', zombieId: z.id });
+      this.registerCorrectShot(z.id);
       if (res === 'complete') this.onZombieKilled(z);
       return;
     }
     // 初手が重複 → 全員を「重複候補」状態にして並行入力
-    this.correctKeys++;
-    this.events.push({ type: 'shot', zombieId: matches[0].id });
+    this.registerCorrectShot(matches[0].id);
     for (const z of matches) z.session.input(key);
     this.candidateIds = matches.map((z) => z.id);
     this.events.push({ type: 'multiLock', zombieIds: this.candidateIds });
@@ -360,6 +369,12 @@ export class Game {
   private pushRecentKey(key: string): void {
     this.recentKeys.push(key);
     if (this.recentKeys.length > Game.RECENT_KEYS_MAX) this.recentKeys.shift();
+  }
+
+  private registerCorrectShot(zombieId: number): void {
+    this.correctKeys++;
+    if (this.ghost) this.playerShotTimesMs.push(Math.round(this.time * 1000));
+    this.events.push({ type: 'shot', zombieId });
   }
 
   /**
@@ -417,9 +432,8 @@ export class Game {
     this.targetId = best.z.id;
     this.candidateIds = [];
     this.recentKeys = [...best.s.typedRomaji()];
-    this.correctKeys++;
+    this.registerCorrectShot(best.z.id);
     this.events.push({ type: 'lock', zombieId: best.z.id });
-    this.events.push({ type: 'shot', zombieId: best.z.id });
     if (best.s.isComplete()) this.onZombieKilled(best.z);
     return true;
   }
@@ -478,6 +492,7 @@ export class Game {
     const gained = (z.boss ? BOSS.score : TIERS[z.tier].score) + comboBonus;
     this.score += gained;
     this.kills++;
+    if (this.ghost) this.playerKillTimesMs.push(Math.round(this.time * 1000));
     this.removeZombie(z.id);
     this.targetId = null;
     this.candidateIds = [];
@@ -629,27 +644,65 @@ export class Game {
     this.events.push({ type: 'spawn', zombieId: z.id });
   }
 
-  /** VS 自己ベスト: 保存済み WPM・正確率・撃破ペースを土台にしつつ、
-      反応時間、打鍵の揺らぎ、短い迷いを入れて過去の人間の入力らしく再現する。 */
+  /** VS 自己ベスト: 勝った走りの正打タイムラインがあれば、そのテンポを最優先で再生する。
+      初回だけは通常自己ベストのWPM・撃破数から同等の総合ペースを復元する。 */
   private updateGhost(dt: number): void {
     const g = this.ghost;
     const p = this.ghostProfile;
     if (!g || !p || g.down) return;
 
-    // ターゲット確保。基本は手前優先だが、時々近い別候補へ視線が移る。
+    const timeline = p.shotTimesMs;
+    // ターゲット確保。再現不能な狙い選びで弱くならないよう、常に手前を優先する。
     let target = g.targetId !== null ? this.getZombie(g.targetId) : undefined;
     if (!target) {
-      const candidates = [...this.zombies].sort((a, b) => a.x - b.x).slice(0, 3);
-      target =
-        this.rng() < 0.76
-          ? candidates[0]
-          : candidates[Math.floor(this.rng() * candidates.length)];
+      target = [...this.zombies].sort((a, b) => a.x - b.x)[0];
       if (!target) return;
       g.targetId = target.id;
       g.session = new TypingSession(target.word.kana);
-      this.ghostReactionTimer =
-        VS.reactionMinSec + this.rng() * (VS.reactionMaxSec - VS.reactionMinSec);
-      this.ghostKeyTimer = 0;
+      if (!timeline?.length) {
+        this.ghostReactionTimer =
+          VS.reactionMinSec + this.rng() * (VS.reactionMaxSec - VS.reactionMinSec);
+        this.ghostKeyTimer = 0;
+        return;
+      }
+    }
+
+    // 勝ったプレイの正打時刻をそのまま使う。人工的な反応待ちやミスは重ねない。
+    if (timeline?.length) {
+      const killTimeline = p.killTimesMs;
+      if (killTimeline?.length && this.ghostKillTimelineIndex >= killTimeline.length) return;
+      const nowMs = this.time * 1000;
+      const recordedShotDue = timeline[this.ghostTimelineIndex];
+      const recordedKillDue = killTimeline?.[this.ghostKillTimelineIndex];
+      if (recordedShotDue === undefined && recordedKillDue === undefined) return;
+      let due = recordedShotDue ?? recordedKillDue!;
+      if (recordedKillDue !== undefined && g.session) {
+        const remainingKeys = Math.max(1, g.session.remainingRomaji().length);
+        let recordedShotsBeforeKill = 0;
+        for (
+          let i = this.ghostTimelineIndex;
+          i < timeline.length && timeline[i] <= recordedKillDue;
+          i++
+        ) {
+          recordedShotsBeforeKill++;
+        }
+        if (remainingKeys === 1) {
+          // 短い単語でも元の自己ベストより早く撃破しない。
+          due = Math.max(due, recordedKillDue);
+        } else if (remainingKeys > recordedShotsBeforeKill) {
+          // 今回の単語の方が長い場合だけ、元の撃破時刻へ間に合うよう余分な打鍵を補う。
+          const catchupDue =
+            this.ghostLastShotAtMs +
+            Math.max(0, recordedKillDue - this.ghostLastShotAtMs) / remainingKeys;
+          due = Math.min(due, catchupDue);
+        }
+      }
+      if (nowMs + 0.5 < due) return;
+      if (recordedShotDue !== undefined) this.ghostTimelineIndex++;
+      const killsBefore = g.kills;
+      this.fireGhostKey(target, g);
+      this.ghostLastShotAtMs = nowMs;
+      if (g.kills > killsBefore) this.ghostKillTimelineIndex++;
       return;
     }
 
@@ -658,13 +711,18 @@ export class Game {
       return;
     }
 
-    // 集計値しかない過去記録でも撃破数の進行ペースへ緩やかに寄せる。
-    // 補正を弱く限定し、機械的な急加速はさせない。
-    let kps = p.wpm / 60;
+    // WPMは待ち時間込みの「正打/分」。反応待ちを足す分だけ実打鍵を速め、二重に遅くしない。
+    const grossKps = Math.max(0.5, p.wpm / 60);
+    const keysPerKill = Math.max(1, p.keysPerKill ?? VS.estimateKeysPerKill);
+    const cycleSec = keysPerKill / grossKps;
+    const averageReaction = (VS.reactionMinSec + VS.reactionMaxSec) / 2;
+    const activeTypingSec = Math.max(cycleSec * 0.45, cycleSec - averageReaction);
+    let kps = keysPerKill / activeTypingSec;
     if (this.duration > 0 && this.time > 6) {
       const pace = p.bestKills * Math.min(1, this.time / this.duration);
-      if (g.kills + 0.75 < pace) kps *= 1.1;
-      else if (g.kills > pace + 1.25) kps *= 0.88;
+      const lag = pace - g.kills;
+      if (lag > 0.5) kps *= Math.min(1.65, 1 + lag * 0.18);
+      else if (lag < -1) kps *= 0.82;
     }
 
     this.ghostKeyTimer -= dt;
@@ -673,15 +731,15 @@ export class Game {
     const baseInterval = 1 / Math.max(0.5, kps);
     const jitter = 1 + (this.rng() * 2 - 1) * VS.keyIntervalJitter;
     this.ghostKeyTimer = baseInterval * jitter;
-    if (this.rng() < VS.hesitationChance) {
-      this.ghostKeyTimer +=
-        VS.hesitationMinSec + this.rng() * (VS.hesitationMaxSec - VS.hesitationMinSec);
-    }
-
+    // accuracyは正打WPMへ既に反映済みなので、進行は遅らせずコンボだけ再現する。
     if (this.rng() > p.accuracy) {
-      g.combo = 0; // ミス(進捗なし・コンボ断絶)
-      return;
+      g.combo = 0;
     }
+    this.fireGhostKey(target, g);
+  }
+
+  private fireGhostKey(target: Zombie, g: GhostState): void {
+    if (!g.session) return;
     const key = g.session.remainingRomaji()[0];
     if (!key) return;
     const result = g.session.input(key);

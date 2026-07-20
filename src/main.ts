@@ -14,7 +14,15 @@ import { initKeyboard } from './input/keyboard';
 import { loadAssets } from './render/assets';
 import { Renderer, type Scene } from './render/renderer';
 import { UI } from './ui/screens';
-import { loadBest, loadSettings, saveBest, saveSettings, type Settings } from './ui/store';
+import {
+  loadBest,
+  loadSettings,
+  loadVsBest,
+  saveBest,
+  saveSettings,
+  saveVsBest,
+  type Settings,
+} from './ui/store';
 
 type AppState =
   | 'loading'
@@ -116,20 +124,40 @@ async function boot(): Promise<void> {
   function startGame(mode: ModeDef, diff: DifficultyDef, quick: boolean): void {
     currentMode = mode;
     currentDiff = diff;
-    // VS 自己ベスト: 夜明けまでの自己ベストからゴーストを作る(記録が無ければ初期ゴースト)
+    // VS 自己ベスト: 直前に勝って更新したVS専用記録を最優先で再生する。
+    // まだ無ければ通常モードの自己ベスト集計値から初回相手を作る。
     let ghostProfile: GhostProfile | null = null;
     if (mode.id === 'vs') {
-      const best = loadBest('dawn', diff.id);
-      if (best) {
+      const vsBest = loadVsBest(diff.id);
+      const best = vsBest ? null : loadBest('dawn', diff.id);
+      if (vsBest) {
+        ghostProfile = {
+          bestKills: vsBest.kills,
+          wpm: vsBest.wpm,
+          accuracy: vsBest.accuracy,
+          keysPerKill: vsBest.keysPerKill,
+          shotTimesMs: vsBest.shotTimesMs,
+          killTimesMs: vsBest.killTimesMs,
+        };
+      } else if (best) {
         // 古い記録に WPM が無い場合は撃破数と制限時間から推定する
         const estWpm = Math.round((best.kills * VS.estimateKeysPerKill) / (diff.duration / 60));
+        const wpm = Math.min(500, Math.max(80, best.wpm ?? estWpm));
         ghostProfile = {
           bestKills: best.kills,
-          wpm: Math.min(400, Math.max(80, best.wpm ?? estWpm)),
+          wpm,
           accuracy: best.accuracy > 0 ? best.accuracy : VS.defaultProfile.accuracy,
+          keysPerKill:
+            best.kills > 0
+              ? Math.max(1, (wpm * (diff.duration / 60)) / best.kills)
+              : VS.estimateKeysPerKill,
         };
       } else {
-        ghostProfile = { ...VS.defaultProfile };
+        ghostProfile = {
+          ...VS.defaultProfile,
+          keysPerKill:
+            (VS.defaultProfile.wpm * (diff.duration / 60)) / VS.defaultProfile.bestKills,
+        };
       }
     }
     game = new Game(diff, pool, Math.random, ghostProfile);
@@ -176,10 +204,29 @@ async function boot(): Promise<void> {
     const survival = game.survivalTime();
     // WPM = 正打キー数 / 分(Eタイピング準拠)
     const wpm = survival > 0 ? Math.round(game.correctKeys / (survival / 60)) : 0;
-    // VS は通常自己ベストの読み取り専用。対戦結果で通常記録やランキングを変えない。
-    const newRecord =
-      currentMode.id !== 'vs' &&
-      saveBest(
+    const vsWin =
+      currentMode.id === 'vs' &&
+      cleared &&
+      !!game.ghost &&
+      game.kills > game.ghost.kills;
+    // VSで勝った走りはVS専用に保存し、次回からその正打タイミングを相手として再生する。
+    // 通常モードの自己ベストとランキングには一切書き込まない。
+    let newRecord = false;
+    if (currentMode.id === 'vs') {
+      if (vsWin && game.playerShotTimesMs.length > 0) {
+        saveVsBest(currentDiff.id, {
+          version: 1,
+          kills: game.kills,
+          wpm,
+          accuracy: game.accuracy(),
+          shotTimesMs: [...game.playerShotTimesMs],
+          killTimesMs: [...game.playerKillTimesMs],
+          keysPerKill: game.kills > 0 ? game.correctKeys / game.kills : VS.estimateKeysPerKill,
+        });
+        newRecord = true;
+      }
+    } else {
+      newRecord = saveBest(
         currentMode.id,
         currentDiff.id,
         {
@@ -193,6 +240,7 @@ async function boot(): Promise<void> {
         },
         currentDiff.rankBy ?? 'score',
       );
+    }
     ui.showResult({
       cleared,
       score: game.score,
@@ -210,7 +258,7 @@ async function boot(): Promise<void> {
       endless: currentDiff.endless === true,
       practice: currentDiff.practice === true,
       vs: game.ghost
-        ? { ghostKills: game.ghost.kills, win: game.kills > game.ghost.kills }
+        ? { ghostKills: game.ghost.kills, win: vsWin }
         : null,
       newRecord,
     });

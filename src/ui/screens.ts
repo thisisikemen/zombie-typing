@@ -12,7 +12,7 @@ import {
   savePlayerName,
   type RankEntry,
 } from './ranking';
-import { loadBest, type Settings } from './store';
+import { loadBest, loadVsBest, type Settings } from './store';
 import { TIPS } from './tips';
 
 export type ScreenName = 'title' | 'mode' | 'result' | 'pause' | 'none';
@@ -420,12 +420,15 @@ export class UI {
       const durText =
         diff.durationHint ??
         (mm > 0 ? `${mm}分${ss > 0 ? `${ss}秒` : ''}` : `${diff.duration}秒`);
-      const ghostBest = this.activeMode.id === 'vs' ? loadBest('dawn', diff.id) : null;
+      const vsBest = this.activeMode.id === 'vs' ? loadVsBest(diff.id) : null;
+      const ghostBest = this.activeMode.id === 'vs' && !vsBest ? loadBest('dawn', diff.id) : null;
       const bestText =
         this.activeMode.id === 'vs'
-          ? ghostBest
-            ? `自己ベスト 撃破 ${ghostBest.kills}体`
-            : '<span class="unranked-note">記録なし → 初期自己ベストと対戦</span>'
+          ? vsBest
+            ? `成長中の自己ベスト 撃破 ${vsBest.kills}体`
+            : ghostBest
+              ? `自己ベスト 撃破 ${ghostBest.kills}体`
+              : '<span class="unranked-note">記録なし → 初期自己ベストと対戦</span>'
           : diff.ranked === false
             ? '<span class="unranked-note">※ランキング対象外</span>'
             : best && diff.rankBy === 'survival'
@@ -607,7 +610,9 @@ export class UI {
       )
       .join('');
     if (data.newRecord) {
-      stats.innerHTML += `<div class="result-new-record">NEW RECORD!</div>`;
+      stats.innerHTML += data.vs
+        ? `<div class="result-new-record">SELF BEST UPDATED!<span>次の対戦から、この走りが自己ベスト</span></div>`
+        : `<div class="result-new-record">NEW RECORD!</div>`;
     }
 
     // ランキングへ自動登録(登録し忘れ防止)。ランキング対象外の難易度では出さない

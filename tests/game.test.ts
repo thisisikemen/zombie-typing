@@ -518,7 +518,7 @@ describe('ラスボス', () => {
 describe('VS 自己ベスト(ゴースト)', () => {
   const vsNormal = getDifficulty(getMode('vs'), 'normal');
 
-  it('狙いを決めた直後は人間らしい反応待ちがあり、その後の各正打を射撃イベントにする', () => {
+  it('集計値から作る初回相手にも短い反応待ちがあり、その後の各正打を射撃イベントにする', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(4), {
       bestKills: 10,
       wpm: 240,
@@ -527,13 +527,76 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(makeZombie('あ'));
 
     g.update(0.01); // ターゲット選択
-    g.update(0.2); // 最短反応時間より短い
+    g.update(0.1); // 最短反応時間より短い
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
     for (let i = 0; i < 20 && g.ghost!.kills === 0; i++) g.update(0.1);
     const events = g.drainEvents();
     expect(events.some((e) => e.type === 'ghostshot')).toBe(true);
     expect(events.some((e) => e.type === 'ghostkill')).toBe(true);
+  });
+
+  it('勝った走りの正打タイムラインがあれば人工的な待ちを足さず、その時刻で再生する', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(2), {
+      bestKills: 1,
+      wpm: 120,
+      accuracy: 1,
+      keysPerKill: 2,
+      shotTimesMs: [500, 900],
+      killTimesMs: [900],
+    });
+    const z = makeZombie('か');
+    g.zombies.push(z);
+
+    g.update(0.49);
+    expect(g.ghost!.session!.typedRomaji()).toBe('');
+    expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
+
+    g.update(0.01);
+    expect(g.ghost!.session!.typedRomaji()).toBe('k');
+    expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(true);
+
+    g.update(0.39);
+    expect(g.ghost!.kills).toBe(0);
+    g.update(0.01);
+    const events = g.drainEvents();
+    expect(g.ghost!.kills).toBe(1);
+    expect(events.some((e) => e.type === 'ghostkill')).toBe(true);
+  });
+
+  it('次回の単語が長くなっても保存した撃破時刻へ追いつき、自己ベストの強さを保つ', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(5), {
+      bestKills: 1,
+      wpm: 120,
+      accuracy: 1,
+      keysPerKill: 2,
+      shotTimesMs: [500, 900],
+      killTimesMs: [900],
+    });
+    g.zombies.push(makeZombie('かき')); // canonical: kaki（保存時より2打長い想定）
+
+    for (let i = 0; i < 17; i++) g.update(0.05); // 850ms
+    expect(g.ghost!.kills).toBe(0);
+    g.update(0.05); // 900ms
+    expect(g.ghost!.kills).toBe(1);
+  });
+
+  it('プレイヤーの正打時刻をVS中だけ次回再生用に記録する', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(3), {
+      bestKills: 1,
+      wpm: 1,
+      accuracy: 1,
+    });
+    g.zombies.push(makeZombie('か'));
+
+    g.update(0.2);
+    g.handleKey('k');
+    g.update(0.3);
+    g.handleKey('a');
+
+    expect(g.playerShotTimesMs).toEqual([200, 500]);
+    expect(g.playerKillTimesMs).toEqual([500]);
+    expect(g.kills).toBe(1);
   });
 
   it('ゴーストが自動でゾンビを倒してスコアを稼ぐ', () => {
