@@ -124,7 +124,7 @@ async function boot(): Promise<void> {
         // 古い記録に WPM が無い場合は撃破数と制限時間から推定する
         const estWpm = Math.round((best.kills * VS.estimateKeysPerKill) / (diff.duration / 60));
         ghostProfile = {
-          bestScore: best.score,
+          bestKills: best.kills,
           wpm: Math.min(400, Math.max(80, best.wpm ?? estWpm)),
           accuracy: best.accuracy > 0 ? best.accuracy : VS.defaultProfile.accuracy,
         };
@@ -176,22 +176,23 @@ async function boot(): Promise<void> {
     const survival = game.survivalTime();
     // WPM = 正打キー数 / 分(Eタイピング準拠)
     const wpm = survival > 0 ? Math.round(game.correctKeys / (survival / 60)) : 0;
-    // VS 自己ベストの記録は「夜明けまで」と共有する(勝てば自己ベストが塗り替わる)
-    const bestModeId = currentMode.id === 'vs' ? 'dawn' : currentMode.id;
-    const newRecord = saveBest(
-      bestModeId,
-      currentDiff.id,
-      {
-        score: game.score,
-        kills: game.kills,
-        maxCombo: game.maxCombo,
-        accuracy: game.accuracy(),
-        cleared,
-        survival,
-        wpm,
-      },
-      currentDiff.rankBy ?? 'score',
-    );
+    // VS は通常自己ベストの読み取り専用。対戦結果で通常記録やランキングを変えない。
+    const newRecord =
+      currentMode.id !== 'vs' &&
+      saveBest(
+        currentMode.id,
+        currentDiff.id,
+        {
+          score: game.score,
+          kills: game.kills,
+          maxCombo: game.maxCombo,
+          accuracy: game.accuracy(),
+          cleared,
+          survival,
+          wpm,
+        },
+        currentDiff.rankBy ?? 'score',
+      );
     ui.showResult({
       cleared,
       score: game.score,
@@ -209,7 +210,7 @@ async function boot(): Promise<void> {
       endless: currentDiff.endless === true,
       practice: currentDiff.practice === true,
       vs: game.ghost
-        ? { ghostScore: Math.round(game.ghost.score), win: cleared && game.score > game.ghost.score }
+        ? { ghostKills: game.ghost.kills, win: game.kills > game.ghost.kills }
         : null,
       newRecord,
     });
@@ -328,6 +329,10 @@ async function boot(): Promise<void> {
     renderer.handleEvents(g, events);
     if (sound) {
       for (const ev of events) {
+        if (ev.type === 'ghostshot') {
+          audio.play('shot', VS.ghostShotVolume);
+          continue;
+        }
         const name = EVENT_SFX[ev.type];
         if (name) audio.play(name);
       }

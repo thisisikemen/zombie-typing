@@ -104,15 +104,25 @@ export const BOSS = {
 /** VS 自己ベスト(ゴースト対戦)の設定 */
 export const VS = {
   /** ゴースト兵士の足元 Y(上段。プレイヤーは通常位置=下段) */
-  ghostSoldierY: 508,
+  ghostSoldierY: 410,
   /** ゴースト側の描画透明度 */
   ghostAlpha: 0.55,
   /** ゴーストのレーザー色(薄い赤) */
   ghostLaserColor: '#ff9c94',
   /** 自己ベスト記録が無いときの初期ゴースト */
-  defaultProfile: { bestScore: 3000, wpm: 140, accuracy: 0.92 },
+  defaultProfile: { bestKills: 12, wpm: 140, accuracy: 0.92 },
   /** 古い記録に WPM が無い場合の推定に使う 1 撃破あたりの平均打鍵数 */
   estimateKeysPerKill: 9,
+  /** ゾンビを見つけてから撃ち始めるまでの、人間らしい反応時間 */
+  reactionMinSec: 0.38,
+  reactionMaxSec: 0.9,
+  /** 打鍵間隔の揺らぎと、考え込む小休止 */
+  keyIntervalJitter: 0.24,
+  hesitationChance: 0.055,
+  hesitationMinSec: 0.28,
+  hesitationMaxSec: 0.72,
+  /** 自己ベスト側の銃声はプレイヤーより少し小さくする */
+  ghostShotVolume: 0.56,
 } as const;
 
 /** ベーシック(五十音練習)の設定 */

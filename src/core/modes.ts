@@ -195,11 +195,11 @@ export const MODES: ModeDef[] = [
 
 // VS 自己ベスト: 夜明けまでの easy〜hardcore と同じバランスで、
 // 半透明のゴースト(自己ベストの自分)と同じ戦場のゾンビを取り合う。
-// スコアはハンデ付き(ゴーストに取られる)なのでランキング対象外
+// 勝敗は撃破数だけで決め、通常記録・ランキングには影響させない。
 const vsMode: ModeDef = {
   id: 'vs',
   label: 'VS 自己ベスト',
-  desc: 'ゴースト=自己ベストの自分と同じ戦場で撃ち合う。スコアで勝てば自己ベストを塗り替える。',
+  desc: '自己ベストの自分と同じ戦場で撃ち合い、撃破数だけで勝敗を決める試作モード。',
   difficulties: MODES[0].difficulties
     .filter((d) => !d.practice)
     .map((d) => ({ ...d, ranked: false })),

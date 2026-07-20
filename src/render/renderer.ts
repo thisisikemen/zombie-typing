@@ -61,6 +61,9 @@ export class Renderer {
   private laserPulse = 0;
   private lineFlash = 0;
   private muzzleFlash = 0;
+  private ghostMuzzleFlash = 0;
+  private playerKillFlash = 0;
+  private ghostKillFlash = 0;
   private zombieFlash = new Map<number, number>();
   private stars: Star[] = [];
   private displayHp = PLAYER.maxHp;
@@ -108,6 +111,9 @@ export class Renderer {
     this.laserPulse = 0;
     this.lineFlash = 0;
     this.muzzleFlash = 0;
+    this.ghostMuzzleFlash = 0;
+    this.playerKillFlash = 0;
+    this.ghostKillFlash = 0;
   }
 
   resize(): void {
@@ -129,12 +135,24 @@ export class Renderer {
           if (z) this.effects.spark(z.x, this.chestY(z), '#ff8a70', 3, 160);
           break;
         }
+        case 'ghostshot': {
+          this.ghostMuzzleFlash = 1;
+          const z = game.getZombie(ev.zombieId);
+          if (z) this.effects.spark(z.x, this.chestY(z), '#aebfd4', 2, 130);
+          break;
+        }
         case 'miss':
           this.effects.shake(3, 0.08);
           break;
         case 'kill': {
-          this.effects.explosion(ev.x, ev.y, 0.8 + ev.tier * 0.35, GORE_PALETTE);
-          this.effects.floatText(ev.x, ev.y - 150, `+${ev.gained}`, '#ffd24a');
+          if (game.ghost) {
+            this.effects.explosion(ev.x, ev.y, 0.8 + ev.tier * 0.35, ['#ffd24a', '#ffb11b', '#fff1a6', '#8a5a0b']);
+            this.effects.floatText(ev.x, ev.y - 150, 'WIN', '#ffd24a', 38);
+            this.playerKillFlash = 1;
+          } else {
+            this.effects.explosion(ev.x, ev.y, 0.8 + ev.tier * 0.35, GORE_PALETTE);
+            this.effects.floatText(ev.x, ev.y - 150, `+${ev.gained}`, '#ffd24a');
+          }
           this.effects.shake(3 + ev.tier * 2, 0.18);
           // 最後の一文字まで赤くなった単語を一瞬だけ残す
           const h = ZOMBIE_ANIM.baseHeight * TIERS[ev.tier].scale;
@@ -145,9 +163,9 @@ export class Renderer {
           this.effects.explosion(ev.x, ev.y, 0.7 + ev.tier * 0.3, ['#9ad0ff', '#5a8aff', '#ffffff']);
           break;
         case 'ghostkill':
-          // ゴーストの撃破は薄赤の控えめな爆発+得点表示
-          this.effects.explosion(ev.x, ev.y, 0.55 + ev.tier * 0.25, ['#ffb8b0', '#c88880', '#f2e6e2']);
-          this.effects.floatText(ev.x, ev.y - 150, `+${ev.gained}`, 'rgba(255, 156, 148, 0.85)');
+          this.effects.explosion(ev.x, ev.y, 0.65 + ev.tier * 0.28, ['#78bfff', '#397dcc', '#b8ddff', '#294f8c']);
+          this.effects.floatText(ev.x, ev.y - 150, 'LOSE', '#78bfff', 38);
+          this.ghostKillFlash = 1;
           break;
         case 'crossed':
           this.effects.flashDamage();
@@ -170,6 +188,9 @@ export class Renderer {
     this.time += dt;
     this.laserPulse = Math.max(0, this.laserPulse - dt / LASER.pulseTime);
     this.muzzleFlash = Math.max(0, this.muzzleFlash - dt * 10);
+    this.ghostMuzzleFlash = Math.max(0, this.ghostMuzzleFlash - dt * 10);
+    this.playerKillFlash = Math.max(0, this.playerKillFlash - dt * 2.2);
+    this.ghostKillFlash = Math.max(0, this.ghostKillFlash - dt * 2.2);
     this.lineFlash = Math.max(0, this.lineFlash - dt * 2);
     for (const [id, t] of this.zombieFlash) {
       if (t - dt <= 0) this.zombieFlash.delete(id);
@@ -219,12 +240,13 @@ export class Renderer {
           VS.ghostSoldierY,
           this.ghostAim,
           game.ghost.down ? 0.25 : VS.ghostAlpha,
-          false,
+          this.ghostMuzzleFlash,
         );
         this.drawGhostLaser(ctx, game);
       }
       this.drawSoldier(ctx);
       this.drawLaser(ctx, game);
+      if (game.ghost) this.drawVsKillCounters(ctx, game);
       this.effects.drawWorld(ctx);
 
       // ラベルは最前面(ロックオン中のものを最後に)
@@ -525,7 +547,7 @@ export class Renderer {
     soldierY: number = FIELD.soldierY,
     aim: number = this.aimAngle,
     alpha = 1,
-    withMuzzleFlash = true,
+    muzzleFlash = this.muzzleFlash,
   ): void {
     const { w, h } = this.bodyMetrics();
     ctx.save();
@@ -554,19 +576,63 @@ export class Renderer {
     ctx.restore();
 
     // マズルフラッシュ
-    if (withMuzzleFlash && this.muzzleFlash > 0) {
+    if (muzzleFlash > 0) {
       const [mx, my] = this.muzzlePos(soldierY, aim);
-      ctx.globalAlpha = alpha * this.muzzleFlash;
+      ctx.globalAlpha = alpha * muzzleFlash;
       ctx.fillStyle = '#ffe9a0';
       ctx.beginPath();
-      ctx.arc(mx, my, 6 + this.muzzleFlash * 7, 0, Math.PI * 2);
+      ctx.arc(mx, my, 6 + muzzleFlash * 7, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
     ctx.imageSmoothingEnabled = true;
   }
 
-  /** VS: メイン HUD 直下のゴースト比較バー(HP・スコア・コンボ・撃破+リード表示) */
+  /** VS: 左側の各兵士の頭上へ、競技対象の討伐数を大きく表示する。 */
+  private drawVsKillCounters(ctx: CanvasRenderingContext2D, game: Game): void {
+    const g = game.ghost;
+    if (!g) return;
+    const drawCounter = (
+      soldierY: number,
+      label: string,
+      kills: number,
+      color: string,
+      flash: number,
+      alpha = 1,
+    ) => {
+      const x = 18;
+      const y = soldierY - SOLDIER.bodyHeight - 52;
+      const w = 244;
+      const h = 46;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8 + flash * 28;
+      ctx.fillStyle = `rgba(8, 8, 10, ${0.78 + flash * 0.12})`;
+      roundRect(ctx, x, y, w, h, 6);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5 + flash * 2.5;
+      roundRect(ctx, x, y, w, h, 6);
+      ctx.stroke();
+      ctx.shadowBlur = flash * 20;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left';
+      ctx.font = '800 16px "Hiragino Kaku Gothic ProN", sans-serif';
+      ctx.fillStyle = color;
+      ctx.fillText(label, x + 13, y + h / 2 + 1);
+      ctx.textAlign = 'right';
+      ctx.font = `900 ${28 + flash * 5}px ui-monospace, Menlo, monospace`;
+      ctx.fillStyle = '#f6f3ea';
+      ctx.fillText(`討伐 ${kills}`, x + w - 13, y + h / 2 + 2);
+      ctx.restore();
+    };
+
+    drawCounter(VS.ghostSoldierY, '自己ベスト', g.kills, '#aeb6c2', this.ghostKillFlash, g.down ? 0.5 : 0.9);
+    drawCounter(FIELD.soldierY, 'あなた', game.kills, '#ffd24a', this.playerKillFlash);
+  }
+
+  /** VS: メイン HUD 直下の自己ベスト比較バー(HP・撃破数・リード表示) */
   private drawGhostHud(ctx: CanvasRenderingContext2D, game: Game): void {
     const g = game.ghost;
     if (!g) return;
@@ -585,8 +651,8 @@ export class Renderer {
     ctx.textBaseline = 'middle';
     const cy = y + h / 2 + 1;
     ctx.font = '700 14px "Hiragino Kaku Gothic ProN", sans-serif';
-    ctx.fillStyle = VS.ghostLaserColor;
-    ctx.fillText('ゴースト', 282, cy);
+    ctx.fillStyle = '#b8bec8';
+    ctx.fillText('自己ベスト', 282, cy);
 
     if (g.down) {
       ctx.fillStyle = 'rgba(216, 212, 200, 0.75)';
@@ -607,22 +673,20 @@ export class Renderer {
         ctx.globalAlpha = 1;
       }
       ctx.fillStyle = 'rgba(216, 212, 200, 0.85)';
-      ctx.font = '700 14px ui-monospace, Menlo, monospace';
-      ctx.fillText(`スコア ${g.score.toLocaleString()}`, 478, cy);
-      ctx.fillText(`コンボ ${g.combo}`, 650, cy);
-      ctx.fillText(`撃破 ${g.kills}`, 760, cy);
+      ctx.font = '800 15px ui-monospace, Menlo, monospace';
+      ctx.fillText(`撃破 ${g.kills}体`, 478, cy);
     }
 
     // リード表示(あなたが勝っていれば緑、負けていれば薄赤)
-    const diff = game.score - g.score;
+    const diff = game.kills - g.kills;
     ctx.textAlign = 'right';
     ctx.font = '900 15px ui-monospace, Menlo, monospace';
     if (diff >= 0) {
       ctx.fillStyle = HUD_COLORS.hpHigh;
-      ctx.fillText(`あなた +${diff.toLocaleString()}`, 954, cy);
+      ctx.fillText(`あなた +${diff}`, 954, cy);
     } else {
       ctx.fillStyle = VS.ghostLaserColor;
-      ctx.fillText(`ゴースト +${(-diff).toLocaleString()}`, 954, cy);
+      ctx.fillText(`自己ベスト +${-diff}`, 954, cy);
     }
     ctx.restore();
     ctx.textBaseline = 'alphabetic';
@@ -868,12 +932,17 @@ export class Renderer {
     // ロックオン中に加え、入力進捗のあるゾンビにも常時表示する
     // (どこまで打ったか一目で分かるように)
     const typedR = z.session.typedRomaji();
-    if (showRomaji && (locked || typedR.length > 0)) {
+    const ghostSession =
+      game.ghost && game.ghost.targetId === z.id && !game.ghost.down
+        ? game.ghost.session
+        : null;
+    const playerRomajiY = ty + (locked ? 42 : 36);
+    if (showRomaji && (locked || typedR.length > 0 || ghostSession)) {
       const remainR = z.session.remainingRomaji();
       ctx.font = `800 ${locked ? 24 : 20}px ui-monospace, Menlo, monospace`;
       const rw = ctx.measureText(typedR + remainR).width;
       let rx = cx - rw / 2;
-      const ry = ty + (locked ? 42 : 36);
+      const ry = playerRomajiY;
       ctx.strokeStyle = LABEL_COLORS.outline;
       ctx.lineWidth = locked ? 7 : 6;
       ctx.strokeText(typedR + remainR, rx, ry);
@@ -882,6 +951,24 @@ export class Renderer {
       rx += ctx.measureText(typedR).width;
       ctx.fillStyle = LABEL_COLORS.romajiRemaining;
       ctx.fillText(remainR, rx, ry);
+    }
+
+    // 自己ベスト側はローマ字だけを、あなたのローマ字のさらに下へ灰色で表示する。
+    if (showRomaji && ghostSession) {
+      const ghostTyped = ghostSession.typedRomaji();
+      const ghostRemain = ghostSession.remainingRomaji();
+      ctx.font = '800 18px ui-monospace, Menlo, monospace';
+      const rw = ctx.measureText(ghostTyped + ghostRemain).width;
+      let rx = cx - rw / 2;
+      const ry = playerRomajiY + 27;
+      ctx.strokeStyle = LABEL_COLORS.outline;
+      ctx.lineWidth = 5;
+      ctx.strokeText(ghostTyped + ghostRemain, rx, ry);
+      ctx.fillStyle = '#717680';
+      ctx.fillText(ghostTyped, rx, ry);
+      rx += ctx.measureText(ghostTyped).width;
+      ctx.fillStyle = '#c1c6ce';
+      ctx.fillText(ghostRemain, rx, ry);
     }
 
     ctx.restore();
@@ -1056,13 +1143,19 @@ export class Renderer {
       ctx.fillText(`軽減 ${game.shieldTime.toFixed(0)}s`, 282, boxY + 60);
     }
 
-    // --- スコア ---
+    // --- スコア(VS は競技対象の撃破数) ---
+    ctx.save();
+    if (game.ghost && this.playerKillFlash > 0) {
+      ctx.shadowColor = '#ffd24a';
+      ctx.shadowBlur = this.playerKillFlash * 28;
+    }
     panel(708, 210);
-    label('スコア', 722);
+    ctx.restore();
+    label(game.ghost ? 'あなたの撃破' : 'スコア', 722);
     ctx.textAlign = 'right';
     ctx.font = '900 32px sans-serif';
     ctx.fillStyle = HUD_COLORS.text;
-    ctx.fillText(game.score.toLocaleString(), 902, boxY + 52);
+    ctx.fillText(game.ghost ? `${game.kills}体` : game.score.toLocaleString(), 902, boxY + 52);
 
     // --- コンボ ---
     panel(938, 190);
@@ -1088,13 +1181,19 @@ export class Renderer {
       ctx.fillRect(1006, boxY + 56, 70, 3);
     }
 
-    // --- 倒した数 ---
+    // --- 倒した数(VS は自己ベスト側) ---
+    ctx.save();
+    if (game.ghost && this.ghostKillFlash > 0) {
+      ctx.shadowColor = '#78bfff';
+      ctx.shadowBlur = this.ghostKillFlash * 28;
+    }
     panel(1148, 176);
-    label('倒した数', 1162);
+    ctx.restore();
+    label(game.ghost ? '自己ベスト' : '倒した数', 1162);
     ctx.textAlign = 'right';
     ctx.font = '900 32px sans-serif';
     ctx.fillStyle = HUD_COLORS.text;
-    ctx.fillText(`${game.kills}`, 1282, boxY + 52);
+    ctx.fillText(`${game.ghost ? game.ghost.kills : game.kills}`, 1282, boxY + 52);
     ctx.font = '700 16px sans-serif';
     ctx.fillStyle = 'rgba(216,212,200,0.6)';
     ctx.fillText('体', 1306, boxY + 52);

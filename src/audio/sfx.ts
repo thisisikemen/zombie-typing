@@ -166,7 +166,7 @@ export class AudioSystem {
     this.updateBgmVolumes();
   }
 
-  play(name: SfxName): void {
+  play(name: SfxName, gainScale = 1): void {
     if (!this.ctx || !this.settings.sfxOn) return;
     const buf = this.buffers.get(name);
     if (!buf) return;
@@ -177,7 +177,7 @@ export class AudioSystem {
       src.playbackRate.value = 1 - tune.rateJitter / 2 + Math.random() * tune.rateJitter;
     }
     const g = this.ctx.createGain();
-    g.gain.value = tune?.gain ?? 1;
+    g.gain.value = (tune?.gain ?? 1) * gainScale;
     src.connect(g).connect(this.sfxBus);
     src.start();
   }

@@ -4,7 +4,7 @@
  * 将来のオンライン化ではこのモジュールをサーバーへ移植する想定(仕様 §1)。
  */
 
-import { BASIC, BONUS, BOSS, COMBO, ENDLESS, ENERGY, FIELD, PLAYER, SPAWN, TIERS, type BonusEffectId, type Tier } from '../config';
+import { BASIC, BONUS, BOSS, COMBO, ENDLESS, ENERGY, FIELD, PLAYER, SPAWN, TIERS, VS, type BonusEffectId, type Tier } from '../config';
 import type { DifficultyDef, TierSpawnRule } from './modes';
 import { TypingSession } from './typing/engine';
 import type { WordEntry, WordPool } from './words';
@@ -28,8 +28,8 @@ export interface Zombie {
 
 /** VS 自己ベスト: ゴースト(過去の自分)の再現パラメータ */
 export interface GhostProfile {
-  /** 自己ベストのスコア(ゴーストはこのペースに沿って稼ぐ) */
-  bestScore: number;
+  /** 自己ベストの撃破数(自己ベスト側はこのペースを目安にする) */
+  bestKills: number;
   /** 打鍵速度(1分あたりの正打数) */
   wpm: number;
   /** 正確率 0〜1(この確率を外れた打鍵はミス=コンボ断絶) */
@@ -52,6 +52,7 @@ export interface GhostState {
 
 export type GameEvent =
   | { type: 'shot'; zombieId: number }
+  | { type: 'ghostshot'; zombieId: number }
   | { type: 'miss' }
   | { type: 'kill'; zombieId: number; x: number; y: number; tier: Tier; gained: number; kana: string }
   | { type: 'ghostkill'; zombieId: number; x: number; y: number; tier: Tier; gained: number }
@@ -166,6 +167,7 @@ export class Game {
   /** VS 自己ベスト: ゴーストの状態(VS モード以外は null) */
   ghost: GhostState | null = null;
   private readonly ghostProfile: GhostProfile | null;
+  private ghostReactionTimer = 0;
   private ghostKeyTimer = 0;
 
   constructor(
@@ -627,45 +629,65 @@ export class Game {
     this.events.push({ type: 'spawn', zombieId: z.id });
   }
 
-  /** VS 自己ベスト: ゴーストが自己ベストの WPM・正確率で自動タイピングする。
-      スコアが自己ベストの進行ペースからずれたら打鍵速度を微調整して、
-      最終スコアが自己ベスト付近に着地するようにする */
+  /** VS 自己ベスト: 保存済み WPM・正確率・撃破ペースを土台にしつつ、
+      反応時間、打鍵の揺らぎ、短い迷いを入れて過去の人間の入力らしく再現する。 */
   private updateGhost(dt: number): void {
     const g = this.ghost;
     const p = this.ghostProfile;
     if (!g || !p || g.down) return;
 
-    // ターゲット確保(手前優先)。プレイヤーと同じゾンビを狙うこともある(早押し)
+    // ターゲット確保。基本は手前優先だが、時々近い別候補へ視線が移る。
     let target = g.targetId !== null ? this.getZombie(g.targetId) : undefined;
     if (!target) {
-      target = [...this.zombies].sort((a, b) => a.x - b.x)[0];
+      const candidates = [...this.zombies].sort((a, b) => a.x - b.x).slice(0, 3);
+      target =
+        this.rng() < 0.76
+          ? candidates[0]
+          : candidates[Math.floor(this.rng() * candidates.length)];
       if (!target) return;
       g.targetId = target.id;
       g.session = new TypingSession(target.word.kana);
+      this.ghostReactionTimer =
+        VS.reactionMinSec + this.rng() * (VS.reactionMaxSec - VS.reactionMinSec);
+      this.ghostKeyTimer = 0;
+      return;
     }
 
-    // 打鍵速度(keys/sec)。自己ベストのスコア軌道に沿うようペース補正
+    if (this.ghostReactionTimer > 0) {
+      this.ghostReactionTimer = Math.max(0, this.ghostReactionTimer - dt);
+      return;
+    }
+
+    // 集計値しかない過去記録でも撃破数の進行ペースへ緩やかに寄せる。
+    // 補正を弱く限定し、機械的な急加速はさせない。
     let kps = p.wpm / 60;
-    if (this.duration > 0) {
-      const pace = p.bestScore * Math.min(1, this.time / this.duration);
-      if (g.score < pace * 0.95) kps *= 1.35;
-      else if (g.score > pace * 1.05) kps *= 0.6;
+    if (this.duration > 0 && this.time > 6) {
+      const pace = p.bestKills * Math.min(1, this.time / this.duration);
+      if (g.kills + 0.75 < pace) kps *= 1.1;
+      else if (g.kills > pace + 1.25) kps *= 0.88;
     }
 
-    this.ghostKeyTimer += dt * kps;
-    while (this.ghostKeyTimer >= 1) {
-      this.ghostKeyTimer -= 1;
-      if (!g.session) break;
-      if (this.rng() > p.accuracy) {
-        g.combo = 0; // ミス(進捗なし・コンボ断絶)
-        continue;
-      }
-      const key = g.session.remainingRomaji()[0];
-      if (!key) break;
-      if (g.session.input(key) === 'complete') {
-        this.onGhostKilled(target);
-        break;
-      }
+    this.ghostKeyTimer -= dt;
+    if (this.ghostKeyTimer > 0 || !g.session) return;
+
+    const baseInterval = 1 / Math.max(0.5, kps);
+    const jitter = 1 + (this.rng() * 2 - 1) * VS.keyIntervalJitter;
+    this.ghostKeyTimer = baseInterval * jitter;
+    if (this.rng() < VS.hesitationChance) {
+      this.ghostKeyTimer +=
+        VS.hesitationMinSec + this.rng() * (VS.hesitationMaxSec - VS.hesitationMinSec);
+    }
+
+    if (this.rng() > p.accuracy) {
+      g.combo = 0; // ミス(進捗なし・コンボ断絶)
+      return;
+    }
+    const key = g.session.remainingRomaji()[0];
+    if (!key) return;
+    const result = g.session.input(key);
+    this.events.push({ type: 'ghostshot', zombieId: target.id });
+    if (result === 'complete') {
+      this.onGhostKilled(target);
     }
   }
 

@@ -518,9 +518,27 @@ describe('ラスボス', () => {
 describe('VS 自己ベスト(ゴースト)', () => {
   const vsNormal = getDifficulty(getMode('vs'), 'normal');
 
+  it('狙いを決めた直後は人間らしい反応待ちがあり、その後の各正打を射撃イベントにする', () => {
+    const g = new Game(vsNormal, new WordPool([]), lcg(4), {
+      bestKills: 10,
+      wpm: 240,
+      accuracy: 1,
+    });
+    g.zombies.push(makeZombie('あ'));
+
+    g.update(0.01); // ターゲット選択
+    g.update(0.2); // 最短反応時間より短い
+    expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
+
+    for (let i = 0; i < 20 && g.ghost!.kills === 0; i++) g.update(0.1);
+    const events = g.drainEvents();
+    expect(events.some((e) => e.type === 'ghostshot')).toBe(true);
+    expect(events.some((e) => e.type === 'ghostkill')).toBe(true);
+  });
+
   it('ゴーストが自動でゾンビを倒してスコアを稼ぐ', () => {
     const g = new Game(vsNormal, new WordPool(), lcg(1), {
-      bestScore: 8000,
+      bestKills: 24,
       wpm: 240,
       accuracy: 1,
     });
@@ -533,7 +551,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
 
   it('ライン超えのダメージはゴーストにも同じだけ入る(防衛ラインは共有)', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(), {
-      bestScore: 1000,
+      bestKills: 10,
       wpm: 1,
       accuracy: 1,
     });

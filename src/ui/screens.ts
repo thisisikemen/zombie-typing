@@ -36,7 +36,7 @@ export interface ResultData {
   /** ベーシック(練習)か。「終了する」で抜けた場合は SCORE 見出しになる */
   practice: boolean;
   /** VS 自己ベストの結果(通常モードは null) */
-  vs: { ghostScore: number; win: boolean } | null;
+  vs: { ghostKills: number; win: boolean } | null;
   newRecord: boolean;
 }
 
@@ -365,9 +365,14 @@ export class UI {
       tab.className = `mode-tab${mode.id === this.activeMode.id ? ' active' : ''}`;
       tab.setAttribute('aria-label', mode.label);
       if (mode.id === 'vs') {
-        // VS 自己ベストは専用画像がないためテキストタブ
-        tab.classList.add('text-tab');
-        tab.textContent = 'VS 自己ベスト';
+        tab.classList.add('vs-tab');
+        const badge = document.createElement('span');
+        badge.className = 'prototype-badge';
+        badge.textContent = '試作段階';
+        const img = document.createElement('img');
+        img.src = `${import.meta.env.BASE_URL}assets/ui/vsjikobesuto.png`;
+        img.alt = mode.label;
+        tab.append(badge, img);
       } else {
         const img = document.createElement('img');
         // モードごとのタブ画像(dawn=夜明けまで / endless=夜は明けない)
@@ -378,7 +383,8 @@ export class UI {
       tab.onclick = () => {
         this.cb.onUiSound('bolt');
         this.activeMode = mode;
-        this.carouselOffset = mode.difficulties.length > 3 ? 1 : 0;
+        // VS は最初にイージー側を見せる。既存モードの初期位置は維持する。
+        this.carouselOffset = mode.id === 'vs' ? 0 : mode.difficulties.length > 3 ? 1 : 0;
         this.buildModeSelect();
       };
       tabs.appendChild(tab);
@@ -418,8 +424,8 @@ export class UI {
       const bestText =
         this.activeMode.id === 'vs'
           ? ghostBest
-            ? `ゴースト ${ghostBest.score.toLocaleString()}`
-            : '<span class="unranked-note">記録なし → 初期ゴーストと対戦</span>'
+            ? `自己ベスト 撃破 ${ghostBest.kills}体`
+            : '<span class="unranked-note">記録なし → 初期自己ベストと対戦</span>'
           : diff.ranked === false
             ? '<span class="unranked-note">※ランキング対象外</span>'
             : best && diff.rankBy === 'survival'
@@ -528,8 +534,8 @@ export class UI {
     }
 
     $('result-sub').textContent =
-      data.vs && data.cleared
-        ? `あなた ${data.score.toLocaleString()} ─ ${data.vs.ghostScore.toLocaleString()} ゴースト`
+      data.vs
+        ? `あなた ${data.kills}体 ─ ${data.vs.ghostKills}体 自己ベスト`
         : practiceScore
           ? '練習おつかれさま!'
           : data.endless
@@ -539,7 +545,7 @@ export class UI {
               : '防衛ラインは破られた…';
     const heading = $('result-heading');
     heading.textContent =
-      data.vs && data.cleared
+      data.vs
         ? data.vs.win
           ? 'WIN'
           : 'LOSE'
@@ -548,10 +554,25 @@ export class UI {
           : data.cleared
             ? 'CLEAR'
             : 'GAME OVER';
-    heading.className = data.cleared && (!data.vs || data.vs.win) ? 'clear' : 'gameover';
+    heading.className = data.vs
+      ? data.vs.win
+        ? 'clear'
+        : 'gameover'
+      : data.cleared
+        ? 'clear'
+        : 'gameover';
 
     const rows: [string, string, string][] =
-      data.rankBy === 'survival'
+      data.vs
+        ? [
+            ['あなたの撃破数', `${data.kills}<span class="unit">体</span>`, 'gold'],
+            ['自己ベストの撃破数', `${data.vs.ghostKills}<span class="unit">体</span>`, ''],
+            ['正確率', `${(data.accuracy * 100).toFixed(1)}<span class="unit">%</span>`, ''],
+            ['ミスタイプ', `${data.misses}<span class="unit">回</span>`, ''],
+            ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
+            ['対戦時間', formatTime(data.survival), ''],
+          ]
+        : data.rankBy === 'survival'
         ? [
             ['生存時間', formatTime(data.survival), 'gold'],
             ['スコア', data.score.toLocaleString(), ''],
