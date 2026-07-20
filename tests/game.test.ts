@@ -527,7 +527,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(makeZombie('あ'));
 
     g.update(0.01); // ターゲット選択
-    g.update(0.59); // 0.6秒の認識時間より短い
+    g.update(0.89); // 0.9秒の認識時間より短い
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
     for (let i = 0; i < 20 && g.ghost!.kills === 0; i++) g.update(0.1);
@@ -536,7 +536,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(events.some((e) => e.type === 'ghostkill')).toBe(true);
   });
 
-  it('勝った走りの正打タイムラインを、0.6秒の認識猶予後に再生する', () => {
+  it('勝った走りの正打タイムラインを、0.9秒の認識猶予後に再生する', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(2), {
       bestKills: 1,
       wpm: 120,
@@ -549,7 +549,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(z);
 
     g.update(0.01); // 単語を認識し始める
-    g.update(0.59);
+    g.update(0.89);
     expect(g.ghost!.session!.typedRomaji()).toBe('');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
@@ -557,7 +557,6 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(g.ghost!.session!.typedRomaji()).toBe('k');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(true);
 
-    g.update(0.28);
     expect(g.ghost!.kills).toBe(0);
     g.update(0.01);
     const events = g.drainEvents();
@@ -566,7 +565,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(events.find((e) => e.type === 'ghostkill')).toMatchObject({ kills: 1 });
   });
 
-  it('記録上の打鍵時刻を過ぎていても、新しい単語が出た直後の0.6秒間は撃たない', () => {
+  it('記録上の打鍵時刻を過ぎていても、新しい単語が出た直後の0.9秒間は撃たない', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(8), {
       bestKills: 1,
       wpm: 240,
@@ -577,7 +576,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(makeZombie('か'));
 
     g.update(0.5); // 記録時刻を過ぎた状態で単語を認識
-    g.update(0.59);
+    g.update(0.89);
     expect(g.ghost!.session!.typedRomaji()).toBe('');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
@@ -585,7 +584,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(g.ghost!.session!.typedRomaji()).not.toBe('');
   });
 
-  it('次回の単語が長くなっても保存した撃破時刻へ追いつき、自己ベストの強さを保つ', () => {
+  it('次回の単語が長くなっても0.9秒の認識猶予後は遅れを詰めて入力する', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(5), {
       bestKills: 1,
       wpm: 120,
@@ -596,9 +595,9 @@ describe('VS 自己ベスト(ゴースト)', () => {
     });
     g.zombies.push(makeZombie('かき')); // canonical: kaki（保存時より2打長い想定）
 
-    for (let i = 0; i < 17; i++) g.update(0.05); // 850ms
+    for (let i = 0; i < 18; i++) g.update(0.05); // 900ms
     expect(g.ghost!.kills).toBe(0);
-    g.update(0.05); // 900ms
+    for (let i = 0; i < 4; i++) g.update(0.05); // 認識後、4打を詰めて入力
     expect(g.ghost!.kills).toBe(1);
   });
 
