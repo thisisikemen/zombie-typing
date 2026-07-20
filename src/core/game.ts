@@ -690,7 +690,7 @@ export class Game {
     // 単語が現れた瞬間には撃たず、集中している人が文字を認識できる最小限だけ待つ。
     if (this.ghostReactionTimer > 0) {
       this.ghostReactionTimer = Math.max(0, this.ghostReactionTimer - dt);
-      return;
+      if (this.ghostReactionTimer > 0.000001) return;
     }
 
     // 勝ったプレイの正打時刻を使い、認識猶予後は人工的な待ちやミスを重ねない。

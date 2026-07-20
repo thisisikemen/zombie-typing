@@ -527,7 +527,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(makeZombie('あ'));
 
     g.update(0.01); // ターゲット選択
-    g.update(0.32); // 最短反応時間より短い
+    g.update(0.59); // 0.6秒の認識時間より短い
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
     for (let i = 0; i < 20 && g.ghost!.kills === 0; i++) g.update(0.1);
@@ -536,7 +536,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(events.some((e) => e.type === 'ghostkill')).toBe(true);
   });
 
-  it('勝った走りの正打タイムラインを、短い認識猶予の後にその時刻で再生する', () => {
+  it('勝った走りの正打タイムラインを、0.6秒の認識猶予後に再生する', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(2), {
       bestKills: 1,
       wpm: 120,
@@ -549,7 +549,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(z);
 
     g.update(0.01); // 単語を認識し始める
-    g.update(0.48);
+    g.update(0.59);
     expect(g.ghost!.session!.typedRomaji()).toBe('');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
@@ -557,7 +557,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(g.ghost!.session!.typedRomaji()).toBe('k');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(true);
 
-    g.update(0.39);
+    g.update(0.28);
     expect(g.ghost!.kills).toBe(0);
     g.update(0.01);
     const events = g.drainEvents();
@@ -566,7 +566,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     expect(events.find((e) => e.type === 'ghostkill')).toMatchObject({ kills: 1 });
   });
 
-  it('記録上の打鍵時刻を過ぎていても、新しい単語が出た直後の0.33秒間は撃たない', () => {
+  it('記録上の打鍵時刻を過ぎていても、新しい単語が出た直後の0.6秒間は撃たない', () => {
     const g = new Game(vsNormal, new WordPool([]), lcg(8), {
       bestKills: 1,
       wpm: 240,
@@ -577,7 +577,7 @@ describe('VS 自己ベスト(ゴースト)', () => {
     g.zombies.push(makeZombie('か'));
 
     g.update(0.5); // 記録時刻を過ぎた状態で単語を認識
-    g.update(0.32);
+    g.update(0.59);
     expect(g.ghost!.session!.typedRomaji()).toBe('');
     expect(g.drainEvents().some((e) => e.type === 'ghostshot')).toBe(false);
 
