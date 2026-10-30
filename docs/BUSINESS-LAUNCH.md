@@ -27,11 +27,11 @@
 |7|一人プレイの改善を1件ずつ検証|改善前後で再挑戦・再訪・不具合の変化を比較|
 |8|スキン販売の要否を判断|継続して遊ぶ人と欲しい見た目が見えた時点で、購入保存・復元を設計|
 
-## ドメイン取得済み・DNS反映待ち
+## 独自ドメインで正式公開済み
 
 `zombietyping.jp` を2026-10-31に本人がXServerドメインで取得した。有効期限は2027-10-31。初年度0円、自動更新設定済みで、更新料金の案内は年3,102円。
 
-Cloudflare Workers Static Assetsで検証用URLを公開済み。[設定値・費用・切り替え順序](CLOUDFLARE-LAUNCH.md)を参照。Cloudflareの無料DNS・Workerの独自ドメイン接続とXServerのネームサーバー変更は完了。DNS反映とHTTPS確認は未完了で、正式な公開URLは引き続きGitHub Pages。
+Cloudflare Workers Static Assetsで検証用URLを公開済み。[設定値・費用・切り替え順序](CLOUDFLARE-LAUNCH.md)を参照。Cloudflareの無料DNS・Workerの独自ドメイン接続とXServerのネームサーバー変更は完了。DNS反映とHTTPSを確認し、正式公開URLを `https://zombietyping.jp/` へ切り替えた。任意のGoogle登録・個人ベスト保存も一般向けに有効化済み。旧GitHub Pagesは記録書き出し用に維持する。
 
 ## ホスティングについての重要な確認
 

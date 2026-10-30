@@ -1,14 +1,14 @@
 # 独自ドメインとCloudflareへの移行
 
-更新: 2026-10-31。既存GitHub Pagesを公開したまま、Cloudflareで実配信を検証する。ゲームとSupabaseは継続利用する。
+更新: 2026-10-31。独自ドメインを正式公開。旧GitHub Pagesも記録の書き出し用に維持する。ゲームとSupabaseは継続利用する。
 
 ## 現在の状態
 
-- 正式公開URL: https://thisisikemen.github.io/zombie-typing/
-- Cloudflareでの検証URL: https://zombie-typing.kawabata-dev.workers.dev/
+- 正式公開URL: https://zombietyping.jp/
+- Cloudflareの補助URL（検索対象外）: https://zombie-typing.kawabata-dev.workers.dev/
 - Cloudflareの既存アカウント・既存CLI認証を利用。新しいアカウントやAPIトークンは作っていない。
 - 配信方式は **Workers Static Assets**。新規プロジェクトにはWorkersを使うという[現在の公式案内](https://developers.cloudflare.com/pages/get-started/)に従い、静的ファイルだけを配信する。
-- 検証版はnoindex、GA4・広告は無効。`zombietyping.jp` は本人がXServerドメインで取得済み。Cloudflareの接続設定済みで、DNS反映待ち。
+- DNS反映とHTTPS 200を確認済み。正式URLのcanonical・OGP・sitemap・robotsは新ドメインへ切り替え済み。GA4は明示許可後のみ有効、広告は未配信。Googleログインは本人の了承後に本番環境へ切り替えた。
 - `wrangler.jsonc` に配信設定を保存。Wranglerは開発依存にバージョンを固定。ゲーム用サーバーコードやDBは追加していない。
 - GitHub Pagesへの自動公開は継続。Cloudflareへの自動公開はまだ接続していない。
 
@@ -16,7 +16,7 @@
 
 検証URLのHTTPS、トップページと案内ページのHTTP 200、存在しないページのHTTP 404、noindex等のヘッダーを実配信で確認した。ベーシックで開始・入力・撃破・一時停止・終了を確認し、既存ランキングも読み取れることを確認する。ローカルだけの確認と区別する。
 
-**zombietyping.jp** を本人が2026-10-31に取得した。XServer管理画面で「有効」、有効期限2027-10-31を確認。初年度0円で、本人がクレジットカードによる自動更新を設定した。更新料金の案内は年3,102円。XServerでネームサーバーをCloudflare指定の2件へ変更済み。ドメイン登録情報のDNS反映待ち。
+**zombietyping.jp** を本人が2026-10-31に取得した。XServer管理画面で「有効」、有効期限2027-10-31を確認。初年度0円で、本人がクレジットカードによる自動更新を設定した。更新料金の案内は年3,102円。XServerでネームサーバーをCloudflare指定の2件へ変更済み。公開DNSへの反映を確認済み。
 
 |項目|提案|費用|
 |---|---|---|
@@ -33,7 +33,7 @@ JPの公開連絡窓口の代理公開と登録者名の非表示は別の設定
 ```sh
 npm ci
 npm test
-npm run deploy:cloudflare
+SITE_URL=https://zombietyping.jp/ VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF VITE_ACCOUNTS_ENABLED=true VITE_ACCOUNTS_TEST_MODE=false npm run deploy:cloudflare
 ```
 
 CLIの既存ログインを利用する。認証情報をGit、HTML、ログ、チャットに貼り付けない。別のアカウントにもアクセスできる環境では、公開先を確認する。
@@ -59,8 +59,8 @@ PagesのGit連携での作成はCloudflareからエラー8000011（Git installat
 |ビルドコマンド|`npm test && npm run build:cloudflare`|
 |デプロイコマンド|`npx wrangler deploy`|
 |Nodeバージョン|`22`|
-|現時点のSITE_URL|未設定。既存GitHub PagesのURLをcanonicalとして使う|
-|解析・広告ID|現時点では未設定|
+|現時点のSITE_URL|`https://zombietyping.jp/`|
+|解析・広告ID|GA4 `G-ZCWQHK5BCF`、広告IDは未設定|
 
 GitHubリポジトリの変数はCloudflareのビルド環境へ自動転送されない。自動公開の接続前は、mainの更新後に上のCLIでCloudflareも再公開する。
 
@@ -81,8 +81,11 @@ GitHubリポジトリの変数はCloudflareのビルド環境へ自動転送さ�
 - Cloudflareへ無料のDNSゾーンを追加済み。購入・移管・有料プランの追加はしていない。
 - 指定ネームサーバーは `arvind.ns.cloudflare.com` と `vera.ns.cloudflare.com`。XServerへ2件だけを設定し、管理画面で保存結果を確認した。
 - Worker `zombie-typing` に `zombietyping.jp` のCustom Domainを設定済み。Wranglerの公開成功とCloudflare DNS画面のWorkerレコードを確認した。
-- 設定直後はCloudflareが `pending`、公開DNSも `NXDOMAIN` だった。その後、公開NSの照会でCloudflareの2件への反映を確認。その後 `https://zombietyping.jp/` のHTTPS接続とHTTP 200を確認。新URLはまだnoindex・解析なしの検証版で、正式公開の表示確認とメタデータ切り替えは未完了。管理画面の反映時間の案内は通常1〜2時間、最大24時間。
-- ドメイン側も当面はnoindex・解析なしの検証版。正式URLとGA4ストリームは既存GitHub Pagesのまま。新URLへの移行告知はまだ行わない。
-- 本番設定 `SITE_URL=https://zombietyping.jp/ VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF npm run build:cloudflare` のビルドは確認済み。DNSとHTTPSが利用可能になった段階で、この環境変数を付けて `npm run deploy:cloudflare` を実行し、canonical・GA同意等を実配信で確認する。
+- 設定直後はDNS・HTTPSが未反映だったが、公開NS・Aレコード・HTTPS 200を確認済み。現在は反映待ちではない。
+- 本番のcanonical・OGP・sitemap・robotsを新ドメインへ切り替え、noindexを解除。workers.devの補助URLはnoindexを維持。
+- Google Authを本番環境へ切り替え、テスト利用者限定の案内を非表示にした。個人記録のRLSは維持する。
+- GA4の既存ストリームURLを `https://zombietyping.jp/` へ変更。測定IDは継続利用する。許可前の実画面でGoogleタグ未読込を確認済み。個別ゲームイベントの受信確認は引き続き別作業。
+- GitHubの `SITE_URL` 変数も新ドメインに設定。旧サイトは相対パスで動作と記録書き出しを維持し、ホームに「新サイトへ」のリンクを表示する。
+- Search Consoleへの新ドメイン登録と広告審査は未完了。CloudflareはCLIでの手動公開を継続する。
 
 既存CLI認証ではDNSゾーンの新規作成が権限不足だったため、本人がログインした内蔵ブラウザで無料ゾーンを作成した。CLI認証の権限拡張や新しいAPIトークンの作成はしていない。WorkerのCustom Domainの設定には既存CLI認証を利用した。
