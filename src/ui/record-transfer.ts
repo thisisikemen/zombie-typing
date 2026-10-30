@@ -7,6 +7,7 @@ export function initRecordTransfer(): void {
   const input = document.getElementById('records-file') as HTMLInputElement;
   const restore = document.getElementById('records-restore') as HTMLButtonElement;
   let pending: RecordBackup | null = null;
+  document.getElementById('records-select')!.onclick = () => input.click();
   document.getElementById('records-open')!.onclick = () => dialog.showModal();
   document.getElementById('records-close')!.onclick = () => dialog.close();
   dialog.addEventListener('keydown', (event) => event.stopPropagation());
@@ -30,6 +31,7 @@ export function initRecordTransfer(): void {
     pending = null;
     restore.disabled = true;
     const file = input.files?.[0];
+    document.getElementById('records-filename')!.textContent = file?.name ?? 'ファイル未選択';
     if (!file) return;
     try {
       if (file.size > BACKUP_MAX_BYTES) throw new Error('記録ファイルは2MB以内にしてください。');

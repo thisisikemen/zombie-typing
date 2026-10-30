@@ -61,7 +61,7 @@ Supabaseのpublishableキーはブラウザ公開用。安全性はRLS・列権�
 
 2026-10-30、GA4のウェブストリームを作成し、GitHubリポジトリ変数 `VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF` を設定して公開した。測定IDは公開用であり秘密鍵ではない。新しいGA4アカウントを重複作成しない。
 
-2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。本人が2026-10-31にXServerで `zombietyping.jp` を取得済み（有効期限2027-10-31）。Cloudflareの無料DNSゾーンを作成し、XServerのネームサーバーを `arvind.ns.cloudflare.com` / `vera.ns.cloudflare.com` に変更済み。WorkerのCustom Domain設定も完了。設定時はCloudflareがpending・公開DNSがNXDOMAIN。その後の再確認で公開NSにCloudflareの2件を確認したが、HTTPSはハンドシェイクが成立せず、公開表示は未確認。反映後に本番URL・GA4を設定して再公開する。Cloudflareの有料契約・新しいAPIトークンの作成は行っていない。
+2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。本人が2026-10-31にXServerで `zombietyping.jp` を取得済み（有効期限2027-10-31）。Cloudflareの無料DNSゾーンを作成し、XServerのネームサーバーを `arvind.ns.cloudflare.com` / `vera.ns.cloudflare.com` に変更済み。WorkerのCustom Domain設定も完了。設定時はCloudflareがpending・公開DNSがNXDOMAIN。その後の再確認で公開NSにCloudflareの2件とHTTPSのHTTP 200を確認。新ドメインはまだnoindexの検証版で、正式公開の確認は未完了。反映後に本番URL・GA4を設定して再公開する。Cloudflareの有料契約・新しいAPIトークンの作成は行っていない。
 
 GitHub Pagesには事業用途の制限がある。収益化前に配信先を確定する。移行する場合も静的な `dist/` の配信先変更と、オンライン対戦用のバックエンド変更を分けて考える。
 
@@ -69,4 +69,6 @@ GitHub Pagesには事業用途の制限がある。収益化前に配信先を�
 
 ## 任意ログインの実装（公開前）
 
-本人の追加要望により、任意のGoogleログイン、新規登録端末の個人ベスト・VS記録・名前の初回引き継ぎ、他端末のゲストデータを統合しない説明、セッション復元・更新、会員別キャッシュ、自己ベスト同期を実装した。`VITE_ACCOUNTS_ENABLED` は未設定/falseで入口非表示。132件のローカルテスト成功（PGliteのRLS/RPC検証とSDKモックを含む）。本番マイグレーションは適用済みで権限カタログと未ログインAPI拒否を確認した。Google OAuth設定、本人の実登録・端末間復元確認は未完了。Google専用プロジェクト `maximal-cabinet-513216-j6` を作成し、Googleポリシーへの同意直前を本人へ引き継いだ。Supabaseの公開設定APIではGoogleプロバイダー無効を確認した。詳細・手順は [任意ログインの運用](docs/ACCOUNTS.md)。
+本人の追加要望により、任意のGoogleログイン、新規登録端末の個人ベスト・VS記録・名前の初回引き継ぎ、他端末のゲストデータを統合しない説明、セッション復元・更新、会員別キャッシュ、自己ベスト同期を実装した。`VITE_ACCOUNTS_ENABLED` は未設定/falseで入口非表示。132件のローカルテスト成功（PGliteのRLS/RPC検証とSDKモックを含む）。本番マイグレーションは適用済みで権限カタログと未ログインAPI拒否を確認した。Google OAuth設定は完了。本人の実登録・端末間復元確認は未完了。Google専用プロジェクト `maximal-cabinet-513216-j6` を作成し、本人がGoogleポリシー同意・初期構成を完了。本人1件をテスト利用者に登録し、本人がクライアント作成とSupabaseへのID/シークレット入力を完了。認証後の許可する戻り先は本番とlocalhost5175の2件を保存済み。Supabaseの公開設定APIでGoogleプロバイダー有効を確認した。Chrome旧サイトの本人記録はUIからファイルへ退避済み、新URLへは未読込。旧URLからの自己ベスト・VS記録・設定の移行は任意であり、登録やプレイの前提にしない。公開ランキングは既存DBを維持する。Cloudflare検証版では入口を有効化し、`VITE_ACCOUNTS_TEST_MODE=true` で先行テストの説明を表示する。詳細・手順は [任意ログインの運用](docs/ACCOUNTS.md)。
+
+2026-10-31、追加した解析・記録引き継ぎ・アカウントの各ダイアログを既存設定と同じパネル・金属調ボタンへ統一。GA4は明示許可まで未読込を維持し、初回の自動モーダルをタイトル上の非モーダル案内へ変更。未選択でも開始でき、メニュー・プレイ・他のダイアログ表示中は案内を隠す。許可/拒否は同じ大きさ・スタイルとし、設定から変更可能。

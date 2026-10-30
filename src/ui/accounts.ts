@@ -31,6 +31,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     history.replaceState(null, '', url);
   }
   if (!ENABLED) return { idle() {} };
+  const testing = import.meta.env.VITE_ACCOUNTS_TEST_MODE === 'true';
+  document.getElementById('account-test-notice')?.toggleAttribute('hidden', !testing);
   buttons.forEach(b => { b.hidden = false; b.onclick = () => { render(); dialog.showModal(); }; });
   document.getElementById('account-close')!.onclick = () => dialog.close();
   dialog.addEventListener('keydown', e => e.stopPropagation());
@@ -65,7 +67,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     logout.disabled = transitioning;
     syncButton.hidden = !desired;
     syncButton.disabled = syncing || transitioning;
-    buttons.forEach(b => { b.textContent = owner ? 'アカウント・記録同期' : 'ログイン・新規登録'; });
+    buttons.forEach(b => { b.textContent = owner ? 'アカウント・記録同期' : testing ? 'ログイン・新規登録（テスト中）' : 'ログイン・新規登録'; });
   }
   consent.onchange = render;
   async function rpc(id: string, initial: AccountRecords | null, updates: AccountRecords) {
@@ -194,7 +196,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     lastStatus = 'ログイン状態を確認できませんでした。未登録のままプレイできます。接続後に再読み込みしてください。';
     render();
   });
-  message.textContent = '新規登録では、このブラウザに保存されている自己ベスト・VS自己ベスト・名前を引き継ぎます。他の端末や別のブラウザの未登録データは自動統合されず、それぞれの端末に残ります。引き継ぎたい記録がある端末で登録してください。';
+  message.textContent = '新規登録時に、このサイトで今使っているブラウザの自己ベスト・VS自己ベスト・名前を保存します。他の端末やブラウザの未登録データは自動統合せず、それぞれに残ります。旧サイトからの記録移行は任意で、記録がなくても登録できます。';
   render();
   return { idle() { void activate().then(sync); } };
 }

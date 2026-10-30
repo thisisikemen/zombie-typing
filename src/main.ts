@@ -7,6 +7,7 @@
 import { AudioSystem, type SfxName } from './audio/sfx';
 import { analytics, initAnalytics } from './analytics';
 import { initRecordTransfer } from './ui/record-transfer';
+import { initGameDialogs } from './ui/dialogs';
 import { initAccounts, type AccountController } from './ui/accounts';
 import { loadPlayerName } from './ui/ranking';
 import { COUNTDOWN, VS } from './config';
@@ -328,6 +329,7 @@ async function boot(): Promise<void> {
     onUserGesture: userGesture,
     onUiSound: (kind) => audio.play(kind),
   });
+  initGameDialogs();
   accounts = initAccounts(() => state === 'title' || state === 'mode', () => {
     for (const id of ['result-name', 'set-name', 'ranking-name']) {
       (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();

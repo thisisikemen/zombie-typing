@@ -189,16 +189,6 @@ kbd {
 
 .service-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1rem; margin-top: .5rem; }
 .service-links a, .service-links button { color: #c6bdab; font: inherit; font-size: max(11px, .75rem); background: none; border: 0; text-decoration: underline; cursor: pointer; }
-#analytics-dialog, .info-dialog { margin: auto; width: min(32rem, 92vw); max-height: 90vh; overflow: auto; padding: 1.5rem; border: 1px solid #706452; background: #15131c; color: #e8e4d8; line-height: 1.8; font-size: max(14px, 1rem); user-select: text; }
-#analytics-dialog::backdrop, .info-dialog::backdrop { background: #000b; }
-#analytics-dialog p, .info-dialog p { margin: 1rem 0; }
-#analytics-dialog a, .info-dialog a { color: #ffd24a; }
-.records-file { display: block; margin-top: 1.25rem; }
-.records-file input { display: block; max-width: 100%; margin-top: .5rem; }
-.consent-actions button:disabled { opacity: .5; cursor: default; }
-.consent-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
-.consent-actions button { padding: .6rem .9rem; color: #e8e4d8; background: #292431; border: 1px solid #8c8195; border-radius: .25rem; cursor: pointer; font: inherit; }
-.consent-actions button[hidden] { display: none; }
 
 /* ---------- モード選択 ---------- */
 #screen-mode { gap: 1rem; padding-top: 0.6rem; padding-bottom: 3.4rem; /* 下部の TIP バーぶん */ }
@@ -923,7 +913,70 @@ kbd {
 
 /* アカウントもプレイ前の登録を強制しない。 */
 [hidden] { display: none !important; }
-#account-dialog { max-height: 85vh; overflow-y: auto; }
-#account-dialog h3 { margin: 1.2em 0 .5em; font-size: 1.05em; }
 .account-consent { display: flex; align-items: flex-start; gap: .6em; line-height: 1.6; }
 .account-consent input { margin-top: .4em; flex: 0 0 auto; }
+
+/* 追加画面も既存の設定パネル・金属プレートと同じ部品を使う。 */
+.game-dialog {
+  margin: auto;
+  max-height: 88dvh;
+  overflow-y: auto;
+  color: var(--ui-text);
+  font: inherit;
+  line-height: 1.75;
+  user-select: text;
+  scrollbar-color: var(--ui-border) transparent;
+}
+.game-dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.dialog-heading h2 { font-size: 1.5rem; letter-spacing: .24em; color: #f2eee2; margin: 0 0 1.2rem; }
+.dialog-close {
+  flex: 0 0 auto;
+  padding: 0 .35rem;
+  color: var(--ui-dim);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.dialog-close:hover, .dialog-close:focus-visible { color: var(--accent); outline: 1px solid var(--accent); }
+.game-dialog p { margin: .8rem 0; }
+.game-dialog h3 { font-size: 1.08rem; letter-spacing: .08em; margin: 1.15rem 0 .5rem; }
+.game-dialog a { color: var(--gold); text-underline-offset: .2em; }
+.game-dialog .consent-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1.1rem; }
+.game-dialog .plate-btn, .analytics-notice .plate-btn {
+  min-width: 0;
+  font-size: 1rem;
+  padding: .8rem 1.1rem;
+  letter-spacing: .1em;
+  text-indent: .1em;
+}
+.plate-btn:disabled { opacity: .45; cursor: default; filter: none; transform: none; }
+.game-dialog .dialog-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.game-dialog .dialog-dismiss { grid-column: 1 / -1; justify-self: center; min-width: 12rem; }
+.records-file { margin-top: 1.2rem; text-align: center; }
+.game-dialog .dialog-caption { font-size: .9rem; color: var(--ui-dim); overflow-wrap: anywhere; }
+#records-status, #account-status { color: var(--gold); }
+.account-consent input { accent-color: var(--accent); }
+.analytics-notice {
+  position: fixed;
+  inset: auto 1rem 1rem auto;
+  z-index: 15;
+  width: min(25rem, calc(100vw - 2rem));
+  padding: 1.1rem 1.3rem;
+  font-size: max(12px, .9rem);
+  line-height: 1.6;
+}
+body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-notice { display: none; }
+.analytics-notice h2 { color: #f2eee2; font-size: 1.05rem; letter-spacing: .12em; margin-bottom: .5rem; }
+.analytics-notice p { color: var(--ui-dim); }
+.analytics-notice-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin-top: .8rem; }
+.analytics-notice .plate-btn { font-size: .95rem; padding: .65rem .5rem; }
+.analytics-notice-footer { display: flex; justify-content: space-between; gap: .5rem; margin-top: .5rem; font-size: .8rem; color: var(--ui-dim); }
+.analytics-notice-footer button { color: var(--gold); background: none; border: 0; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; font: inherit; }
+@media (max-width: 600px) {
+  .game-dialog { width: 94vw; padding: 1.2rem; font-size: max(12px, 1rem); }
+  .analytics-notice { right: .6rem; bottom: .6rem; width: min(25rem, calc(100vw - 1.2rem)); }
+}

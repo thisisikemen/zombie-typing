@@ -81,7 +81,7 @@ GitHubリポジトリの変数はCloudflareのビルド環境へ自動転送さ�
 - Cloudflareへ無料のDNSゾーンを追加済み。購入・移管・有料プランの追加はしていない。
 - 指定ネームサーバーは `arvind.ns.cloudflare.com` と `vera.ns.cloudflare.com`。XServerへ2件だけを設定し、管理画面で保存結果を確認した。
 - Worker `zombie-typing` に `zombietyping.jp` のCustom Domainを設定済み。Wranglerの公開成功とCloudflare DNS画面のWorkerレコードを確認した。
-- 設定直後はCloudflareが `pending`、公開DNSも `NXDOMAIN` だった。その後、公開NSの照会でCloudflareの2件への反映を確認。HTTPS接続はまだハンドシェイクが成立せず、新ドメインの公開表示は未確認。管理画面の反映時間の案内は通常1〜2時間、最大24時間。
+- 設定直後はCloudflareが `pending`、公開DNSも `NXDOMAIN` だった。その後、公開NSの照会でCloudflareの2件への反映を確認。その後 `https://zombietyping.jp/` のHTTPS接続とHTTP 200を確認。新URLはまだnoindex・解析なしの検証版で、正式公開の表示確認とメタデータ切り替えは未完了。管理画面の反映時間の案内は通常1〜2時間、最大24時間。
 - ドメイン側も当面はnoindex・解析なしの検証版。正式URLとGA4ストリームは既存GitHub Pagesのまま。新URLへの移行告知はまだ行わない。
 - 本番設定 `SITE_URL=https://zombietyping.jp/ VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF npm run build:cloudflare` のビルドは確認済み。DNSとHTTPSが利用可能になった段階で、この環境変数を付けて `npm run deploy:cloudflare` を実行し、canonical・GA同意等を実配信で確認する。
 

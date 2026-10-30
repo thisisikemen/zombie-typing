@@ -11,11 +11,16 @@ describe('解析タグの読み込み制御', () => {
     const dialog = { showModal: vi.fn(), close: vi.fn(), addEventListener: vi.fn(), open: false };
     elements.set('analytics-dialog', dialog);
     const get = (key: string) => {
-      if (!elements.has(key)) elements.set(key, { onclick: undefined, hidden: false, textContent: '' });
+      if (!elements.has(key)) elements.set(key, { onclick: undefined, hidden: false, textContent: '', focus: vi.fn() });
       return elements.get(key);
     };
     const append = vi.fn();
-    const document = { getElementById: get, querySelectorAll: () => [],
+    const document = { getElementById: get, querySelectorAll: (selector: string) => {
+      if (selector === '[data-analytics-settings]') return [get('details')];
+      if (selector.includes('granted')) return [get('analytics-granted'), get('notice-granted')];
+      if (selector.includes('denied')) return [get('analytics-denied'), get('notice-denied')];
+      return [];
+    },
       createElement: () => ({}), head: { appendChild: append },
       referrer: 'https://source.example/path?private=1', cookie: '' };
     const reload = vi.fn();
@@ -27,9 +32,14 @@ describe('解析タグの読み込み制御', () => {
     vi.stubGlobal('gtag', undefined);
     const { initAnalytics, analytics } = await import('../src/analytics');
     initAnalytics();
+    expect(dialog.showModal).not.toHaveBeenCalled();
+    expect(get('analytics-notice').hidden).toBe(false);
+    get('details').onclick();
     expect(dialog.showModal).toHaveBeenCalledOnce();
+    expect(get('analytics-close').focus).toHaveBeenCalledOnce();
     expect(append).not.toHaveBeenCalled();
-    get('analytics-denied').onclick();
+    get('notice-denied').onclick();
+    expect(get('analytics-notice').hidden).toBe(true);
     expect(append).not.toHaveBeenCalled();
     get('analytics-granted').onclick();
     get('analytics-granted').onclick();
