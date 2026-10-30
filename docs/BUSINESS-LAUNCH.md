@@ -31,7 +31,7 @@
 
 第一候補は `zombietyping.jp`。ゲーム名と一致し、口頭でも伝えやすい。第二候補は `zombie-typing.jp`。
 
-配信先の第一候補はCloudflare PagesのFreeプラン。アカウント作成前のリポジトリ準備・検証用ビルドを用意した。[設定値・費用・切り替え順序](CLOUDFLARE-LAUNCH.md)を参照。まだ配信先の切り替えやドメイン購入は行っていない。
+Cloudflare Workers Static Assetsで検証用URLを公開した。[設定値・費用・切り替え順序](CLOUDFLARE-LAUNCH.md)を参照。正式な公開URLは引き続きGitHub Pages。ドメインは未購入。
 
 2026-10-30のJPRS WHOIS照会では両方とも `No match!!` だった。取得可能性・価格・商標等を保証するものではなく、購入時に再確認する。ドメインはまだ取得していない。
 

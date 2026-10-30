@@ -1,6 +1,6 @@
 # 開発・運用の引き継ぎ
 
-更新: 2026-10-30。過去のセットアップ手順より、実際のコードと次の文書を優先する。
+更新: 2026-10-31。過去のセットアップ手順より、実際のコードと次の文書を優先する。
 
 ## 目的と現在の構成
 
@@ -58,6 +58,8 @@ Supabaseのpublishableキーはブラウザ公開用。安全性はRLS・列権�
 `SITE_URL`、`VITE_GA_MEASUREMENT_ID`、`ADSENSE_PUBLISHER_ID` の使い方は運用手順を参照。未設定の解析・広告は動かない。独自ドメインは未取得。広告配信・決済は未実装。
 
 2026-10-30、GA4のウェブストリームを作成し、GitHubリポジトリ変数 `VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF` を設定して公開した。測定IDは公開用であり秘密鍵ではない。新しいGA4アカウントを重複作成しない。
+
+2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。ドメイン購入・DNS変更・有料契約・新しいAPIトークンの作成は行っていない。
 
 GitHub Pagesには事業用途の制限がある。収益化前に配信先を確定する。移行する場合も静的な `dist/` の配信先変更と、オンライン対戦用のバックエンド変更を分けて考える。
 

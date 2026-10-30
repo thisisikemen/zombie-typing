@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .hosting-preview/
+.wrangler/
 .DS_Store
 .claude/
 .env

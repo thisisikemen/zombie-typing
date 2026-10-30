@@ -12,7 +12,7 @@ describe('Cloudflareへの段階的な移行', () => {
     expect(result.headers).toContain('X-Robots-Tag: noindex');
   });
   it('PRやローカル検証で本番の計測設定を引き継がない', () => {
-    for (const result of [cloudflareSettings({ ...configured, CF_PAGES_BRANCH: 'fix-menu' }), cloudflareSettings(configured, true), cloudflareSettings({ ...configured, SITE_URL: 'https://test.pages.dev/' })]) {
+    for (const result of [cloudflareSettings({ ...configured, CF_PAGES_BRANCH: 'fix-menu' }), cloudflareSettings({ ...configured, WORKERS_CI_BRANCH: 'fix-menu' }), cloudflareSettings(configured, true), cloudflareSettings({ ...configured, SITE_URL: 'https://test.pages.dev/' }), cloudflareSettings({ ...configured, SITE_URL: 'https://test.account.workers.dev/' })]) {
       expect(result.preview).toBe(true);
       expect(result.env.VITE_GA_MEASUREMENT_ID).toBe('');
       expect(result.env.ADSENSE_PUBLISHER_ID).toBe('');

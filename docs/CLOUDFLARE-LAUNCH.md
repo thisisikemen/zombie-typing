@@ -1,67 +1,77 @@
-# 独自ドメインとCloudflareへの移行準備
+# 独自ドメインとCloudflareへの移行
 
-確認日: 2026-10-30。現行GitHub Pagesを公開したまま、別の配信先で検証してから切り替える。Supabaseとゲームの仕組みは継続利用する。
+更新: 2026-10-31。既存GitHub Pagesを公開したまま、Cloudflareで実配信を検証する。ゲームとSupabaseは継続利用する。
 
-## 今回の提案
+## 現在の状態
 
-|項目|提案|費用・状態|
+- 正式公開URL: https://thisisikemen.github.io/zombie-typing/
+- Cloudflareでの検証URL: https://zombie-typing.kawabata-dev.workers.dev/
+- Cloudflareの既存アカウント・既存CLI認証を利用。新しいアカウントやAPIトークンは作っていない。
+- 配信方式は **Workers Static Assets**。新規プロジェクトにはWorkersを使うという[現在の公式案内](https://developers.cloudflare.com/pages/get-started/)に従い、静的ファイルだけを配信する。
+- 検証版はnoindex、GA4・広告は無効。独自ドメインは未取得。
+- `wrangler.jsonc` に配信設定を保存。Wranglerは開発依存にバージョンを固定。ゲーム用サーバーコードやDBは追加していない。
+- GitHub Pagesへの自動公開は継続。Cloudflareへの自動公開はまだ接続していない。
+
+## ドメインと費用の提案
+
+検証URLのHTTPS、トップページと案内ページのHTTP 200、存在しないページのHTTP 404、noindex等のヘッダーを実配信で確認した。ベーシックで開始・入力・撃破・一時停止・終了を確認し、既存ランキングも読み取れることを確認する。ローカルだけの確認と区別する。
+
+第一候補は **zombietyping.jp**。第二候補は `zombie-typing.jp`。JPRS WHOISは2026-10-30の確認時点で第一候補が `No match!!` だった。購入時に取得可否と価格を再確認する。
+
+|項目|提案|費用|
 |---|---|---|
-|ゲームのURL|`https://zombietyping.jp/`|未取得。JPRS WHOISは確認時点で `No match!!`。購入画面で再確認|
-|配信・HTTPS・DNS|Cloudflare Pages / Free|静的配信の費用は無料枠を想定。アカウント・プロジェクトは未作成|
-|ドメインの購入先|XServerドメインを第一候補、さくらを比較候補|下表参照。サーバー契約は今回の構成に含めない|
-|ランキング|既存Supabase|今回の移行で新規DBは作らない|
-|アクセス解析|既存GA4|同じプロパティ・測定IDを継続|
+|配信・HTTPS・DNS|Cloudflareの静的配信|[静的ファイルへのリクエストと保存は無料](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)。今回、有料プランを契約していない|
+|ドメイン購入先の第一候補|XServerドメイン|ローマ字.jpは初回条件を満たせば取得0円、通常取得1,980円。更新は年3,102円（[料金表と適用条件](https://www.xdomain.ne.jp/domain/price.php)）|
+|ドメイン購入先の比較候補|さくらのドメイン|取得・更新とも年3,982円（[税込価格表](https://domain.sakura.ad.jp/specification/)）|
 
-ドメイン料金は毎年発生する。初年度キャンペーンだけで判断せず、購入画面の総額・更新額・Whois公開設定を確認してから本人が申し込む。利用履歴や対象名によりキャンペーンが適用されないことがある。
-
-|購入先|ローマ字.jpの取得|更新/年|公式情報|
-|---|---|---|---|
-|XServerドメイン|初回条件を満たす場合0円、対象外の通常取得1,980円|3,102円|[料金と適用条件](https://www.xdomain.ne.jp/domain/price.php)|
-|さくらのドメイン|3,982円|3,982円|[税込価格表](https://domain.sakura.ad.jp/specification/)|
+ドメイン費用は継続して発生する。購入画面の総額・更新額・Whois公開設定を確認してから本人が申し込む。サーバー契約は今回の構成に含めない。
 
 JPの公開連絡窓口の代理公開と登録者名の非表示は別の設定。[JPRSの説明](https://jprs.jp/about/dom-rule/whois-concealment/)を参照。購入前に希望する設定が使えることを確認する。さくらは[指定事業者変更の説明](https://help.sakura.ad.jp/domain/2283/)で登録者名の非表示に対応しないと案内している。
 
-## リポジトリ側の準備
+## 再公開するコマンド
 
-- `npm run build:cloudflare`: Cloudflare用に `dist/` を作る。上限20,000ファイル・単一ファイル25 MiBを超えると失敗する。
+```sh
+npm ci
+npm test
+npm run deploy:cloudflare
+```
+
+CLIの既存ログインを利用する。認証情報をGit、HTML、ログ、チャットに貼り付けない。別のアカウントにもアクセスできる環境では、公開先を確認する。
+
+- `npm run build:cloudflare`: `dist/` を生成。ファイル数20,000・単一ファイル25 MiBの上限を検証する。
 - `npm run build:hosting-preview`: `.hosting-preview/site/` にローカル検証用の一式を作る。通常の `dist/` と分離する。
-- 独自ドメイン未設定、`*.pages.dev` の `SITE_URL`、main以外のブランチ、ローカル検証用ビルドはステージング扱い。解析ID・広告IDを空にし、通常のHTMLページに `noindex`、Cloudflareの応答にも `X-Robots-Tag: noindex` を付ける。Search Consoleの所有確認ファイルは内容を変更しない。
-- 本番は `SITE_URL` を確定したドメイン直下のHTTPS URLへ変更する。`pages.dev` のホストだけは `noindex` を維持する。
-- 存在しないURLには `404.html` を用意。ゲームへのリンクは公開URLの設定に従って切り替える。
-- Cloudflare用の応答ヘッダーにMIMEの誤解釈防止・参照元情報の制限・未使用のカメラ/マイク/位置情報の停止を指定。これらのヘッダーはGitHub Pagesでは適用されない。
+- 独自ドメイン未設定、SITE_URLがpages.dev/workers.dev、main以外のPages/Workers Builds、ローカル検証用ビルドはステージング扱い。解析ID・広告IDを空にする。
+- ステージングのHTMLページと応答ヘッダーにnoindexを指定。所有確認ファイルは内容を変更しない。
+- 本番もpages.dev/workers.devの既定ホストにはnoindexを維持する。
+- `.html` の既存URLを保つ設定とし、トップページだけ `_redirects` で `/index.html` に内部転送する。存在しないURLには404ページを返す。
+- MIMEの誤解釈防止、参照元情報の制限、未使用のカメラ/マイク/位置情報の停止を応答ヘッダーへ設定。これらの設定はGitHub Pagesでは適用されない。
 
-## アカウント作成後の設定
+## 自動公開の接続（未完了）
 
-日々のコード変更を自動公開できるよう、最初から **PagesのGit連携** を使う。[Git連携の公式手順](https://developers.cloudflare.com/pages/get-started/git-integration/)に従う。Direct Uploadで作ったプロジェクトは後からGit連携へ切り替えられないため、検証用ZIPをそのまま本番プロジェクト作成に使わない。
+PagesのGit連携での作成はCloudflareからエラー8000011（Git installationの内部エラー）が返り、作成できなかった。既存の他プロジェクトやGitHubアプリ設定は変更していない。現在はWorkersへのCLI公開が利用できる。
+
+自動化する際はWorkers Buildsの[Git連携手順](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/)に従い、対象を `thisisikemen/zombie-typing` だけに限定する。GitHubアプリの新しいアクセス許可は、実際の許可画面で本人が範囲を確認する。
 
 |設定|値|
 |---|---|
-|リポジトリ|`thisisikemen/zombie-typing` だけを選ぶ|
-|プロジェクト名|`zombie-typing`（利用可能な場合）|
+|Worker名|`zombie-typing`|
 |本番ブランチ|`main`|
-|フレームワーク|なし|
 |ビルドコマンド|`npm test && npm run build:cloudflare`|
-|出力ディレクトリ|`dist`|
-|Node環境変数|`NODE_VERSION=22`|
-|初回のSITE_URL|未設定でよい。既存GitHub Pagesをcanonicalとして検証する|
-|初回の解析・広告変数|未設定。検証中の流入を本番集計へ混ぜない|
+|デプロイコマンド|`npx wrangler deploy`|
+|Nodeバージョン|`22`|
+|現時点のSITE_URL|未設定。既存GitHub PagesのURLをcanonicalとして使う|
+|解析・広告ID|現時点では未設定|
 
-CloudflareへのGitHubアプリの許可は、このリポジトリだけを対象にする。利用者によるアカウント作成・認証・規約確認が済んだ後に設定する。Cloudflareのプロジェクトは今回まだ作っていない。
+GitHubリポジトリの変数はCloudflareのビルド環境へ自動転送されない。自動公開の接続前は、mainの更新後に上のCLIでCloudflareも再公開する。
 
-## 切り替え順序
+## 独自ドメインへの切り替え順序
 
-1. `pages.dev` で画像・音・ゲーム・ランキングの読み取り・記録の書き出し/読み込みを確認。ランキングへ架空の成績を投稿しない。
-2. `zombietyping.jp` を本人が取得。Cloudflareへサイトを追加して、割り当てられたネームサーバーを購入先に設定する。既存メール等があるドメインを使う場合は、先にDNSレコードを引き継ぐ。
-3. PagesのCustom domainsにドメインを追加してHTTPSを確認する。[公式手順](https://developers.cloudflare.com/pages/configuration/custom-domains/)では、ルートドメインにはCloudflareのネームサーバーが必要。
-4. Cloudflareの本番変数を `SITE_URL=https://zombietyping.jp/`、`VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF` にし、再ビルド。広告IDは審査準備が整ってから設定する。GA4ストリームURLも変更する。
-5. canonical・OGP・sitemap・robots・404・GA同意・端末記録・ランキングを実機確認。プライバシーポリシーの配信事業者をCloudflareに更新する。
-6. 旧サイトに記録の書き出しと新URLの案内を出す。ローカル記録はドメインをまたいで自動移行しないため、当面は旧サイトから書き出せる状態を保つ。すぐに強制転送しない。
-7. 新ドメインをSearch Consoleへ登録し、sitemap送信と移行後の検索流入を確認。AdMobに紐づく既存AdSenseの利用状態を確認して広告審査へ進む。
+1. 検証URLでゲーム・画像・音声ファイル・ランキング読み取り・記録引き継ぎを確認。ランキングに架空の成績を投稿しない。
+2. 本人がドメインを取得。Cloudflareへサイトを追加し、割り当てられたネームサーバーを購入先に設定。既存メール等があるドメインを使う場合は、先にDNSレコードを引き継ぐ。
+3. WorkerのDomains & Routesへドメインを追加し、[Custom Domainsの公式手順](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)に従ってHTTPSを確認する。
+4. ビルド環境を `SITE_URL=https://zombietyping.jp/`、`VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF` にして再公開。広告IDは審査準備が整ってから設定。GA4ストリームURLも変更する。
+5. canonical・OGP・sitemap・robots・404・GA同意・記録引き継ぎ・ランキングを実機確認する。
+6. 旧サイトに記録の書き出しと新URLの案内を出す。記録はドメインをまたいで自動移行しないため、当面は旧サイトから書き出せる状態を保つ。すぐに強制転送しない。
+7. Search Consoleへ新ドメインを登録してsitemap送信。AdMobに紐づく既存AdSenseの利用状態を確認し、広告審査へ進む。
 
-不具合時は新URLの告知を止め、旧サイトを案内する。切り替え前に旧配信を削除しない。新ドメインで作った記録は、再び旧URLへ戻る場合も書き出し/読み込みが必要。
-
-## 検証と未完了
-
-ローカルのステージング・独自ドメイン用ビルドでメタデータ切り替えを確認する。Cloudflareのヘッダー規則・404のステータス・HTTPS・DNSは実配信後に検証する。ローカルViteプレビューはCloudflareのヘッダー規則を適用しない。
-
-参照: [Pages無料枠の上限](https://developers.cloudflare.com/pages/platform/limits/)、[静的リクエストの料金](https://developers.cloudflare.com/pages/functions/pricing/)、[ヘッダー規則](https://developers.cloudflare.com/pages/configuration/headers/)。
+不具合時は新URLの告知を止め、旧サイトを案内する。切り替え前に旧配信を削除しない。新ドメインで作った記録は、旧URLへ戻る場合も書き出し/読み込みが必要。

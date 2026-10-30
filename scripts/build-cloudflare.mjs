@@ -17,6 +17,8 @@ for (const args of [
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 await writeFile(`${outputDir}/_headers`, settings.headers);
+// .htmlのURLを保ちつつ、トップページだけindex.htmlへ内部転送する。
+await writeFile(`${outputDir}/_redirects`, '/ /index.html 200\n');
 if (settings.preview) {
   for (const entry of await readdir(outputDir)) {
     if (!entry.endsWith('.html')) continue;
