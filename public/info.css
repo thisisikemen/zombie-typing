@@ -1,0 +1,10 @@
+:root { color-scheme: dark; font-family: 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif; color: #e8e4d8; background: #090912; line-height: 1.9; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(48rem, calc(100% - 2.5rem)); margin: 3rem auto; }
+h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); line-height: 1.4; }
+h2 { margin-top: 2rem; font-size: 1.2rem; color: #ffd24a; }
+a { color: #ffd24a; text-underline-offset: .2em; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #494347; }
+footer { margin-top: 3rem; border-top: 1px solid #494347; padding-top: 1rem; color: #bcb3a5; }
+.date { color: #bcb3a5; font-size: .9rem; }

@@ -3,7 +3,6 @@
   xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://thisisikemen.github.io/zombie-typing/</loc>
-    <lastmod>2026-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -14,8 +13,10 @@
   </url>
   <url>
     <loc>https://thisisikemen.github.io/zombie-typing/how-to-play.html</loc>
-    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url><loc>https://thisisikemen.github.io/zombie-typing/about.html</loc></url>
+  <url><loc>https://thisisikemen.github.io/zombie-typing/privacy.html</loc></url>
+  <url><loc>https://thisisikemen.github.io/zombie-typing/terms.html</loc></url>
 </urlset>

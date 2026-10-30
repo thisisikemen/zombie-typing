@@ -187,6 +187,19 @@ kbd {
 }
 .title-footer .sep { margin: 0 0.6em; color: var(--ui-dim); }
 
+.service-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1rem; margin-top: .5rem; }
+.service-links a, .service-links button { color: #c6bdab; font: inherit; font-size: max(11px, .75rem); background: none; border: 0; text-decoration: underline; cursor: pointer; }
+#analytics-dialog, .info-dialog { margin: auto; width: min(32rem, 92vw); max-height: 90vh; overflow: auto; padding: 1.5rem; border: 1px solid #706452; background: #15131c; color: #e8e4d8; line-height: 1.8; font-size: max(14px, 1rem); user-select: text; }
+#analytics-dialog::backdrop, .info-dialog::backdrop { background: #000b; }
+#analytics-dialog p, .info-dialog p { margin: 1rem 0; }
+#analytics-dialog a, .info-dialog a { color: #ffd24a; }
+.records-file { display: block; margin-top: 1.25rem; }
+.records-file input { display: block; max-width: 100%; margin-top: .5rem; }
+.consent-actions button:disabled { opacity: .5; cursor: default; }
+.consent-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.consent-actions button { padding: .6rem .9rem; color: #e8e4d8; background: #292431; border: 1px solid #8c8195; border-radius: .25rem; cursor: pointer; font: inherit; }
+.consent-actions button[hidden] { display: none; }
+
 /* ---------- モード選択 ---------- */
 #screen-mode { gap: 1rem; padding-top: 0.6rem; padding-bottom: 3.4rem; /* 下部の TIP バーぶん */ }
 .mode-logo {
@@ -877,7 +890,7 @@ kbd {
   border-bottom-color: #fff2bd;
   outline: none;
 }
-.modal-actions { display: flex; justify-content: center; margin-top: 1.4rem; }
+.modal-actions { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 1.4rem; }
 .modal-actions .plate-btn { min-width: 12rem; font-size: 1.1rem; padding: 0.8rem 1.6rem; }
 
 @media (max-aspect-ratio: 4 / 5) {

@@ -1,201 +1,61 @@
-# 引き継ぎ資料(次に開発を担当する人 / AI 向け)
+# 開発・運用の引き継ぎ
 
-このファイルは「ゾンビタイピング」の開発を別の担当(Codex 等)へ引き継ぐための
-まとめです。**まずこのファイルと `README.md` `docs/RANKING.md` を読んでください。**
+更新: 2026-10-30。過去のセットアップ手順より、実際のコードと次の文書を優先する。
 
-## 0. これは何か
+## 目的と現在の構成
 
-- ブラウザで遊べる日本語タイピングゲーム「ゾンビタイピング」
-- **公開URL**: https://thisisikemen.github.io/zombie-typing/
-- **リポジトリ**: https://github.com/thisisikemen/zombie-typing (公開)
-- 技術: TypeScript + Vite。フレームワークなし。ゲーム本編は Canvas 2D 描画。
-- テスト: Vitest(現在 56 件・全通過)
+無料の一人プレイを育て、広告の収益を検証する。スキン販売は早くても約1か月後に検討し、リアルタイム対戦は急がない。ゲーム性の大幅変更は行わない。
 
-## 1. フォルダの場所(重要)
+- 作業フォルダ: `/Users/kawabatakoushirou/zombie-typing`
+- リポジトリ: https://github.com/thisisikemen/zombie-typing
+- 現行公開URL: https://thisisikemen.github.io/zombie-typing/
+- TypeScript + Vite、Canvas描画、Supabaseランキング。React・PHPは使っていない。
+- `main`へのpush後、GitHub ActionsがビルドしてGitHub Pagesへ公開する。
 
-このプロジェクトの実体は次の 1 箇所だけです:
+## 最初に読む文書
 
-```
-/Users/kawabatakoushirou/名称未設定フォルダ 2
-```
+- [事業化の方針・未完了の作業](docs/BUSINESS-LAUNCH.md)
+- [公開URL・GA4・広告審査・記録引き継ぎの設定](docs/OPERATIONS.md)
+- [セキュリティ確認・本番へ適用した修正・残る課題](docs/SECURITY-REVIEW.md)
+- [ランキングAPIと運用](docs/RANKING.md)
 
-Finder では「名称未設定フォルダ 2」という名前で見えます(作成時のまま)。
-`ゾンビタイピング` という名前のフォルダは**ありません**
-(`ゾンビタイピング素材` は画像の元素材が入った別フォルダで、ゲーム本体ではない)。
+## 確認コマンド
 
-> **おすすめ**: 名前が紛らわしく、日本語+スペースはターミナルで扱いにくいので、
-> Finder でこのフォルダを `zombie-typing` にリネームすると扱いやすくなります。
-> リネームしても Git やビルドには影響しません(中身は変わらないため)。
-
-## 2. 開発・確認の基本コマンド
-
-ターミナル(ターミナル.app)でフォルダに入ってから:
-
-```bash
-npm install          # 初回だけ(依存の取得)
-npm run dev          # 開発サーバー起動 → 表示された http://localhost:5173/ を Chrome で開く
-npm test             # ユニットテスト(ローマ字判定・ゲームロジック)
-npm run build        # 本番ビルド(型チェック + dist/ 生成)。push 前に通ること
+```sh
+npm ci
+npm test
+npm run build
+npm run check:ranking-security
+npm run dev
 ```
 
-- `npm run dev` 中はコードを保存すると即座にブラウザへ反映される
-- ゲームバランスの数値は `src/config.ts` に集約(遊びながら調整できる)
+`build`は型チェック、Viteビルド、検索用URL等の後処理を行う。Vite単体ビルドで公開しない。テスト件数や公開状態は実行結果から確認する。
 
-## 3. 公開への反映(デプロイ)= git push だけ
+## コードの場所
 
-「公開されているもの」と「手元のコード」は**別物ではありません**。この 1 つの
-リポジトリが唯一の正であり、`main` ブランチに push すると自動で公開されます。
+- `src/config.ts`: バランス・演出値。
+- `src/core/`: ゲーム・入力判定・モード定義。DOM非依存。
+- `src/render/`、`src/audio/`: 描画と音。
+- `src/main.ts`: 画面遷移・ゲームループ・計測イベント。
+- `src/ui/screens.ts`: メニュー・結果・ランキング。
+- `src/ui/ranking.ts`: Supabase公開API・端末キー。
+- `src/ui/store.ts`: 設定・自己ベスト・自己ベスト対戦の記録。
+- `src/ui/backup.ts`、`record-transfer.ts`: ローカルファイルでの記録引き継ぎ。解析許可は移さない。
+- `src/analytics.ts`: 利用者が許可した後だけGA4タグを読み込む。
+- `public/`: 素材、ガイド、運営情報、プライバシー、利用案内。
 
-```bash
-git add .
-git commit -m "変更内容"
-git push
-```
+## 安全に扱うもの
 
-- push すると GitHub Actions(`.github/workflows/deploy.yml`)が自動でビルドして
-  GitHub Pages へデプロイする。1〜2 分で公開サイトに反映される。
-- **ハマりどころ**: `deploy-pages` がまれに `Deployment failed, try again later.` で
-  失敗する(GitHub 側の一時エラー)。その時は次で再実行すれば直る:
-  ```bash
-  gh workflow run deploy.yml --repo thisisikemen/zombie-typing
-  ```
-- 認証: この端末の `gh` CLI は GitHub アカウント `thisisikemen` で認証済み。
-  Codex も同じ端末で動くなら `git push` はそのまま通るはず。
+Supabaseのpublishableキーはブラウザ公開用。安全性はRLS・列権限・RPCに依存し、「公開キーだから書き込めない」とは限らない。secret/service_roleはフロントやGitへ入れない。
 
-## 4. アーキテクチャ地図(どこに何があるか)
+2026-10-30、公開されていた端末キーの列権限をSQLで制限し、本番APIで拒否されることを確認した。適用済みSQLは `supabase/migrations/202610300001_hide_device_keys.sql`。
 
-状態更新ロジックと描画は完全に分離してある(`core/` は DOM/Canvas 非依存)。
+既に取得された可能性のあるキーの失効、本人確認、偽スコア・連投対策は残る。購入権限に端末キーを流用しない。実ユーザーのスコアを使う書き込みテストはしない。
 
-```
-src/
-  config.ts          全バランス値・色・演出パラメータの集約 ★調整はまずここ
-  main.ts            画面フローの状態機械 + requestAnimationFrame ループ
-  core/              純粋ロジック(DOM非依存・テスト対象)
-    typing/          ローマ字判定エンジン(engine.ts)+ かなテーブル(table.ts)
-    game.ts          状態更新・ターゲティング・スポーン(難易度予算)・ダメージ・スコア
-    words.ts         単語プール(初手キー排他フィルタ)
-    modes.ts         モード/難易度の定義        ★エンドレス追加の起点
-    bot.ts           タイトル背景の自動デモ
-  render/
-    renderer.ts      Canvas 描画のメイン(HUD・ラベル・レーザー・演出)
-    sky.ts           空の色の時間変化           ★エンドレスで要調整(夜が明けない)
-    effects.ts       パーティクル等
-    assets.ts        画像ローダー(無い画像はコード生成にフォールバック)
-  audio/sfx.ts       WebAudio 合成 SFX + mp3 の BGM/銃声/ボタン音
-  input/keyboard.ts  keydown 直接処理(IME 非起動)
-  ui/
-    screens.ts       タイトル/モード選択/リザルト/ポーズ/各モーダルの制御 + ランキング
-    ranking.ts       ランキングのバックエンド(ローカル / Supabase 切替)
-    tips.ts          メニュー下部のアドバイス文
-    store.ts         設定・ベストスコアの localStorage 保存
-  data/words.json    単語リスト(1000語超)
-public/
-  assets/            背景・兵士・ゾンビ・UI画像(assets/ui/ 配下が UI パーツ)
-  audio/             bgm-menu.mp3 / bgm-battle.mp3 / shot.mp3 / bolt.mp3 / ready.mp3 / shell.mp3
-tools/process_assets.py  素材加工スクリプト(キーイング+スプライト分割)
-docs/                PROMPTS.md(素材生成プロンプト)/ GUIDE.md(公開)/ RANKING.md(ランキング)
-tests/               Vitest
-```
+## 公開・外部設定
 
-## 5. ランキング(Supabase)— Codex も触ってよい
+`SITE_URL`、`VITE_GA_MEASUREMENT_ID`、`ADSENSE_PUBLISHER_ID` の使い方は運用手順を参照。未設定の解析・広告は動かない。独自ドメインは未取得。広告配信・決済は未実装。
 
-- 接続情報は `src/ui/ranking.ts` の `ONLINE_CONFIG` にある:
-  - URL: `https://vizhznqrgasepakokygv.supabase.co`
-  - キー: `sb_publishable_...`(**publishable = 公開用キー。コードに入れて/公開して安全**。
-    ブラウザで動かす前提のキーで、書き込み権限は持たない)
-- **秘密にすべきは `service_role`(secret)キーだけ**。これはコードに入れない・Codex にも渡さない・
-  push しない。ランキングの読み書きには不要。
-- 仕組み: 読み取りは公開、書き込みは **RPC 関数 `submit_score` / `rename_player` 経由のみ**
-  (テーブルへの直接 INSERT/UPDATE/DELETE は不可)。1 端末 1 難易度 1 枠・ベストのみ保持。
-  端末識別は `deviceKey`(ローカルの UUID)。サーバー側 CHECK 制約で異常値を拒否。
-- テーブル定義・RPC の SQL は **`docs/RANKING.md`** に全文あり。
-- **DDL(テーブル/制約/RPC の変更)は publishable キーでは実行できない**。
-  Supabase ダッシュボードの SQL Editor から手動で流す必要がある
-  (プロジェクトのオーナーはユーザー本人。ログインは本人にしかできない)。
-  → 新しい SQL が必要になったら、その SQL を用意してユーザーに「SQL Editor で実行して」と依頼する。
+GitHub Pagesには事業用途の制限がある。収益化前に配信先を確定する。移行する場合も静的な `dist/` の配信先変更と、オンライン対戦用のバックエンド変更を分けて考える。
 
-## 6. 次にやること:エンドレスモード「夜は明けない」
-
-ユーザーの要望(2026-07 時点):
-
-> 時間制限がなく、夜が明けない(＝クリアが無い)ゲームモード。
-> ランキングの評価基準は「生き残った時間」。テトリスのように、緩やかにだが
-> どこまでも難しくなり続ける。背景画像・BGM・基本操作は「夜明けまで」と同じ。
-
-### 実装方針(提案。ユーザーに確認しつつ進めてよい)
-
-1. **モード定義**: `src/core/modes.ts` の `MODES` にモード `endless`(ラベル「夜は明けない」)を
-   1 つ追加する。難易度カードの構造は「夜明けまで」と同じ 3 枚でも、エンドレスは 1 本でもよい
-   (ユーザーに確認)。モード選択画面はタブが 1 個増えるだけで動く設計になっている
-   (`ui/screens.ts` の `buildModeSelect` が MODES を列挙して描いている)。
-   - タブ画像は現状「夜明けまで」用の 1 枚しか無い(`public/assets/ui/tab-active.png`)。
-     エンドレス用タブ画像は後で追加でよい(暫定は既存タブ流用 or テキスト)。
-
-2. **終了条件と時間**: `game.ts` は現在 `duration` で「制限時間を超えたらクリア」。
-   エンドレスは **クリアを無くし、HP 0 のゲームオーバーだけ**にする。
-   `duration` を無限扱い(または `mode.endless` フラグで分岐)にして、
-   `progressRatio()` を時間ではなく「経過に応じた難易度カーブ」に使い替える。
-
-3. **難易度エスカレーション**: 現在スポーンは「難易度予算方式」(`SPAWN`, 各難易度の
-   `regenScale` / `speedScale` / `maxZombies` / `concurrentRampSec`)。
-   エンドレスでは経過時間に対してこれらを**緩やかに増やし続ける**
-   (例: 30〜60 秒ごとに予算回復・速度・同時数上限を少しずつ上げる。上限は付けてよいが高めに)。
-   単語の Tier 構成比も時間で難化させる(序盤は短い語中心 → 徐々に長い語)。
-   数式・カーブは `config.ts` に定数として置き、調整しやすくする。
-
-4. **空の演出**: `render/sky.ts` は 0→1 の進行で「日没→夜明け」に変化する。
-   エンドレスは**夜が明けてはいけない**ので、夜明けに向かわないようにする
-   (深夜の色で固定 or ゆっくり循環)。`renderer.ts` の空描画も進行度に依存しているので要調整。
-
-5. **スコア/ランキング = 生存時間**:
-   - リザルトの主指標を「生存時間」にする(スコアの代わり、または併記)。
-   - ランキングは生存時間の長い順。**現在のランキングはスコア降順**なので、エンドレスだけ
-     生存時間で並べる必要がある。テーブルに生存秒数のカラムが無いため、スキーマ変更が要る。
-   - 必要な Supabase 変更(SQL Editor で実行してもらう):
-
-     ```sql
-     -- 難易度に endless を追加
-     alter table public.scores drop constraint scores_difficulty_check;
-     alter table public.scores add constraint scores_difficulty_check
-       check (difficulty in ('easy','normal','hard','endless'));
-
-     -- 生存秒数カラムを追加(エンドレスの順位付け用)
-     alter table public.scores
-       add column if not exists survival_seconds integer not null default 0
-       check (survival_seconds between 0 and 86400);
-
-     -- endless はスコアと撃破数の整合(plausible_score)の対象外にする
-     alter table public.scores drop constraint plausible_score;
-     alter table public.scores add constraint plausible_score check (
-       difficulty = 'endless'
-       or (score <= kills * 1200 and (kills = 0 or score >= kills * 100))
-     );
-     ```
-
-   - あわせて `submit_score` RPC に `p_survival_seconds` を追加し、endless のときは
-     `survival_seconds` を保存・順位付けに使うよう改修する(`docs/RANKING.md` の RPC を差し替え)。
-   - クライアント側は `ui/ranking.ts`(submit のペイロード/並べ替え)と
-     `ui/screens.ts`(ランキング表示のサブ情報)を調整。
-
-6. **BGM / 効果音 / 操作**: 「夜明けまで」と同じものを流用(`audio/sfx.ts` の `setBgm('battle')`)。
-   ユーザーが別 BGM を用意したら差し替える。
-
-### 進め方のコツ
-
-- まず `core/` のロジック(モード分岐・エスカレーション・生存時間)を実装して
-  `npm test` を通す(必要ならエンドレス用のテストを `tests/` に足す)。
-- 次に描画(空の固定)とリザルト表示、最後にランキングのオンライン対応(SQL 依頼込み)。
-- 各段階で `npm run build` を通し、区切りで commit → push(自動デプロイ)。
-
-## 7. 直近の状態(この引き継ぎ時点)
-
-- リザルトの「CLEAR / GAME OVER」の文字が大きすぎたのを縮小し、パネルが画面内に
-  収まるよう調整済み(`src/styles.css` の `#result-heading` と `.result-panel`)。
-- ランキングはオンライン(Supabase)で開通済み・動作確認済み。
-- テスト 56 件全通過。公開サイトは最新。
-
-## 8. さらに詳しい背景
-
-- ゲーム仕様の原本: `~/Downloads/SPEC.md`(ユーザーの Downloads にある元の仕様書)
-- 素材追加のプロンプト: `docs/PROMPTS.md`
-- 公開まわり: `docs/GUIDE.md`
+ドメイン・決済等の契約や本人確認は利用者が行う。コード変更・検証・公開は、この会話で利用者が許可した範囲で進めてよい。
