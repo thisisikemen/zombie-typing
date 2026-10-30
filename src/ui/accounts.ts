@@ -33,7 +33,12 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   if (!ENABLED) return { idle() {} };
   const testing = import.meta.env.VITE_ACCOUNTS_TEST_MODE === 'true';
   document.getElementById('account-test-notice')?.toggleAttribute('hidden', !testing);
-  buttons.forEach(b => { b.hidden = false; b.onclick = () => { render(); dialog.showModal(); }; });
+  buttons.forEach(b => {
+    b.hidden = false;
+    b.onclick = () => { render(); dialog.showModal(); };
+    // Enterでボタンを押すとき、ゲーム開始のキー操作へ流さない。
+    b.addEventListener('keydown', e => e.stopPropagation());
+  });
   document.getElementById('account-close')!.onclick = () => dialog.close();
   dialog.addEventListener('keydown', e => e.stopPropagation());
   let client: SupabaseClient | null = null;
