@@ -980,3 +980,6 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
   .game-dialog { width: 94vw; padding: 1.2rem; font-size: max(12px, 1rem); }
   .analytics-notice { right: .6rem; bottom: .6rem; width: min(25rem, calc(100vw - 1.2rem)); }
 }
+
+.account-details { margin-top: 1rem; color: var(--ui-dim); font-size: .9rem; }
+.account-details summary { cursor: pointer; color: var(--gold); text-underline-offset: .2em; }

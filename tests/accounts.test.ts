@@ -17,7 +17,7 @@ async function setup() {
 beforeEach(()=>{
   vi.resetModules(); vi.stubEnv('VITE_ACCOUNTS_ENABLED','true');
   localStorage.clear(); sessionStorage.clear(); history.replaceState(null,'','/');
-  document.body.innerHTML=`<button data-account-open hidden></button><dialog id="account-dialog"><p id="account-status"></p><div id="account-guest"></div><div id="account-member"></div><p id="account-message"></p><p id="account-identity"></p><p id="account-transfer-result"></p><button id="account-create"></button><button id="account-login"></button><button id="account-logout"></button><button id="account-sync"></button><button id="account-close"></button><input type="checkbox" id="account-import-consent"></dialog>`;
+  document.body.innerHTML=`<button data-account-open hidden></button><dialog id="account-dialog"><h2 id="account-heading"></h2><p id="account-status"></p><div id="account-guest"></div><div id="account-member"></div><p id="account-message"></p><p id="account-identity"></p><p id="account-transfer-result"></p><button id="account-create"></button><button id="account-login"></button><button id="account-logout"></button><button id="account-sync"></button><button id="account-close"></button><input type="checkbox" id="account-import-consent"></dialog>`;
   mock.session=null; mock.callback=null;
   mock.rpc.mockReset().mockImplementation(()=>({abortSignal:()=>Promise.resolve({data:{entries:{[key]:rec},imported:false},error:null})}));
   mock.auth.getSession.mockReset().mockImplementation(async()=>({data:{session:mock.session},error:null}));
@@ -39,7 +39,7 @@ describe('任意ログインの画面とセッション復元',()=>{
     const pending=JSON.parse(sessionStorage.getItem('zombie-typing:registration-pending')!);
     expect(pending.records).toEqual({[key]:rec});
     expect(mock.auth.signInWithOAuth).toHaveBeenCalledWith(expect.objectContaining({provider:'google'}));
-    expect(document.getElementById('account-message')?.textContent).toContain('自動統合せず');
+    expect(document.getElementById('account-message')?.textContent).toContain('ほかの端末の記録はまとめず');
   });
   it('保存済みセッションを復元し、ログイン時には別端末の未登録記録を送らない',async()=>{
     mock.session={user:{id:A}};localStorage.setItem(key,rec);
