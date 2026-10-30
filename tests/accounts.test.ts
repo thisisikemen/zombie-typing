@@ -57,6 +57,20 @@ describe('任意ログインの画面とセッション復元',()=>{
     expect(mock.rpc.mock.calls[0][1].p_initial).toEqual({[key]:rec});
     expect(sessionStorage.getItem('zombie-typing:registration-pending')).toBeNull();
   });
+  it('初回のログインでも引き継ぎ確認へ戻し、確認後は再認証せず登録する',async()=>{
+    mock.session={user:{id:A}};localStorage.setItem(key,rec);
+    mock.rpc.mockImplementation((_name:string,args:any)=>({abortSignal:()=>Promise.resolve({data:args.p_initial
+      ? {entries:args.p_initial,imported:true,needs_registration:false}
+      : {entries:{},imported:false,needs_registration:true},error:null})}));
+    const {scope}=await setup();expect(scope.recordOwner()).toBeNull();
+    expect(document.getElementById('account-status')?.textContent).toContain('初めて');
+    const consent=document.getElementById('account-import-consent') as HTMLInputElement;
+    consent.checked=true;consent.dispatchEvent(new Event('change'));
+    (document.getElementById('account-create') as HTMLButtonElement).click();await flush();
+    expect(scope.recordOwner()).toBe(A);
+    expect(mock.rpc.mock.calls.some(call=>call[1].p_initial?.[key]===rec)).toBe(true);
+    expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
+  });
   it('同期に失敗しても未登録の記録と登録待ちの記録を消さない',async()=>{
     mock.session={user:{id:A}};localStorage.setItem(key,rec);
     sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec}}));
