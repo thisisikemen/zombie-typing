@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.hosting-preview/
 .DS_Store
 .claude/
 .env

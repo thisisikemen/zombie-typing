@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/prepare-site.mjs",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "build:hosting-preview": "node scripts/build-cloudflare.mjs --preview",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
