@@ -15,6 +15,7 @@ beforeAll(async () => {
     grant usage on schema auth,public to authenticated,anon;
     grant execute on function auth.uid() to authenticated,anon;`);
   await db.exec(readFileSync('supabase/migrations/202610310001_optional_accounts.sql','utf8'));
+  await db.exec(readFileSync('supabase/migrations/202610310002_require_registration_consent.sql','utf8'));
 }, 20000);
 afterAll(async () => db?.close());
 async function asUser(id: string, action: () => Promise<unknown>) {
@@ -22,7 +23,7 @@ async function asUser(id: string, action: () => Promise<unknown>) {
   try { return await action(); } finally { await db.exec('reset role; reset request.jwt.claim.sub;'); }
 }
 async function sync(id: string, initial: unknown = null, updates: unknown = {}) {
-  const result = await db.query<{result:{entries:Record<string,string>;imported:boolean}}>('select public.sync_player_records($1,$2::jsonb,$3::jsonb) as result',[id,initial === null ? null : JSON.stringify(initial),JSON.stringify(updates)]);
+  const result = await db.query<{result:{entries:Record<string,string>;imported:boolean;needs_registration:boolean}}>('select public.sync_player_records($1,$2::jsonb,$3::jsonb) as result',[id,initial === null ? null : JSON.stringify(initial),JSON.stringify(updates)]);
   return result.rows[0].result;
 }
 describe('PostgreSQLによる本人確認・初回引き継ぎ・同期', () => {
@@ -67,7 +68,13 @@ describe('PostgreSQLによる本人確認・初回引き継ぎ・同期', () => 
       expect(JSON.parse((await sync(A)).entries[key]).score).toBe(200);
     });
   });
-  it('他の端末で未登録プレイしていても新規アカウントには自動取り込みしない', async () => {
-    await asUser(B,async () => { expect((await sync(B)).entries).toEqual({}); });
+  it('ログインを先に選んだ新規ユーザーは確認まで初期化せず、確認後の端末記録を引き継ぐ', async () => {
+    await asUser(B,async () => {
+      expect((await sync(B)).needs_registration).toBe(true);
+      expect((await db.query('select * from public.player_records')).rows).toHaveLength(0);
+      const registered = await sync(B,records(321));
+      expect(registered.imported).toBe(true);
+      expect(JSON.parse(registered.entries[key]).score).toBe(321);
+    });
   });
 });

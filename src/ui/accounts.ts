@@ -72,7 +72,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     const { data, error } = await client!.rpc('sync_player_records', { p_expected_user: id, p_initial: initial, p_updates: updates }).abortSignal(AbortSignal.timeout(12000));
     if (error) throw error;
     if (!data || typeof data.imported !== 'boolean') throw new Error('invalid sync response');
-    return { entries: validateAccountRecords(data.entries), imported: data.imported as boolean };
+    return { entries: validateAccountRecords(data.entries), imported: data.imported as boolean, needsRegistration: data.needs_registration === true };
   }
   async function sync(): Promise<void> {
     const id = recordOwner();
@@ -83,6 +83,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       const updates = accountUpdates(localStorage, id);
       const sentName = updates[NAME_KEY];
       const result = await rpc(id, null, updates);
+      if (result.needsRegistration) throw new Error('registration required');
       if (version !== authVersion || id !== recordOwner()) return;
       if (sentName !== undefined && localStorage.getItem(pendingNameKey(id)) === sentName) localStorage.removeItem(pendingNameKey(id));
       cacheAccountRecords(localStorage, id, result.entries);
@@ -103,6 +104,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         // 失敗時はゲストのまま。登録端末の記録も引き継ぎ指示も失わない。
         const result = await rpc(id, registration?.records ?? null, {});
         if (version !== authVersion || !canSwitch()) return;
+        if (result.needsRegistration) {
+          lastStatus = '初めてのご利用です。この端末の記録を引き継ぐ説明を確認し、「新規登録」から進んでください。';
+          return;
+        }
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);
         registration = null; sessionStorage.removeItem(PENDING);
@@ -127,6 +132,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         registration = { at: Date.now(), records: readAccountRecords(localStorage, null) };
         sessionStorage.setItem(PENDING, JSON.stringify(registration));
       } else { registration = null; sessionStorage.removeItem(PENDING); }
+      if (register && desired) { await activate(); await sync(); return; }
       const redirect = new URL(import.meta.env.BASE_URL, location.origin);
       redirect.searchParams.set('account', 'return');
       const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirect.href } });
