@@ -89,3 +89,11 @@ Google Authのブランド情報にホーム `https://zombietyping.jp/`、プラ
 - GA4の既存ストリーム `G-ZCWQHK5BCF` のURLを新ドメインへ更新済み。未許可の実画面でGoogleタグが0件であることを確認した。個別ゲームイベントの受信と広告審査は未完了。
 - 旧GitHub Pagesの記録は残し、「新サイトへ」リンクを用意する。移行は任意で強制転送しない。GitHub変数SITE_URLも新ドメインに設定済み。
 - Cloudflareの再公開はdocs/CLOUDFLARE-LAUNCH.mdの環境変数付きコマンドを使う。引数なしの公開では検証版へ戻ってしまう。Git連携・Search Console・広告導入は未完了。
+
+## 検索・広告審査・自動更新の進捗（2026-10-31）
+
+- Search Consoleの新URLプロパティを追加。既存HTML確認ファイルで所有確認完了。sitemap送信成功・5ページ検出、トップページのインデックス登録リクエスト完了。検索結果への掲載は未確認。
+- 既存AdMobに関連するAdSense `pub-6491456634983694` をWeb用にも利用し、新アカウントは作っていない。`zombietyping.jp` を追加し、メタタグ所有確認が通り審査を申込済み。公開用IDはGitHub変数へ設定済み。本番には所有確認メタタグとads.txtのみを配信し、広告スクリプトは未導入。
+- GitHubアプリの新規権限は本人が了承。対象リポジトリ1件だけを選択し、本人がGitHubパスワード再確認を実施した。
+- CloudflareネイティブBuildsは、標準トークンが他サービスまで広い権限を持つため未接続。Workerとドメインだけに限定されたアカウントトークンを使うGitHub Actionsへ切り替える。ネイティブBuildsはアカウント所有トークンに未対応（公式設定資料を確認）。
+- `.github/workflows/cloudflare.yml` と公開結果の確認スクリプトを準備済み。専用キーの作成・GitHub Actions Secretへの入力は本人操作が必要。名前は `CLOUDFLARE_API_TOKEN`。`CLOUDFLARE_AUTO_DEPLOY=true` はキーの保存後に設定し、初回自動公開と実配信確認を行う。それまではCLIで本番公開を維持する。

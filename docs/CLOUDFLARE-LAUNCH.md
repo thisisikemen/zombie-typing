@@ -46,23 +46,21 @@ CLIの既存ログインを利用する。認証情報をGit、HTML、ログ、�
 - `.html` の既存URLを保つ設定とし、トップページだけ `_redirects` で `/index.html` に内部転送する。存在しないURLには404ページを返す。
 - MIMEの誤解釈防止、参照元情報の制限、未使用のカメラ/マイク/位置情報の停止を応答ヘッダーへ設定。これらの設定はGitHub Pagesでは適用されない。
 
-## 自動公開の接続（未完了）
+## 自動公開（GitHub Actions）
 
-PagesのGit連携での作成はCloudflareからエラー8000011（Git installationの内部エラー）が返り、作成できなかった。既存の他プロジェクトやGitHubアプリ設定は変更していない。現在はWorkersへのCLI公開が利用できる。
+`.github/workflows/cloudflare.yml` を用意した。`main`へのpushまたは手動実行で、テスト・依存監査・本番ビルド・Cloudflareへの公開・公開URLの確認を順に行う。PRからは本番公開しない。`contents: read` のみを付け、Cloudflareのキーは公開ステップだけへ渡す。
 
-自動化する際はWorkers Buildsの[Git連携手順](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/)に従い、対象を `thisisikemen/zombie-typing` だけに限定する。GitHubアプリの新しいアクセス許可は、実際の許可画面で本人が範囲を確認する。
+- 本番Worker: `zombie-typing`、Cloudflareアカウント: `84aa8a6bf3a0c928949c3794815ad590`。
+- 公開用のGitHub変数: `SITE_URL=https://zombietyping.jp/`、`VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF`、`ADSENSE_PUBLISHER_ID=ca-pub-6491456634983694`（すべて設定済み）。
+- 認証情報: GitHub ActionsのリポジトリSecret `CLOUDFLARE_API_TOKEN`。チャット、Git、公開変数へ入れない。
+- キーはCloudflareのWorker設定→Builds→「API token for external CI/CD」の「Create token」で作る。対象は `zombie-typing` と `zombietyping.jp` のみ、権限はIndividual Workers Editor / Workers Routes Write。アカウント全体や他のWorkerを追加しない。作成・Secretへの入力は本人が行う。
+- 有効化スイッチはGitHub変数 `CLOUDFLARE_AUTO_DEPLOY=true`。キーの保存前は未設定とし、ジョブを実行しない。有効化後の初回実行・実配信確認は未完了。
+- 同時公開を避けるconcurrencyを設定。公開中のジョブはキャンセルしない。
+- `scripts/check-public-site.mjs` でHTTPS・canonical・検索対象外指定の有無・robots・sitemap・広告所有確認を確認する。
 
-|設定|値|
-|---|---|
-|Worker名|`zombie-typing`|
-|本番ブランチ|`main`|
-|ビルドコマンド|`npm test && npm run build:cloudflare`|
-|デプロイコマンド|`npx wrangler deploy`|
-|Nodeバージョン|`22`|
-|現時点のSITE_URL|`https://zombietyping.jp/`|
-|解析・広告ID|GA4 `G-ZCWQHK5BCF`、広告IDは未設定|
+CloudflareのネイティブBuilds接続では、標準の自動作成トークンに他のWorker・DB・ストレージ・全ゾーンへの権限が含まれていたため、接続を確定せず中止した。本人の了承後、GitHubアプリは `thisisikemen/zombie-typing` の1件だけで認可済みだが、外部CI方式ではこのアプリは不要。アカウント所有トークンはネイティブBuildsでは未対応のため、GitHub Actionsへ直接渡す方式を使う。
 
-GitHubリポジトリの変数はCloudflareのビルド環境へ自動転送されない。自動公開の接続前は、mainの更新後に上のCLIでCloudflareも再公開する。
+設定・初回公開の確認が終わるまでは、環境変数付きのCLI公開を継続する。広告所有確認を維持するには、上記公開コマンドへ `ADSENSE_PUBLISHER_ID=ca-pub-6491456634983694` も付ける。
 
 ## 独自ドメインへの切り替え順序
 
@@ -86,6 +84,8 @@ GitHubリポジトリの変数はCloudflareのビルド環境へ自動転送さ�
 - Google Authを本番環境へ切り替え、テスト利用者限定の案内を非表示にした。個人記録のRLSは維持する。
 - GA4の既存ストリームURLを `https://zombietyping.jp/` へ変更。測定IDは継続利用する。許可前の実画面でGoogleタグ未読込を確認済み。個別ゲームイベントの受信確認は引き続き別作業。
 - GitHubの `SITE_URL` 変数も新ドメインに設定。旧サイトは相対パスで動作と記録書き出しを維持し、ホームに「新サイトへ」のリンクを表示する。
-- Search Consoleへの新ドメイン登録と広告審査は未完了。CloudflareはCLIでの手動公開を継続する。
+- Search ConsoleはURLプレフィックス `https://zombietyping.jp/` をHTMLファイルで確認済み。sitemap送信成功・5ページ検出・トップページのインデックス登録リクエスト完了。検索掲載はまだ未確認。
+- AdSenseは既存AdMobのアカウントをWeb向けに追加利用。所有確認が通り、サイト審査を申し込み済み。広告配信は開始していない。
+- 自動公開はGitHub Actionsの構成を準備済み。専用キーの保存と初回実行の確認は未完了。
 
 既存CLI認証ではDNSゾーンの新規作成が権限不足だったため、本人がログインした内蔵ブラウザで無料ゾーンを作成した。CLI認証の権限拡張や新しいAPIトークンの作成はしていない。WorkerのCustom Domainの設定には既存CLI認証を利用した。
