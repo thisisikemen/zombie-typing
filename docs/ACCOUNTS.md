@@ -40,9 +40,9 @@
 3. ウェブアプリ用OAuthクライアントを本人が作成する。承認済みリダイレクトURIは `https://vizhznqrgasepakokygv.supabase.co/auth/v1/callback`。クライアントシークレットはGit・チャット・公開ビルドへ入れない。
 4. 本人がSupabaseのGoogleプロバイダーへクライアントID・シークレットを設定する。ブラウザ操作ルールにより、新しい認証情報の作成・入力は本人に引き継ぐ。
 5. Supabase Authの許可するRedirect URLに本番 `https://zombietyping.jp/?account=return` と、開発検証用 `http://127.0.0.1:5175/?account=return` を個別登録する。別のホストも公開する場合はそのURLを個別に確認する。広いワイルドカードを使わない。AuthのSite URLも本番へ設定する。
-6. 公開前にプライバシーページへ、Google認証の利用、保存する個人記録、アカウント削除・問い合わせ手順を追記する。アカウント削除は本人確認を行う運用を決める。
+6. プライバシーページへGoogle認証の利用、保存する個人記録、アカウント削除・問い合わせ手順を追記済み。公開前に反映を確認する。アカウント削除は本人確認を行う運用を決める。
 7. `VITE_ACCOUNTS_ENABLED=true` の開発版で、本人が新規登録する。端末Aのゲストベストが引き継がれ、別ブラウザBのゲストベストは自動統合されないこと、同じアカウントのベストを別端末で復元できること、再読み込みでセッションが復元されること、ログアウトで元のゲスト記録へ戻ることを確認する。実際の認証・端末間テストは未完了。
-8. 有効化した本番ビルドをデプロイし、実際のURLで同じ項目を確認する。それまでは入口を非表示にする。
+8. 有効化した本番ビルドをデプロイし、実際のURLで同じ項目を確認する。一般向け公開前の検証版は `VITE_ACCOUNTS_TEST_MODE=true` を併用し、Googleのテスト利用者のみ登録可能であることを表示する。
 
 ## 検証
 
@@ -60,4 +60,7 @@ npm audit --audit-level=high
 ## 外部設定の進捗（2026-10-31）
 
 - 本番でRLS有効、anonのSELECT不可、authenticatedのテーブル直接書き込み不可、anonの同期RPC実行不可、authenticatedの同期RPC実行可をカタログ照会で確認。公開APIでも個人記録の読取・同期はHTTP 401 / 42501で拒否された。既存ランキングの読み取りと端末キー非公開も4項目の実API確認で維持されている。
-- Google Cloudに専用プロジェクト `Zombie Typing`（`maximal-cabinet-513216-j6`）を作成済み。課金設定やAPIキー作成はしていない。アプリ名「ゾンビタイピング」、外部のテストユーザー、連絡先を入力し、Googleのユーザーデータポリシー同意直前を本人へ引き継いだ。OAuthクライアントとシークレットは未作成。
+- Google Cloudに専用プロジェクト `Zombie Typing`（`maximal-cabinet-513216-j6`）を作成済み。課金設定やAPIキー作成はしていない。本人がGoogleのユーザーデータポリシーへ同意し、OAuthの初期構成を作成済み。本人のGoogleアカウント1件をテストユーザーに登録した。ウェブ用OAuthクライアント「Zombie Typing Web」とSupabase callback URLを入力し、本人がクライアント作成とSupabaseへの設定を完了し、公開設定APIでGoogleプロバイダー有効を確認した。Google側は外部・テスト中で、一般公開前のブランド情報設定と実認証テストは未完了。
+
+- SupabaseのSite URLを `https://zombietyping.jp/` に保存済み。Redirect URLsは本番 `https://zombietyping.jp/?account=return` と検証用 `http://127.0.0.1:5175/?account=return` の2件のみ。
+- 独自ドメインのHTTPS 200は確認できた。旧URLの記録を新URLへファイルで移すのは任意。移さず空の記録で登録・プレイできる。本人が希望したChrome旧サイトの記録はUIから書き出し済みで、新URLへの読込は未実施。検証用localhostの記録で本番アカウントを初期化しない。

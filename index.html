@@ -205,53 +205,65 @@
     </div>
   </main>
 
-  <dialog id="account-dialog" class="info-dialog" aria-labelledby="account-heading">
-    <h2 id="account-heading">アカウントと記録の同期</h2>
+  <dialog id="account-dialog" class="modal-box game-dialog" aria-labelledby="account-heading">
+    <div class="dialog-heading"><h2 id="account-heading">アカウントと記録の同期</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <p id="account-test-notice" hidden>ログイン機能は先行テスト中です。現在はテスト利用者のみ登録できます。登録せずにゲームを遊べます。</p>
     <p id="account-status" role="status" aria-live="polite"></p>
     <div id="account-guest">
-      <p>登録なしでも今までどおり遊べます。登録すると、別の端末でも同じアカウントの記録を使えます。</p>
+      <p>登録すると、別の端末でも同じアカウントの記録を使えます。</p>
       <h3>この端末の記録で新規登録</h3>
       <p id="account-message"></p>
       <p>すでにアカウントがある場合は新しく作らず、下の「ログイン」を選んでください。既存アカウントへは、この端末の未登録データを自動で追加しません。</p>
       <label class="account-consent"><input type="checkbox" id="account-import-consent" /> この端末の記録を引き継ぎ、他の端末の記録は自動統合されないことを確認しました。</label>
-      <div class="consent-actions"><button type="button" id="account-create" disabled>Googleで新規登録・記録を引き継ぐ</button></div>
+      <div class="consent-actions"><button type="button" class="plate-btn" id="account-create" disabled>Googleで新規登録・記録を引き継ぐ</button></div>
       <h3>アカウントをお持ちの方</h3>
-      <div class="consent-actions"><button type="button" id="account-login" disabled>Googleでログイン</button></div>
+      <div class="consent-actions"><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button></div>
       <p>同じGoogleアカウントなら、どちらのボタンから進んでも同じゲームアカウントです。</p>
     </div>
     <div id="account-member" hidden>
       <p id="account-identity"></p><p id="account-transfer-result"></p>
       <p>次回もこのブラウザではログイン状態を復元します。サイトデータの削除、プライベートブラウズ、認証の失効などで再ログインが必要になる場合があります。共有端末では遊び終わったらログアウトしてください。</p>
       <p>ログアウトすると、このブラウザに残っている未登録データへ戻ります。会員の記録はアカウントごとに分けて保存します。</p>
-      <div class="consent-actions"><button type="button" id="account-logout">このブラウザでログアウト</button></div>
+      <p><a href="./about.html#contact" target="_blank" rel="noopener">アカウント削除などのお問い合わせ</a></p>
+      <div class="consent-actions"><button type="button" class="plate-btn" id="account-logout">このブラウザでログアウト</button></div>
     </div>
-    <div class="consent-actions"><button type="button" id="account-sync" hidden>再同期</button><button type="button" id="account-close">閉じてプレイする</button></div>
+    <div class="consent-actions"><button type="button" class="plate-btn" id="account-sync" hidden>再同期</button><button type="button" class="plate-btn" id="account-close">閉じてプレイする</button></div>
     <p>自己ベストは個人用の記録です。現在の端末別ランキングの所有者は変更しません。<a href="./privacy.html" target="_blank" rel="noopener">プライバシー</a></p>
   </dialog>
 
-  <dialog id="analytics-dialog" aria-labelledby="analytics-heading">
-    <h2 id="analytics-heading">アクセス解析の設定</h2>
+  <dialog id="analytics-dialog" class="modal-box game-dialog" aria-labelledby="analytics-heading">
+    <div class="dialog-heading"><h2 id="analytics-heading">アクセス解析の設定</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
     <p id="analytics-status"></p>
     <p><a href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a></p>
-    <div class="consent-actions">
-      <button type="button" id="analytics-denied">許可しない</button>
-      <button type="button" id="analytics-granted">許可する</button>
-      <button type="button" id="analytics-close">閉じる</button>
+    <div class="consent-actions dialog-choices">
+      <button type="button" class="plate-btn" id="analytics-granted" data-analytics-choice="granted">許可する</button>
+      <button type="button" class="plate-btn" id="analytics-denied" data-analytics-choice="denied">許可しない</button>
+      <button type="button" id="analytics-close" class="plate-btn dialog-dismiss">閉じる</button>
     </div>
   </dialog>
 
-  <dialog id="records-dialog" class="info-dialog" aria-labelledby="records-heading">
-    <h2 id="records-heading">記録の引き継ぎ</h2>
-    <p>自己ベスト・自己ベスト対戦の記録・設定・名前をファイルに保存し、別のブラウザや新しいサイトで引き継げます。</p>
+  <dialog id="records-dialog" class="modal-box game-dialog" aria-labelledby="records-heading">
+    <div class="dialog-heading"><h2 id="records-heading">記録の引き継ぎ</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <p>以前の自己ベスト・VS自己ベスト・設定・名前を残したい方のための、任意の引き継ぎです。記録を移さず、そのまま新しく遊び始めても構いません。</p>
     <p>ファイルにはランキングの識別情報も含まれます。ほかの人には渡さず、ご自身で保管してください。読み込みだけでランキングに送信することはありません。アクセス解析の許可設定は引き継ぎません。</p>
-    <div class="consent-actions"><button type="button" id="records-export">現在の記録を書き出す</button></div>
-    <label class="records-file">記録ファイルを選ぶ <input type="file" id="records-file" accept="application/json,.json" /></label>
+    <div class="consent-actions"><button type="button" class="plate-btn" id="records-export">現在の記録を書き出す</button></div>
+    <div class="records-file"><button type="button" class="plate-btn" id="records-select">記録ファイルを選ぶ</button><input type="file" id="records-file" accept="application/json,.json" hidden /><p id="records-filename" class="dialog-caption">ファイル未選択</p></div>
     <p id="records-status" role="status" aria-live="polite"></p>
     <div class="consent-actions">
-      <button type="button" id="records-restore" disabled>選んだ記録を読み込む</button>
-      <button type="button" id="records-close">閉じる</button>
+      <button type="button" class="plate-btn" id="records-restore" disabled>選んだ記録を読み込む</button>
+      <button type="button" class="plate-btn" id="records-close">閉じる</button>
     </div>
   </dialog>
+
+  <aside id="analytics-notice" class="modal-box analytics-notice" aria-label="アクセス解析のご案内" hidden>
+    <h2>ゲーム改善へのご協力</h2>
+    <p>Google Analyticsでプレイ回数・難易度・成績を集計します。Cookieを使用します。名前や打鍵内容は送りません。</p>
+    <div class="analytics-notice-actions">
+      <button type="button" class="plate-btn" data-analytics-choice="granted">許可する</button>
+      <button type="button" class="plate-btn" data-analytics-choice="denied">許可しない</button>
+    </div>
+    <div class="analytics-notice-footer"><span>選ばずにプレイを始められます。</span><button type="button" data-analytics-settings>詳しく見る</button></div>
+  </aside>
 
   <noscript>
     <p>ゾンビタイピングは、ブラウザで遊べる無料の日本語タイピングゲームです。プレイするにはJavaScriptを有効にしてください。</p>

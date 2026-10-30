@@ -86,38 +86,44 @@ function start(): void {
 export function initAnalytics(): void {
   const dialog = document.getElementById('analytics-dialog') as HTMLDialogElement;
   const status = document.getElementById('analytics-status')!;
+  const notice = document.getElementById('analytics-notice')!;
+  const close = document.getElementById('analytics-close')!;
+  function openSettings(): void { dialog.showModal(); close.focus(); }
+  function refreshNotice(): void { notice.hidden = !configured || analytics.choice !== null; }
   status.textContent = configured
-    ? '遊びやすさの改善のため、Google Analyticsでプレイ回数・難易度・成績を集計します。名前や打鍵内容は送りません。許可しなくてもすべてのゲーム機能を利用できます。'
+    ? 'ゲーム改善のため、Google Analyticsでプレイ回数・難易度・成績を集計します。Cookieを使用します。名前や打鍵内容は送りません。許可は任意で、後から変更できます。'
     : '現在、アクセス解析は無効です。ゲームの名前や成績をGoogle Analyticsへ送信していません。';
   document.querySelectorAll<HTMLElement>('[data-analytics-settings]').forEach((button) => {
-    button.onclick = () => dialog.showModal();
+    button.onclick = openSettings;
   });
   document.getElementById('analytics-close')!.onclick = () => dialog.close();
   for (const choice of ['granted', 'denied'] as const) {
-    const button = document.getElementById(`analytics-${choice}`)!;
-    button.hidden = !configured;
-    button.onclick = () => {
-      const wasStarted = started;
-      analytics.choose(choice);
-      dialog.close();
-      if (choice === 'granted') start();
-      else if (wasStarted) {
-        // タグの送信を止め、当サイトが作ったGA Cookieを削除して再読み込み。
-        Object.assign(window, { [`ga-disable-${id}`]: true });
-        for (const name of ['_ga', `_ga_${id.slice(2)}`]) {
-          for (const path of new Set(['/', location.pathname.replace(/[^/]*$/, '') || '/'])) {
-            document.cookie = `${name}=; Max-Age=0; Path=${path}; SameSite=Lax`;
+    document.querySelectorAll<HTMLButtonElement>(`[data-analytics-choice="${choice}"]`).forEach(button => {
+      button.hidden = !configured;
+      button.onclick = () => {
+        const wasStarted = started;
+        analytics.choose(choice);
+        refreshNotice();
+        dialog.close();
+        if (choice === 'granted') start();
+        else if (wasStarted) {
+          Object.assign(window, { [`ga-disable-${id}`]: true });
+          for (const name of ['_ga', `_ga_${id.slice(2)}`]) {
+            for (const path of new Set(['/', location.pathname.replace(/[^/]*$/, '') || '/'])) {
+              document.cookie = `${name}=; Max-Age=0; Path=${path}; SameSite=Lax`;
+            }
           }
+          location.reload();
         }
-        location.reload();
-      }
-    };
+      };
+    });
   }
   // ダイアログの Enter / Escape をゲーム操作に流さない。
   dialog.addEventListener('keydown', (event) => event.stopPropagation());
-  if ((configured && analytics.choice === null) || location.hash === '#analytics') dialog.showModal();
+  refreshNotice();
+  if (location.hash === '#analytics') openSettings();
   window.addEventListener('hashchange', () => {
-    if (location.hash === '#analytics' && !dialog.open) dialog.showModal();
+    if (location.hash === '#analytics' && !dialog.open) openSettings();
   });
   start();
 }

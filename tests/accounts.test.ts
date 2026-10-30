@@ -39,7 +39,7 @@ describe('任意ログインの画面とセッション復元',()=>{
     const pending=JSON.parse(sessionStorage.getItem('zombie-typing:registration-pending')!);
     expect(pending.records).toEqual({[key]:rec});
     expect(mock.auth.signInWithOAuth).toHaveBeenCalledWith(expect.objectContaining({provider:'google'}));
-    expect(document.getElementById('account-message')?.textContent).toContain('自動統合されず');
+    expect(document.getElementById('account-message')?.textContent).toContain('自動統合せず');
   });
   it('保存済みセッションを復元し、ログイン時には別端末の未登録記録を送らない',async()=>{
     mock.session={user:{id:A}};localStorage.setItem(key,rec);
