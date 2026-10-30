@@ -16,6 +16,7 @@
 
 - [事業化の方針・未完了の作業](docs/BUSINESS-LAUNCH.md)
 - [公開URL・GA4・広告審査・記録引き継ぎの設定](docs/OPERATIONS.md)
+- [Cloudflareへの移行準備・ドメイン費用・設定値](docs/CLOUDFLARE-LAUNCH.md)
 - [セキュリティ確認・本番へ適用した修正・残る課題](docs/SECURITY-REVIEW.md)
 - [ランキングAPIと運用](docs/RANKING.md)
 
