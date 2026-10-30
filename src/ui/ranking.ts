@@ -1,3 +1,4 @@
+import { recordOwner, recordStorage } from './record-scope';
 /**
  * ランキング。
  * - リザルトで自動登録される(名前は保存された名前、無ければ既定名)
@@ -51,7 +52,7 @@ const DEVICE_KEY = 'zombie-typing:device-key';
 
 export function loadPlayerName(): string {
   try {
-    return localStorage.getItem(NAME_KEY) ?? '';
+    return recordStorage.getItem(NAME_KEY) ?? '';
   } catch {
     return '';
   }
@@ -59,7 +60,7 @@ export function loadPlayerName(): string {
 
 export function savePlayerName(name: string): void {
   try {
-    localStorage.setItem(NAME_KEY, name);
+    recordStorage.setItem(NAME_KEY, name);
   } catch {
     /* ignore */
   }
@@ -72,20 +73,22 @@ export function sanitizeName(raw: string): string {
 }
 
 /** この端末を識別するキー(1人1枠の実現用) */
-let sessionDeviceKey: string | undefined;
+const sessionKeys = new Map<string, string>();
 function deviceKey(): string {
+  const owner = recordOwner() ?? 'guest';
+  const fallback = () => {
+    let value = sessionKeys.get(owner);
+    if (!value) { value = crypto.randomUUID(); sessionKeys.set(owner, value); }
+    return value;
+  };
   try {
-    let key = localStorage.getItem(DEVICE_KEY);
+    let key = recordStorage.getItem(DEVICE_KEY);
     if (!key || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) {
-      key = sessionDeviceKey ??= crypto.randomUUID();
-      localStorage.setItem(DEVICE_KEY, key);
+      key = fallback(); recordStorage.setItem(DEVICE_KEY, key);
     }
-    sessionDeviceKey = key;
+    sessionKeys.set(owner, key);
     return key;
-  } catch {
-    // 保存禁止の利用者全員が同じキーになると、互いの記録を上書きしてしまう。
-    return sessionDeviceKey ??= crypto.randomUUID();
-  }
+  } catch { return fallback(); }
 }
 
 // ---------------------------------------------------------------
@@ -101,7 +104,7 @@ class LocalBackend implements RankingBackend {
 
   async load(difficulty: string, metric: RankMetric): Promise<RankEntry[]> {
     try {
-      const raw = localStorage.getItem(this.key(difficulty));
+      const raw = recordStorage.getItem(this.key(difficulty));
       const list = raw ? (JSON.parse(raw) as RankEntry[]) : [];
       return list
         .map((e) => ({ ...e, survival: (e as Partial<RankEntry>).survival ?? 0 }))
@@ -117,7 +120,7 @@ class LocalBackend implements RankingBackend {
     list.sort((a, b) => metricValue(b, metric) - metricValue(a, metric) || a.ts - b.ts);
     const rank = list.indexOf(entry) + 1;
     try {
-      localStorage.setItem(this.key(difficulty), JSON.stringify(list.slice(0, MAX_ENTRIES)));
+      recordStorage.setItem(this.key(difficulty), JSON.stringify(list.slice(0, MAX_ENTRIES)));
     } catch {
       /* ignore */
     }
@@ -128,10 +131,10 @@ class LocalBackend implements RankingBackend {
     // ローカルの記録は全部この端末のものなので、まとめて改名する
     for (const diff of ['easy', 'normal', 'hard', 'hardcore', 'endless']) {
       try {
-        const raw = localStorage.getItem(this.key(diff));
+        const raw = recordStorage.getItem(this.key(diff));
         if (!raw) continue;
         const list = (JSON.parse(raw) as RankEntry[]).map((e) => ({ ...e, name }));
-        localStorage.setItem(this.key(diff), JSON.stringify(list));
+        recordStorage.setItem(this.key(diff), JSON.stringify(list));
       } catch {
         /* ignore */
       }

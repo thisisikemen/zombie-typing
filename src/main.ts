@@ -7,6 +7,8 @@
 import { AudioSystem, type SfxName } from './audio/sfx';
 import { analytics, initAnalytics } from './analytics';
 import { initRecordTransfer } from './ui/record-transfer';
+import { initAccounts, type AccountController } from './ui/accounts';
+import { loadPlayerName } from './ui/ranking';
 import { COUNTDOWN, VS } from './config';
 import { DemoBot } from './core/bot';
 import { Game, type GameEvent, type GhostProfile } from './core/game';
@@ -75,6 +77,7 @@ async function boot(): Promise<void> {
 
   let settings: Settings = loadSettings();
   let state: AppState = 'loading';
+  let accounts: AccountController | null = null;
   let game: Game | null = null;
   let demoGame: Game | null = null;
   let demoBot = new DemoBot();
@@ -112,6 +115,7 @@ async function boot(): Promise<void> {
     audio.setBgm('menu'); // メニュー BGM(初回はユーザー操作後に自動開始)
     if (!demoGame) newDemo();
     ui.show('title');
+    accounts?.idle();
   }
 
   function gotoModeSelect(): void {
@@ -123,6 +127,7 @@ async function boot(): Promise<void> {
     if (!demoGame) newDemo();
     ui.buildModeSelect(); // ベストスコア表示を更新
     ui.show('mode');
+    accounts?.idle();
   }
 
   function startGame(mode: ModeDef, diff: DifficultyDef, quick: boolean): void {
@@ -322,6 +327,12 @@ async function boot(): Promise<void> {
     },
     onUserGesture: userGesture,
     onUiSound: (kind) => audio.play(kind),
+  });
+  accounts = initAccounts(() => state === 'title' || state === 'mode', () => {
+    for (const id of ['result-name', 'set-name', 'ranking-name']) {
+      (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();
+    }
+    if (state === 'mode') ui.buildModeSelect();
   });
   initAnalytics();
   initRecordTransfer();
