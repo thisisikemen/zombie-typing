@@ -45,7 +45,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   let authVersion = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let registration: Registration | null = null;
-  let lastStatus = 'ログイン状態を確認しています。登録せずにプレイできます。';
+  let lastStatus = 'ログインを確認しています。待たずに遊べます。';
   try {
     const raw = sessionStorage.getItem(PENDING);
     if (raw) {
@@ -54,20 +54,21 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         registration = { at: parsed.at, records: validateAccountRecords(parsed.records) };
       } else sessionStorage.removeItem(PENDING);
     }
-  } catch { lastStatus = '引き継ぎ準備を読み込めませんでした。もう一度「新規登録」から進んでください。'; }
+  } catch { lastStatus = '記録を準備できませんでした。もう一度「Googleで登録」を押してください。'; }
   function render(): void {
     const owner = recordOwner();
     guest.hidden = Boolean(owner);
+    document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : 'ログイン';
     member.hidden = !owner;
     status.textContent = lastStatus;
     // メールアドレスはゲーム画面・ランキング・解析に表示しない。
-    document.getElementById('account-identity')!.textContent = owner ? 'ログイン中。このアカウントの個人記録を使っています。' : '';
+    document.getElementById('account-identity')!.textContent = owner ? '記録はアカウントに保存されます。' : '';
     create.disabled = !ready || transitioning || !consent.checked;
     login.disabled = !ready || transitioning;
     logout.disabled = transitioning;
     syncButton.hidden = !desired;
     syncButton.disabled = syncing || transitioning;
-    buttons.forEach(b => { b.textContent = owner ? 'アカウント・記録同期' : testing ? 'ログイン・新規登録（テスト中）' : 'ログイン・新規登録'; });
+    buttons.forEach(b => { b.textContent = owner ? 'アカウント' : 'ログイン・登録'; });
   }
   consent.onchange = render;
   async function rpc(id: string, initial: AccountRecords | null, updates: AccountRecords) {
@@ -80,7 +81,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     const id = recordOwner();
     if (!client || !id || id !== desired || transitioning || syncing || !canSwitch()) return;
     const version = authVersion;
-    syncing = true; lastStatus = '記録を同期しています…'; render();
+    syncing = true; lastStatus = '記録を保存しています…'; render();
     try {
       const updates = accountUpdates(localStorage, id);
       const sentName = updates[NAME_KEY];
@@ -89,10 +90,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       if (version !== authVersion || id !== recordOwner()) return;
       if (sentName !== undefined && localStorage.getItem(pendingNameKey(id)) === sentName) localStorage.removeItem(pendingNameKey(id));
       cacheAccountRecords(localStorage, id, result.entries);
-      lastStatus = `同期済み（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}）`;
+      lastStatus = `保存しました（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}）`;
       refreshed();
     } catch {
-      if (version === authVersion) lastStatus = '同期できませんでした。記録はこのブラウザに保持しています。「再同期」で再試行できます。';
+      if (version === authVersion) lastStatus = '保存できませんでした。記録はこのブラウザに残っています。「記録を読み直す」を押して、もう一度お試しください。';
     } finally { syncing = false; render(); }
   }
   async function activate(): Promise<void> {
@@ -107,23 +108,23 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         const result = await rpc(id, registration?.records ?? null, {});
         if (version !== authVersion || !canSwitch()) return;
         if (result.needsRegistration) {
-          lastStatus = '初めてのご利用です。この端末の記録を引き継ぐ説明を確認し、「新規登録」から進んでください。';
+          lastStatus = '初めての方は、下の説明を読んで「Googleで登録」を押してください。';
           return;
         }
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);
         registration = null; sessionStorage.removeItem(PENDING);
         lastStatus = result.imported
-          ? 'この端末の記録をアカウントに引き継ぎました。他の端末の未登録データは自動統合されません。'
-          : 'アカウントの記録を読み込みました。この端末の未登録データは別に残しています。';
+          ? 'このブラウザの記録を引き継ぎました。'
+          : 'アカウントの記録で遊べます。';
       } else {
         setRecordOwner(null);
-        lastStatus = 'ログアウトしました。このブラウザの未登録データでプレイできます。';
+        lastStatus = 'ログアウトしました。登録前の記録で遊べます。';
       }
       document.getElementById('account-transfer-result')!.textContent = lastStatus;
       refreshed();
     } catch {
-      if (version === authVersion) lastStatus = 'アカウントの記録を読み込めませんでした。現在の保存先を維持しています。「再同期」または再読み込みで再試行してください。';
+      if (version === authVersion) lastStatus = '記録を読み込めませんでした。今ある記録は消えていません。「記録を読み直す」を押してください。';
     } finally { transitioning = false; render(); if (version !== authVersion) void activate().then(sync); }
   }
   async function signIn(register: boolean): Promise<void> {
@@ -139,7 +140,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       redirect.searchParams.set('account', 'return');
       const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirect.href } });
       if (error) throw error;
-    } catch { lastStatus = 'ログイン画面を開けませんでした。少し待ってから再試行してください。'; render(); }
+    } catch { lastStatus = 'ログイン画面を開けませんでした。少し待って、もう一度お試しください。'; render(); }
   }
   create.onclick = () => void signIn(true);
   login.onclick = () => void signIn(false);
@@ -152,7 +153,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       const { error } = await client.auth.signOut({ scope: 'local' });
       if (error) throw error;
       registration = null; sessionStorage.removeItem(PENDING);
-    } catch { lastStatus = 'ログアウトできませんでした。接続を確認して再試行してください。'; }
+    } catch { lastStatus = 'ログアウトできませんでした。ネットにつないで、もう一度お試しください。'; }
     finally { transitioning = false; void activate(); render(); }
   };
   window.addEventListener(RECORD_CHANGE, event => {
@@ -175,7 +176,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       const nextId = next?.user.id ?? null;
       if (nextId !== desired) { desired = nextId; authVersion++; }
       if (ready) {
-        if (!canSwitch() && nextId !== recordOwner()) { lastStatus = 'ログイン状態が変わりました。メニューに戻ると記録の保存先を切り替えます。'; render(); }
+        if (!canSwitch() && nextId !== recordOwner()) { lastStatus = 'ログインが切り替わりました。メニューに戻ると、使う記録が変わります。'; render(); }
         setTimeout(() => { void activate().then(sync); }, 0);
       }
     });
@@ -187,16 +188,16 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (error) throw error;
     session = data.session; desired = session?.user.id ?? null;
     ready = true;
-    if (authError) { lastStatus = 'ログインが完了しませんでした。未登録の記録はそのまま残っています。'; }
-    else if (!desired) lastStatus = '登録なしでも、今までどおりすぐにプレイできます。';
+    if (authError) { lastStatus = 'ログインできませんでした。今ある記録はそのまま残っています。'; }
+    else if (!desired) lastStatus = '登録しなくても、すぐに遊べます。';
     render(); await activate(); await sync();
     if (callback && canSwitch()) { render(); dialog.showModal(); }
   }).catch(() => {
     ready = Boolean(client);
-    lastStatus = 'ログイン状態を確認できませんでした。未登録のままプレイできます。接続後に再読み込みしてください。';
+    lastStatus = 'ログインを確認できませんでした。そのまま遊べます。ネットにつないで、ページを開き直してください。';
     render();
   });
-  message.textContent = '新規登録時に、このサイトで今使っているブラウザの自己ベスト・VS自己ベスト・名前を保存します。他の端末やブラウザの未登録データは自動統合せず、それぞれに残ります。旧サイトからの記録移行は任意で、記録がなくても登録できます。';
+  message.textContent = 'このブラウザの自己ベスト・VS自己ベスト・名前を引き継ぎます。ほかの端末の記録はまとめず、その端末に残ります。';
   render();
   return { idle() { void activate().then(sync); } };
 }
