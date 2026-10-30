@@ -867,6 +867,7 @@ kbd {
 }
 .setting-row input[type="range"] { width: 55%; accent-color: var(--accent); }
 .setting-row input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--accent); }
+.form-status { color: var(--gold); font-size: .9rem; line-height: 1.6; }
 .howto-list { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; font-size: 1.02rem; line-height: 1.65; }
 .howto-list li { padding-left: 1.2em; position: relative; }
 .howto-list li::before { content: "▸"; position: absolute; left: 0; color: var(--blood); }

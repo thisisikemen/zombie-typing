@@ -715,12 +715,15 @@ export class UI {
       const el = document.getElementById(id) as HTMLInputElement | null;
       if (el) el.value = name;
     }
+    const feedback = $(source === 'result' ? 'register-status' : source === 'settings' ? 'settings-name-status' : 'ranking-name-status');
+    feedback.textContent = '名前を保存中…';
     try {
       await rankingBackend.rename(name);
+      feedback.textContent = '名前を保存しました';
       if (source === 'ranking') this.renderRanking();
       if (source === 'result') this.setRegisterStatus(name);
     } catch {
-      /* オンライン側の改名失敗は致命的ではない */
+      feedback.textContent = 'この端末の名前は保存しました。ランキングの名前変更はできませんでした。時間をおいてもう一度お試しください。';
     }
   }
 
