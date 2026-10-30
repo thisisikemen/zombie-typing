@@ -55,11 +55,11 @@ Supabaseのpublishableキーはブラウザ公開用。安全性はRLS・列権�
 
 ## 公開・外部設定
 
-`SITE_URL`、`VITE_GA_MEASUREMENT_ID`、`ADSENSE_PUBLISHER_ID` の使い方は運用手順を参照。未設定の解析・広告は動かない。独自ドメインは未取得。広告配信・決済は未実装。
+`SITE_URL`、`VITE_GA_MEASUREMENT_ID`、`ADSENSE_PUBLISHER_ID` の使い方は運用手順を参照。未設定の解析・広告は動かない。`zombietyping.jp` は本人が取得済み。Cloudflareの接続設定済みで、DNS反映・HTTPS確認待ち。広告配信・決済は未実装。
 
 2026-10-30、GA4のウェブストリームを作成し、GitHubリポジトリ変数 `VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF` を設定して公開した。測定IDは公開用であり秘密鍵ではない。新しいGA4アカウントを重複作成しない。
 
-2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。ドメイン購入・DNS変更・有料契約・新しいAPIトークンの作成は行っていない。
+2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。本人が2026-10-31にXServerで `zombietyping.jp` を取得済み（有効期限2027-10-31）。Cloudflareの無料DNSゾーンを作成し、XServerのネームサーバーを `arvind.ns.cloudflare.com` / `vera.ns.cloudflare.com` に変更済み。WorkerのCustom Domain設定も完了。Cloudflareはpending、公開DNSはまだNXDOMAINで、HTTPSは未確認。反映後に本番URL・GA4を設定して再公開する。Cloudflareの有料契約・新しいAPIトークンの作成は行っていない。
 
 GitHub Pagesには事業用途の制限がある。収益化前に配信先を確定する。移行する場合も静的な `dist/` の配信先変更と、オンライン対戦用のバックエンド変更を分けて考える。
 
