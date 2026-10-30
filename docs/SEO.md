@@ -1,3 +1,7 @@
+> 2026-10-30更新: 公開URLは `SITE_URL` でビルド時に一括変更できるようになった。
+> 独自ドメイン移行時に各ファイルを手動編集する必要はない。
+> 設定・DNS・データ引き継ぎの注意は [運用手順](OPERATIONS.md) を優先する。
+
 # SEO / Search Console / 独自ドメイン手順
 
 公開URL: https://thisisikemen.github.io/zombie-typing/

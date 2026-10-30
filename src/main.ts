@@ -5,6 +5,8 @@
  */
 
 import { AudioSystem, type SfxName } from './audio/sfx';
+import { analytics, initAnalytics } from './analytics';
+import { initRecordTransfer } from './ui/record-transfer';
 import { COUNTDOWN, VS } from './config';
 import { DemoBot } from './core/bot';
 import { Game, type GameEvent, type GhostProfile } from './core/game';
@@ -86,6 +88,7 @@ async function boot(): Promise<void> {
   let goTimer = 0;
   let endFade: { kind: 'clear' | 'gameover'; t: number } | null = null;
   let endDelay = 0;
+  let gaveUp = false;
 
   const applyAudioSettings = () =>
     audio.applySettings({ volume: settings.volume, sfxOn: settings.sfx, bgmOn: settings.bgm });
@@ -123,6 +126,8 @@ async function boot(): Promise<void> {
   }
 
   function startGame(mode: ModeDef, diff: DifficultyDef, quick: boolean): void {
+    if (quick) analytics.track('game_retry', { mode: mode.id, difficulty: diff.id });
+    gaveUp = false;
     currentMode = mode;
     currentDiff = diff;
     // VS 自己ベスト: 直前に勝って更新したVS専用記録を最優先で再生する。
@@ -187,6 +192,7 @@ async function boot(): Promise<void> {
 
   function beginPlay(): void {
     state = 'playing';
+    analytics.track('game_start', { mode: currentMode.id, difficulty: currentDiff.id });
     goTimer = COUNTDOWN.goTime;
     audio.play('go');
   }
@@ -206,6 +212,11 @@ async function boot(): Promise<void> {
     const survival = game.survivalTime();
     // WPM = 正打キー数 / 分(Eタイピング準拠)
     const wpm = survival > 0 ? Math.round(game.correctKeys / (survival / 60)) : 0;
+    analytics.track('game_end', {
+      mode: currentMode.id, difficulty: currentDiff.id,
+      outcome: gaveUp ? 'quit' : cleared ? 'clear' : 'gameover', score: game.score,
+      duration_sec: Math.round(survival), wpm, accuracy: game.accuracy(),
+    });
     const vsWin =
       currentMode.id === 'vs' &&
       cleared &&
@@ -273,6 +284,7 @@ async function boot(): Promise<void> {
 
   function giveUp(): void {
     if (!game) return;
+    gaveUp = true;
     if (game.isPractice()) {
       // 練習の「終了する」はゲームオーバーではなく SCORE リザルトへ
       game.status = 'clear';
@@ -311,6 +323,8 @@ async function boot(): Promise<void> {
     onUserGesture: userGesture,
     onUiSound: (kind) => audio.play(kind),
   });
+  initAnalytics();
+  initRecordTransfer();
 
   // ---------- キーボード ----------
 

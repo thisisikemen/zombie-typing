@@ -32,7 +32,7 @@ npm run dev
 
 ```bash
 npm run dev      # 開発サーバー
-npm test         # ユニットテスト(ローマ字判定エンジン等 48 件)
+npm test         # ユニットテスト(判定エンジン・ゲーム・計測・ランキング等)
 npm run build    # 型チェック + 本番ビルド(dist/)
 npm run preview  # ビルド結果の確認
 ```
@@ -67,3 +67,11 @@ tests/             Vitest(ん・っ・拗音・分解揺れ、ゲームロジッ
 ## バランス調整
 
 `src/config.ts` にすべて集約(HP、Tier ごとのダメージ/速度/コスト/スコア、スポーン予算、コンボ閾値、ボーナス効果の種類、色、空のキーフレーム…)。ボーナス効果は `BONUS.effect` を `'heal' | 'shield' | 'overcharge'` で差し替え可能。
+
+## 事業化・運用
+
+- [初期の方針と進める順序](docs/BUSINESS-LAUNCH.md)
+- [独自ドメイン・GA4・広告審査の設定](docs/OPERATIONS.md)
+- [セキュリティ確認と未解決事項](docs/SECURITY-REVIEW.md)
+
+公開URLは `SITE_URL`、解析は `VITE_GA_MEASUREMENT_ID`、広告の所有確認は `ADSENSE_PUBLISHER_ID` で設定する。未設定の解析・広告は通信しない。ローカル設定は `.env.example` を参照。

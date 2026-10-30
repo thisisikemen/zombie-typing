@@ -15,9 +15,12 @@ export function initKeyboard(onAction: (a: KeyAction) => void): void {
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.repeat) return; // 長押しリピートは無視
+    if (document.querySelector('dialog[open]')) return;
     // 入力欄(ランキングの名前など)への入力はゲーム側で処理しない
     const target = e.target as HTMLElement | null;
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+    // サイト情報リンクや同意ダイアログをキーボードでも操作できるようにする。
+    if (target?.closest('a, button, select, dialog, [contenteditable="true"]')) return;
 
     if (e.key === 'Enter') {
       e.preventDefault();

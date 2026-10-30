@@ -14,6 +14,7 @@ import {
 } from './ranking';
 import { loadBest, loadVsBest, type Settings } from './store';
 import { TIPS } from './tips';
+import { analytics } from '../analytics';
 
 export type ScreenName = 'title' | 'mode' | 'result' | 'pause' | 'none';
 
@@ -726,6 +727,7 @@ export class UI {
   private share(): void {
     if (!this.shareData) return;
     const d = this.shareData;
+    analytics.track('share', { mode: this.activeMode.id, difficulty: d.diffId });
     const outcome = d.endless
       ? `${formatTime(d.survival)}生き延びた`
       : d.cleared

@@ -37,7 +37,8 @@ function metricValue(e: RankEntry, metric: RankMetric): number {
 /**
  * オンラインランキングの接続先(docs/RANKING.md 参照)。
  * このキーは「公開用(publishable)」であり、ブラウザに埋め込む前提のもの。
- * 書き込み権限は持たず、サーバー側の RPC・RLS で保護されている。
+ * 権限はキーではなく、サーバー側の GRANT・RPC・RLS で制限する。
+ * 現状と制約は docs/SECURITY-REVIEW.md を参照。
  */
 export const ONLINE_CONFIG = {
   supabaseUrl: 'https://vizhznqrgasepakokygv.supabase.co',
@@ -66,21 +67,24 @@ export function savePlayerName(name: string): void {
 
 /** 名前の整形(空なら既定名、最大10文字) */
 export function sanitizeName(raw: string): string {
-  const name = raw.trim().slice(0, 10);
+  const name = Array.from(raw.replace(/[\u0000-\u001f\u007f]/g, '').trim()).slice(0, 10).join('');
   return name.length > 0 ? name : '名無しの生存者';
 }
 
 /** この端末を識別するキー(1人1枠の実現用) */
+let sessionDeviceKey: string | undefined;
 function deviceKey(): string {
   try {
     let key = localStorage.getItem(DEVICE_KEY);
-    if (!key) {
-      key = crypto.randomUUID();
+    if (!key || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) {
+      key = sessionDeviceKey ??= crypto.randomUUID();
       localStorage.setItem(DEVICE_KEY, key);
     }
+    sessionDeviceKey = key;
     return key;
   } catch {
-    return '00000000-0000-4000-8000-000000000000';
+    // 保存禁止の利用者全員が同じキーになると、互いの記録を上書きしてしまう。
+    return sessionDeviceKey ??= crypto.randomUUID();
   }
 }
 
@@ -138,11 +142,11 @@ class LocalBackend implements RankingBackend {
 // ---------------------------------------------------------------
 // オンライン(Supabase)バックエンド。設定が入ると自動で使われる。
 // 書き込みは RPC(submit_score / rename_player)経由のみ。テーブルへの
-// 直接 INSERT/UPDATE は許可しないので、開発者ツールから任意の行は作れない。
+// 直接 INSERT/UPDATE を制限しても、RPC に渡すスコアはブラウザで作れてしまう。
 // deviceKey により 1 端末 1 難易度 1 枠(ベストスコアのみ保持)。
 // ---------------------------------------------------------------
 
-class OnlineBackend implements RankingBackend {
+export class OnlineBackend implements RankingBackend {
   readonly online = true;
 
   constructor(
@@ -161,13 +165,13 @@ class OnlineBackend implements RankingBackend {
   async load(difficulty: string, metric: RankMetric): Promise<RankEntry[]> {
     const orderCol = metric === 'survival' ? 'survival_seconds' : 'score';
     const query = (withSurvival: boolean) =>
-      `${this.url}/rest/v1/scores?difficulty=eq.${difficulty}` +
+      `${this.url}/rest/v1/scores?difficulty=eq.${encodeURIComponent(difficulty)}` +
       `&select=name,score,kills,wpm,accuracy,updated_at${withSurvival ? ',survival_seconds' : ''}` +
       `&order=${withSurvival ? orderCol : 'score'}.desc&limit=${MAX_ENTRIES}`;
-    let res = await fetch(query(true), { headers: this.headers() });
+    let res = await fetch(query(true), { headers: this.headers(), signal: AbortSignal.timeout(10000) });
     if (!res.ok && metric === 'score') {
       // サーバー側に survival_seconds カラムが無い(SQL 未実行)場合のフォールバック
-      res = await fetch(query(false), { headers: this.headers() });
+      res = await fetch(query(false), { headers: this.headers(), signal: AbortSignal.timeout(10000) });
     }
     if (!res.ok) throw new Error(`ranking load failed: ${res.status}`);
     const rows = (await res.json()) as {
@@ -194,7 +198,7 @@ class OnlineBackend implements RankingBackend {
     const payload: Record<string, unknown> = {
       p_device_key: deviceKey(),
       p_difficulty: difficulty,
-      p_name: entry.name,
+      p_name: sanitizeName(entry.name),
       p_score: entry.score,
       p_kills: entry.kills,
       p_wpm: entry.wpm,
@@ -205,6 +209,7 @@ class OnlineBackend implements RankingBackend {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
     });
     if (res.status === 404) {
       // サーバー側の RPC が旧シグネチャ(survival 未対応)の場合のフォールバック
@@ -213,6 +218,7 @@ class OnlineBackend implements RankingBackend {
         method: 'POST',
         headers: this.headers(),
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10000),
       });
     }
     if (!res.ok) throw new Error(`ranking submit failed: ${res.status}`);
@@ -221,11 +227,13 @@ class OnlineBackend implements RankingBackend {
   }
 
   async rename(name: string): Promise<void> {
-    await fetch(`${this.url}/rest/v1/rpc/rename_player`, {
+    const res = await fetch(`${this.url}/rest/v1/rpc/rename_player`, {
       method: 'POST',
       headers: this.headers(),
-      body: JSON.stringify({ p_device_key: deviceKey(), p_name: name }),
+      body: JSON.stringify({ p_device_key: deviceKey(), p_name: sanitizeName(name) }),
+      signal: AbortSignal.timeout(10000),
     });
+    if (!res.ok) throw new Error(`ranking rename failed: ${res.status}`);
   }
 }
 
