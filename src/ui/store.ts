@@ -1,3 +1,4 @@
+import { recordStorage } from './record-scope';
 /**
  * 設定・ベストスコアの localStorage 永続化。
  */
@@ -60,7 +61,7 @@ export function saveSettings(s: Settings): void {
 
 export function loadBest(modeId: string, diffId: string): BestRecord | null {
   try {
-    const raw = localStorage.getItem(`${BEST_PREFIX}${modeId}:${diffId}`);
+    const raw = recordStorage.getItem(`${BEST_PREFIX}${modeId}:${diffId}`);
     return raw ? (JSON.parse(raw) as BestRecord) : null;
   } catch {
     return null;
@@ -81,7 +82,7 @@ export function saveBest(
     if (prevValue >= nextValue) return false;
   }
   try {
-    localStorage.setItem(`${BEST_PREFIX}${modeId}:${diffId}`, JSON.stringify(rec));
+    recordStorage.setItem(`${BEST_PREFIX}${modeId}:${diffId}`, JSON.stringify(rec));
   } catch {
     /* ignore */
   }
@@ -90,7 +91,7 @@ export function saveBest(
 
 export function loadVsBest(diffId: string): VsBestRecord | null {
   try {
-    const raw = localStorage.getItem(`${VS_BEST_PREFIX}${diffId}`);
+    const raw = recordStorage.getItem(`${VS_BEST_PREFIX}${diffId}`);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<VsBestRecord>;
     if (
@@ -131,7 +132,7 @@ export function loadVsBest(diffId: string): VsBestRecord | null {
 /** 現在の自己ベストに勝った走りだけを、次回対戦用として置き換える。 */
 export function saveVsBest(diffId: string, rec: VsBestRecord): void {
   try {
-    localStorage.setItem(`${VS_BEST_PREFIX}${diffId}`, JSON.stringify(rec));
+    recordStorage.setItem(`${VS_BEST_PREFIX}${diffId}`, JSON.stringify(rec));
   } catch {
     /* private mode 等では保存しない */
   }

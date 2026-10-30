@@ -920,3 +920,10 @@ kbd {
     display: none;
   }
 }
+
+/* アカウントもプレイ前の登録を強制しない。 */
+[hidden] { display: none !important; }
+#account-dialog { max-height: 85vh; overflow-y: auto; }
+#account-dialog h3 { margin: 1.2em 0 .5em; font-size: 1.05em; }
+.account-consent { display: flex; align-items: flex-start; gap: .6em; line-height: 1.6; }
+.account-consent input { margin-top: .4em; flex: 0 0 auto; }

@@ -1,3 +1,4 @@
+import { recordOwner, recordStorage } from './record-scope';
 import { BACKUP_MAX_BYTES, createBackup, parseBackup, restoreBackup, type RecordBackup } from './backup';
 
 export function initRecordTransfer(): void {
@@ -11,7 +12,7 @@ export function initRecordTransfer(): void {
   dialog.addEventListener('keydown', (event) => event.stopPropagation());
   document.getElementById('records-export')!.onclick = () => {
     try {
-      const backup = createBackup(localStorage);
+      const backup = createBackup(recordStorage);
       const url = URL.createObjectURL(new Blob([JSON.stringify(backup)], { type: 'application/json' }));
       const link = document.createElement('a');
       link.href = url;
@@ -44,6 +45,7 @@ export function initRecordTransfer(): void {
   };
   restore.onclick = () => {
     if (!pending) return;
+    if (recordOwner()) { status.textContent = 'ログイン中はファイルを読み込めません。未登録データへ読み込む場合は先にログアウトしてください。'; return; }
     try {
       restoreBackup(localStorage, pending);
       location.reload();

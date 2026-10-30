@@ -73,6 +73,7 @@
         </div>
         <p class="title-footer"><kbd>Enter</kbd> で決定 <span class="sep">／</span> クリックして選択</p>
         <nav class="service-links" aria-label="サイト情報">
+          <button type="button" data-account-open hidden>ログイン・新規登録</button>
           <a href="./about.html" target="_blank" rel="noopener">このゲームについて</a>
           <a href="./privacy.html" target="_blank" rel="noopener">プライバシー</a>
           <button type="button" data-analytics-settings>アクセス解析の設定</button>
@@ -152,6 +153,7 @@
         </label>
         <p id="settings-name-status" class="form-status" role="status" aria-live="polite"></p>
         <div class="modal-actions">
+          <button type="button" class="share-btn" data-account-open hidden>ログイン・新規登録</button>
           <button type="button" class="share-btn" id="records-open">記録の引き継ぎ</button>
           <button type="button" class="share-btn" data-analytics-settings>アクセス解析の設定</button>
           <button id="btn-settings-close" class="plate-btn">閉じる</button>
@@ -202,6 +204,30 @@
       </div>
     </div>
   </main>
+
+  <dialog id="account-dialog" class="info-dialog" aria-labelledby="account-heading">
+    <h2 id="account-heading">アカウントと記録の同期</h2>
+    <p id="account-status" role="status" aria-live="polite"></p>
+    <div id="account-guest">
+      <p>登録なしでも今までどおり遊べます。登録すると、別の端末でも同じアカウントの記録を使えます。</p>
+      <h3>この端末の記録で新規登録</h3>
+      <p id="account-message"></p>
+      <p>すでにアカウントがある場合は新しく作らず、下の「ログイン」を選んでください。既存アカウントへは、この端末の未登録データを自動で追加しません。</p>
+      <label class="account-consent"><input type="checkbox" id="account-import-consent" /> この端末の記録を引き継ぎ、他の端末の記録は自動統合されないことを確認しました。</label>
+      <div class="consent-actions"><button type="button" id="account-create" disabled>Googleで新規登録・記録を引き継ぐ</button></div>
+      <h3>アカウントをお持ちの方</h3>
+      <div class="consent-actions"><button type="button" id="account-login" disabled>Googleでログイン</button></div>
+      <p>同じGoogleアカウントなら、どちらのボタンから進んでも同じゲームアカウントです。</p>
+    </div>
+    <div id="account-member" hidden>
+      <p id="account-identity"></p><p id="account-transfer-result"></p>
+      <p>次回もこのブラウザではログイン状態を復元します。サイトデータの削除、プライベートブラウズ、認証の失効などで再ログインが必要になる場合があります。共有端末では遊び終わったらログアウトしてください。</p>
+      <p>ログアウトすると、このブラウザに残っている未登録データへ戻ります。会員の記録はアカウントごとに分けて保存します。</p>
+      <div class="consent-actions"><button type="button" id="account-logout">このブラウザでログアウト</button></div>
+    </div>
+    <div class="consent-actions"><button type="button" id="account-sync" hidden>再同期</button><button type="button" id="account-close">閉じてプレイする</button></div>
+    <p>自己ベストは個人用の記録です。現在の端末別ランキングの所有者は変更しません。<a href="./privacy.html" target="_blank" rel="noopener">プライバシー</a></p>
+  </dialog>
 
   <dialog id="analytics-dialog" aria-labelledby="analytics-heading">
     <h2 id="analytics-heading">アクセス解析の設定</h2>
