@@ -634,6 +634,7 @@ kbd {
   text-indent: 0.14em;
 }
 .corner-tr { position: absolute; right: 2rem; top: 1.4rem; }
+.screen-actions a { text-decoration: none; }
 .screen-actions { display: flex; align-items: center; gap: .6rem; }
 .screen-actions .plate-btn-corner { padding-inline: 1.1rem; white-space: nowrap; }
 

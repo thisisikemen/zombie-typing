@@ -2,9 +2,9 @@
 
 無料で遊べるブラウザ日本語タイピングゲーム。右から迫るゾンビを、頭上の単語をローマ字で打ち切って撃ち倒す。夜明けまで生き延びる通常モード、限界まで挑むエンドレスモード、難易度別オンラインランキングに対応。
 
-**▶ 遊ぶ: https://thisisikemen.github.io/zombie-typing/**
+**▶ 遊ぶ: https://zombietyping.jp/**
 
-`main` ブランチに push すると GitHub Actions が自動でビルドして公開サイトを更新する。
+本番はCloudflare Workers Static Assetsで配信。公開コマンドは [運用手順](docs/CLOUDFLARE-LAUNCH.md) を参照。`main`へのpushでは旧GitHub Pagesだけが自動更新される。
 
 ## 特徴
 

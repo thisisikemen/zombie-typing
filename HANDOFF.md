@@ -6,11 +6,12 @@
 
 無料の一人プレイを育て、広告の収益を検証する。スキン販売は早くても約1か月後に検討し、リアルタイム対戦は急がない。ゲーム性の大幅変更は行わない。
 
-2026-10-31の追加方針: 任意アカウントによる端末間共有、将来の購入スキン・抽選要素、ゲージと技等による継続要素を検討する。初期提案は任意ログイン＋個人記録同期、別モードでの技の試作、無料スキン、固定スキン販売の順。有料ガチャは後の判断とする。これは検討であり、本番の認証・決済・ゲームルール変更はまだ行っていない。詳細は [アカウント・成長要素の検討](docs/ACCOUNT-AND-PROGRESSION.md)。
+2026-10-31の追加方針: 任意アカウントによる端末間共有、将来の購入スキン・抽選要素、ゲージと技等による継続要素を検討する。初期提案は任意ログイン＋個人記録同期、別モードでの技の試作、無料スキン、固定スキン販売の順。有料ガチャは後の判断とする。任意ログインと個人ベスト同期は本番有効化済み。決済やゲームルール変更はまだ行っていない。詳細は [アカウント・成長要素の検討](docs/ACCOUNT-AND-PROGRESSION.md)。
 
 - 作業フォルダ: `/Users/kawabatakoushirou/zombie-typing`
 - リポジトリ: https://github.com/thisisikemen/zombie-typing
-- 現行公開URL: https://thisisikemen.github.io/zombie-typing/
+- 現行公開URL: https://zombietyping.jp/
+- Cloudflareへ手動公開。`main`のpushで自動更新されるのは旧GitHub Pages。
 - TypeScript + Vite、Canvas描画、Supabaseランキング。React・PHPは使っていない。
 - `main`へのpush後、GitHub ActionsがビルドしてGitHub Pagesへ公開する。
 
@@ -80,3 +81,11 @@ GitHub Pagesには事業用途の制限がある。収益化前に配信先を�
 2026-10-31、ホーム右上とモード選択右上へ既存の金属プレートのアカウントボタンを配置。モード選択ではランキングをその左に置く。既存の設定・結果画面の入口も維持する。DNSのCloudflare NSとAレコード、独自ドメインのHTTPS 200を再確認済み。
 
 Google Authのブランド情報にホーム `https://zombietyping.jp/`、プライバシー `https://zombietyping.jp/privacy.html`、承認済みドメイン `zombietyping.jp` を保存済み。対象画面の「アプリを公開」は有効になった。まだテスト中で、一般利用者の登録を開く変更は行っていない。
+
+## 正式公開後の現在地（2026-10-31）
+
+- DNS・HTTPS確認済みで、反映待ちではない。正式URLは https://zombietyping.jp/ 。canonical/OGP/sitemap/robotsは新ドメイン、検索対象外指定は解除。workers.devはnoindex。
+- 本人が「一般の人も登録できるようにする」と了承し、Google Authは本番環境へ切り替え済み。公開ビルドのテスト案内は非表示。本人の初回記録保存・再読込の自動ログイン・別オリジンへの同一記録復元を確認済み。
+- GA4の既存ストリーム `G-ZCWQHK5BCF` のURLを新ドメインへ更新済み。未許可の実画面でGoogleタグが0件であることを確認した。個別ゲームイベントの受信と広告審査は未完了。
+- 旧GitHub Pagesの記録は残し、「新サイトへ」リンクを用意する。移行は任意で強制転送しない。GitHub変数SITE_URLも新ドメインに設定済み。
+- Cloudflareの再公開はdocs/CLOUDFLARE-LAUNCH.mdの環境変数付きコマンドを使う。引数なしの公開では検証版へ戻ってしまう。Git連携・Search Console・広告導入は未完了。

@@ -60,9 +60,11 @@ npm audit --audit-level=high
 ## 外部設定の進捗（2026-10-31）
 
 - 本番でRLS有効、anonのSELECT不可、authenticatedのテーブル直接書き込み不可、anonの同期RPC実行不可、authenticatedの同期RPC実行可をカタログ照会で確認。公開APIでも個人記録の読取・同期はHTTP 401 / 42501で拒否された。既存ランキングの読み取りと端末キー非公開も4項目の実API確認で維持されている。
-- Google Cloudに専用プロジェクト `Zombie Typing`（`maximal-cabinet-513216-j6`）を作成済み。課金設定やAPIキー作成はしていない。本人がGoogleのユーザーデータポリシーへ同意し、OAuthの初期構成を作成済み。本人のGoogleアカウント1件をテストユーザーに登録した。ウェブ用OAuthクライアント「Zombie Typing Web」とSupabase callback URLを入力し、本人がクライアント作成とSupabaseへの設定を完了し、公開設定APIでGoogleプロバイダー有効を確認した。Google側は外部・テスト中で、Googleのブランド情報（ホームURL・プライバシーURL・承認済みドメイン zombietyping.jp）は保存済み。対象画面の「アプリを公開」が有効になったが、まだテスト中。本人の実認証・初回記録保存・セッション復元は確認済み。
+- Google Cloudに専用プロジェクト `Zombie Typing`（`maximal-cabinet-513216-j6`）を作成済み。課金設定やAPIキー作成はしていない。本人がGoogleのユーザーデータポリシーへ同意し、OAuthの初期構成を作成済み。本人のGoogleアカウント1件をテストユーザーに登録した。ウェブ用OAuthクライアント「Zombie Typing Web」とSupabase callback URLを入力し、本人がクライアント作成とSupabaseへの設定を完了し、公開設定APIでGoogleプロバイダー有効を確認した。Google側は外部・テスト中で、Googleのブランド情報（ホームURL・プライバシーURL・承認済みドメイン zombietyping.jp）は保存済み。対象画面の「アプリを公開」が有効になったが、本人が一般登録の公開を了承し、Google側は「本番環境」へ切り替え済み。本人の実認証・初回記録保存・セッション復元は確認済み。
 
 - SupabaseのSite URLを `https://zombietyping.jp/` に保存済み。Redirect URLsは本番 `https://zombietyping.jp/?account=return` と検証用 `http://127.0.0.1:5175/?account=return` の2件のみ。
 - 独自ドメインのHTTPS 200は確認できた。旧URLの記録を新URLへファイルで移すのは任意。移さず空の記録で登録・プレイできる。本人が希望したChrome旧サイトの記録はUIから書き出し済みで、新URLへ読込・初回登録を完了。登録後にUIから書き出した6個の自己ベスト・1個のVS記録・名前の8項目が元記録と一致した。検証用localhostの記録で本番アカウントを初期化しない。
 
 実機確認: 新ドメインと保存領域が別の localhost:5175 で既存Googleアカウントへログインし、サーバーから戻った自己ベスト6件・VS記録1件・名前の8項目が元ファイルと一致した。ローカルのゲスト記録は初期登録に使っていない。同一ブラウザ内の別オリジンでの確認であり、別の実端末での確認はまだ行っていない。
+
+2026-10-31、本人の明示了承後にGoogleの対象を本番環境へ切り替えた。新ドメインの公開版は `VITE_ACCOUNTS_ENABLED=true`、`VITE_ACCOUNTS_TEST_MODE=false`。未ログインのままプレイできる。

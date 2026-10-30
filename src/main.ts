@@ -329,6 +329,7 @@ async function boot(): Promise<void> {
     onUserGesture: userGesture,
     onUiSound: (kind) => audio.play(kind),
   });
+  document.getElementById('site-move')!.hidden = location.hostname !== 'thisisikemen.github.io';
   initGameDialogs();
   accounts = initAccounts(() => state === 'title' || state === 'mode', () => {
     for (const id of ['result-name', 'set-name', 'ranking-name']) {
