@@ -62,6 +62,7 @@
 
     <!-- ===== タイトル画面 ===== -->
     <div id="screen-title" class="screen">
+      <button type="button" class="plate-btn plate-btn-corner corner-tr" data-account-open hidden>ログイン・登録</button>
       <img class="screen-art-bg" src="./assets/ui/title-art.jpg" alt="" />
       <div class="title-content">
         <h1 class="title-logo"><img class="title-logo-img" src="./assets/ui/logo.png" alt="ゾンビタイピング" /></h1>
@@ -73,7 +74,6 @@
         </div>
         <p class="title-footer"><kbd>Enter</kbd> で決定 <span class="sep">／</span> クリックして選択</p>
         <nav class="service-links" aria-label="サイト情報">
-          <button type="button" data-account-open hidden>ログイン・登録</button>
           <a href="./about.html" target="_blank" rel="noopener">このゲームについて</a>
           <a href="./privacy.html" target="_blank" rel="noopener">プライバシー</a>
           <button type="button" data-analytics-settings>アクセス解析の設定</button>
@@ -94,7 +94,10 @@
       <div class="tips-bar"><span class="tips-tag">TIP</span><span class="tips-text" id="tips-mode"></span></div>
       <button id="btn-mode-back" class="img-btn corner-bl"><img src="./assets/ui/btn-back.png" alt="戻る" /></button>
       <button id="btn-mode-settings" class="img-btn corner-br"><img src="./assets/ui/btn-setting.png" alt="設定" /></button>
-      <button id="btn-ranking" class="plate-btn plate-btn-corner corner-tr">ランキング</button>
+      <div class="screen-actions corner-tr">
+        <button id="btn-ranking" class="plate-btn plate-btn-corner">ランキング</button>
+        <button type="button" class="plate-btn plate-btn-corner" data-account-open hidden>ログイン・登録</button>
+      </div>
     </div>
 
     <!-- ===== リザルト画面 ===== -->

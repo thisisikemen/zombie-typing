@@ -634,6 +634,8 @@ kbd {
   text-indent: 0.14em;
 }
 .corner-tr { position: absolute; right: 2rem; top: 1.4rem; }
+.screen-actions { display: flex; align-items: center; gap: .6rem; }
+.screen-actions .plate-btn-corner { padding-inline: 1.1rem; white-space: nowrap; }
 
 .ranking-box { width: min(40rem, 90%); }
 .ranking-tabs { display: flex; gap: 0.6rem; margin-bottom: 0.6rem; }
