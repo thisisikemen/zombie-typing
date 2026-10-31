@@ -1,0 +1,48 @@
+{
+  "acquisition": "Original songs downloaded as MP3 through the official Suno Pro Unlock & Download flow; one paid download credit used per song on 2026-10-31. Files copied unchanged; no remix, remaster, normalization, or re-encoding.",
+  "official_references": [
+    "https://help.suno.com/en/articles/9601665",
+    "https://help.suno.com/en/articles/13614785",
+    "https://suno.com/blog/suno-updates-tos"
+  ],
+  "previous_version_commit": "b0c26e24f3dcff7ba6c00a68709f3be2f6a08dd8",
+  "restore_previous_audio": "git restore --source=b0c26e24f3dcff7ba6c00a68709f3be2f6a08dd8 -- public/audio/bgm-menu.mp3 public/audio/bgm-battle.mp3 public/audio/bgm-hardcore.mp3 public/audio/bgm-endless.mp3",
+  "tracks": [
+    {
+      "role": "menu",
+      "file": "public/audio/bgm-menu.mp3",
+      "song_id": "afc6224c-0118-42d9-bc78-e0c7ed6adc5b",
+      "song_url": "https://suno.com/song/afc6224c-0118-42d9-bc78-e0c7ed6adc5b",
+      "downloaded_utc": "2026-10-31T02:47:50.168534+00:00",
+      "sha256": "c6bb8d4a965af9b66a93e9755c352a797a76ef261af4fcd284cd4b9c2b6dcffe",
+      "previous_sha256": "a621e7fff35618125b01938f7725c529f5ddf85aa600319264d863ed3851936d"
+    },
+    {
+      "role": "battle",
+      "file": "public/audio/bgm-battle.mp3",
+      "song_id": "157e90e2-a680-4323-a47f-59811f8a2a18",
+      "song_url": "https://suno.com/song/157e90e2-a680-4323-a47f-59811f8a2a18",
+      "downloaded_utc": "2026-10-31T02:49:25.779858+00:00",
+      "sha256": "9c735d2c91d44ebf4ccf5febdf18b1bca96f006299ead6833b09d97552aff658",
+      "previous_sha256": "eaf54d47b21d3667b024f7771d104e991789252092cc36a291b4d1ece0749183"
+    },
+    {
+      "role": "hardcore",
+      "file": "public/audio/bgm-hardcore.mp3",
+      "song_id": "48de8b21-0822-471f-bb9d-e3768c097edb",
+      "song_url": "https://suno.com/song/48de8b21-0822-471f-bb9d-e3768c097edb",
+      "downloaded_utc": "2026-10-31T03:00:15.303437+00:00",
+      "sha256": "6a60ce13d4c924ae63a585430a3584f0cf82c9f6929a75feb948b282c6d4a219",
+      "previous_sha256": "e10edc8bc667fadd699c2a9d50dfdec518f6cf4aab455e487769326f4b68055b"
+    },
+    {
+      "role": "endless",
+      "file": "public/audio/bgm-endless.mp3",
+      "song_id": "9990946c-146b-42cf-bea6-30f4b01ad3c7",
+      "song_url": "https://suno.com/song/9990946c-146b-42cf-bea6-30f4b01ad3c7",
+      "downloaded_utc": "2026-10-31T02:55:03.861669+00:00",
+      "sha256": "33a026889d7eea22a675bd0cf3ace8b87d557f1d6a85f913fcc96dd3b87812c0",
+      "previous_sha256": "4ac05020660dc396df654a81ce84c7c86eec4fddd067ad9f27288554b25581f5"
+    }
+  ]
+}
