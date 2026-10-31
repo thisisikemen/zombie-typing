@@ -11,7 +11,7 @@
 - 作業フォルダ: `/Users/kawabatakoushirou/zombie-typing`
 - リポジトリ: https://github.com/thisisikemen/zombie-typing
 - 現行公開URL: https://zombietyping.jp/
-- Cloudflareへ手動公開。`main`のpushで自動更新されるのは旧GitHub Pages。
+- `main`のpushでCloudflareの正式サイトと旧GitHub Pagesを自動更新。Cloudflareはテスト・依存監査・ビルド成功後のみ公開。
 - TypeScript + Vite、Canvas描画、Supabaseランキング。React・PHPは使っていない。
 - `main`へのpush後、GitHub ActionsがビルドしてGitHub Pagesへ公開する。
 
@@ -58,11 +58,11 @@ Supabaseのpublishableキーはブラウザ公開用。安全性はRLS・列権�
 
 ## 公開・外部設定
 
-`SITE_URL`、`VITE_GA_MEASUREMENT_ID`、`ADSENSE_PUBLISHER_ID` の使い方は運用手順を参照。未設定の解析・広告は動かない。`zombietyping.jp` は本人が取得済み。Cloudflareの接続設定済みで、DNS反映・HTTPS確認待ち。広告配信・決済は未実装。
+`SITE_URL`、`VITE_GA_MEASUREMENT_ID`、`ADSENSE_PUBLISHER_ID` の使い方は運用手順を参照。未設定の解析・広告は動かない。`zombietyping.jp` は本人が取得済み。Cloudflareの接続・DNS反映・HTTPS確認済み。広告配信・決済は未実装。
 
 2026-10-30、GA4のウェブストリームを作成し、GitHubリポジトリ変数 `VITE_GA_MEASUREMENT_ID=G-ZCWQHK5BCF` を設定して公開した。測定IDは公開用であり秘密鍵ではない。新しいGA4アカウントを重複作成しない。
 
-2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。本人が2026-10-31にXServerで `zombietyping.jp` を取得済み（有効期限2027-10-31）。Cloudflareの無料DNSゾーンを作成し、XServerのネームサーバーを `arvind.ns.cloudflare.com` / `vera.ns.cloudflare.com` に変更済み。WorkerのCustom Domain設定も完了。設定時はCloudflareがpending・公開DNSがNXDOMAIN。その後の再確認で公開NSにCloudflareの2件とHTTPSのHTTP 200を確認。新ドメインはまだnoindexの検証版で、正式公開の確認は未完了。反映後に本番URL・GA4を設定して再公開する。Cloudflareの有料契約・新しいAPIトークンの作成は行っていない。
+以下は移行初期の履歴。現在の状態は冒頭と末尾の進捗を参照。2026-10-31、既存CloudflareアカウントとWranglerの既存認証を利用し、Workers Static Assetsで https://zombie-typing.kawabata-dev.workers.dev/ を検証公開した。正式URLは引き続きGitHub Pages。Cloudflare側はnoindex、解析・広告は無効。静的ファイルのみでサーバーコードは追加していない。`npm run deploy:cloudflare` で再公開できる。CloudflareのGitHub連携はエラー8000011のため未接続で、自動更新されない。本人が2026-10-31にXServerで `zombietyping.jp` を取得済み（有効期限2027-10-31）。Cloudflareの無料DNSゾーンを作成し、XServerのネームサーバーを `arvind.ns.cloudflare.com` / `vera.ns.cloudflare.com` に変更済み。WorkerのCustom Domain設定も完了。設定時はCloudflareがpending・公開DNSがNXDOMAIN。その後の再確認で公開NSにCloudflareの2件とHTTPSのHTTP 200を確認。新ドメインはまだnoindexの検証版で、正式公開の確認は未完了。反映後に本番URL・GA4を設定して再公開する。Cloudflareの有料契約・新しいAPIトークンの作成は行っていない。
 
 GitHub Pagesには事業用途の制限がある。収益化前に配信先を確定する。移行する場合も静的な `dist/` の配信先変更と、オンライン対戦用のバックエンド変更を分けて考える。
 
@@ -95,5 +95,6 @@ Google Authのブランド情報にホーム `https://zombietyping.jp/`、プラ
 - Search Consoleの新URLプロパティを追加。既存HTML確認ファイルで所有確認完了。sitemap送信成功・5ページ検出、トップページのインデックス登録リクエスト完了。検索結果への掲載は未確認。
 - 既存AdMobに関連するAdSense `pub-6491456634983694` をWeb用にも利用し、新アカウントは作っていない。`zombietyping.jp` を追加し、メタタグ所有確認が通り審査を申込済み。公開用IDはGitHub変数へ設定済み。本番には所有確認メタタグとads.txtのみを配信し、広告スクリプトは未導入。
 - GitHubアプリの新規権限は本人が了承。対象リポジトリ1件だけを選択し、本人がGitHubパスワード再確認を実施した。
-- CloudflareネイティブBuildsは、標準トークンが他サービスまで広い権限を持つため未接続。Workerとドメインだけに限定されたアカウントトークンを使うGitHub Actionsへ切り替える。ネイティブBuildsはアカウント所有トークンに未対応（公式設定資料を確認）。
-- `.github/workflows/cloudflare.yml` と公開結果の確認スクリプトを準備済み。専用キーの作成・GitHub Actions Secretへの入力は本人操作が必要。名前は `CLOUDFLARE_API_TOKEN`。`CLOUDFLARE_AUTO_DEPLOY=true` はキーの保存後に設定し、初回自動公開と実配信確認を行う。それまではCLIで本番公開を維持する。
+- CloudflareネイティブBuildsは、標準トークンが他サービスまで広い権限を持つため未接続。Workerとドメインだけに限定されたアカウントトークンを使うGitHub Actionsへ切り替え済み。ネイティブBuildsはアカウント所有トークンに未対応（公式設定資料を確認）。
+- 本人が専用キーを作成し、リポジトリSecret `CLOUDFLARE_API_TOKEN` へ保存済み。`CLOUDFLARE_AUTO_DEPLOY=true` を設定し、[初回実行](https://github.com/thisisikemen/zombie-typing/actions/runs/41147900648)で132件のテスト・依存監査・ビルド・本番公開・公開URL確認がすべて成功。以後はmainへのpushで自動更新する。
+- GitHubアプリは2026-10-31 08:45 JSTに新規インストールされた1リポジトリ限定の接続。既存接続の置き換えではない。Cloudflare一覧で `calendar-chat-proxy`（最終更新10日前）、`chiritsumo-proxy`（2か月前）が残っていることを読み取りで確認。既存アプリの設定・キーは変更していない。iOSアプリ内の通信そのものは未検証。

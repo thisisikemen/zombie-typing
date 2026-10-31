@@ -9,7 +9,7 @@ npm run build
 npm run preview
 ```
 
-正式公開URLは `https://zombietyping.jp/`。Cloudflareへの公開は [移行・公開手順](CLOUDFLARE-LAUNCH.md) の環境変数付きコマンドで行う。`main`へのpushでは旧GitHub Pagesだけが自動更新される。
+正式公開URLは `https://zombietyping.jp/`。Cloudflareへの公開は [移行・公開手順](CLOUDFLARE-LAUNCH.md) の環境変数付きコマンドで行う。`main`へのpushで、Cloudflareの正式サイトと旧GitHub Pagesが自動更新される。Cloudflareはテスト・依存監査・ビルドが成功した場合だけ公開する。
 
 ## 設定の置き場所
 

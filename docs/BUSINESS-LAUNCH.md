@@ -61,4 +61,4 @@ GitHub Pages公式には、オンライン事業・eコマースや商取引を�
 - [AdSenseの所有確認・審査](https://support.google.com/adsense/answer/12169212)
 - [JPRS WHOIS](https://whois.jprs.jp/)
 
-2026-10-31追記: Search Consoleの新URL登録・sitemap送信・トップページのインデックス登録リクエストを完了。既存AdMobと同じAdSenseへサイトを追加し、所有確認後に審査を申し込んだ。広告配信は未開始。サイトの自動公開は専用キーの設定と初回実行確認が残る。
+2026-10-31追記: Search Consoleの新URL登録・sitemap送信・トップページのインデックス登録リクエストを完了。既存AdMobと同じAdSenseへサイトを追加し、所有確認後に審査を申し込んだ。広告配信は未開始。サイトの自動公開は専用キーの保存・初回実行・公開URL確認まで完了。以後mainへのpushで更新する。
