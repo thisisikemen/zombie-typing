@@ -248,10 +248,12 @@
         <p id="account-message"></p>
         <label class="account-consent"><input type="checkbox" id="account-import-consent" /> 今ある記録を使う</label>
         <div class="consent-actions"><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button></div>
+        <p class="dialog-caption">Googleで本人確認します。メールの確認番号は不要です。</p>
       </section>
       <section class="account-route account-login-route" aria-labelledby="account-login-heading">
         <h3 id="account-login-heading">登録したことがある方</h3>
         <div class="consent-actions"><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button></div>
+        <p class="dialog-caption">使うGoogleアカウントを選んでください。</p>
       </section>
       <div id="account-email" hidden>
         <details><summary>メールで登録・ログイン</summary>
@@ -270,7 +272,8 @@
     </div>
     <div id="account-member" hidden>
       <p id="account-identity"></p><p id="account-transfer-result"></p>
-      <p>次からは、自動でログインします。みんなで使う端末では、遊び終わったらログアウトしてください。</p>
+      <p>次も自動でログインします。共有の端末ではログアウトしてください。</p>
+      <p class="dialog-caption">ここでログアウトしても、Google自体からはログアウトしません。</p>
       <div class="consent-actions"><button type="button" class="plate-btn" id="account-logout">ログアウト</button></div>
     </div>
     <details class="account-details">
