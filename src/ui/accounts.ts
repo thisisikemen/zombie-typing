@@ -51,6 +51,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   let authVersion = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let registration: Registration | null = null;
+  let initializationFailed = false;
   let finishInitialization!: () => void;
   const initialized = new Promise<void>(resolve => { finishInitialization = resolve; });
   let lastStatus = 'ログインを確認しています。待たずに遊べます。';
@@ -77,7 +78,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       const timeout = setTimeout(() => reject(new Error('ログインを確認できませんでした。もう一度押してください。')), 15_000);
       void initialized.then(() => { clearTimeout(timeout); resolve(); });
     });
-    if (!ready) throw new Error('ログインを確認できませんでした。もう一度押してください。');
+    if (!ready || initializationFailed || (desired && desired !== recordOwner())) throw new Error('ログインを確認できませんでした。もう一度押してください。');
     if (transitioning || syncing || !canSwitch()) throw new Error('メニューに戻って、もう一度押してください。');
     const id = recordOwner();
     if (!id) { restoreBackup(localStorage, mergeBackup(localStorage, backup)); return; }
@@ -286,6 +287,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (callback && canSwitch()) { render(); dialog.showModal(); }
   }).catch(() => {
     ready = Boolean(client);
+    initializationFailed = true;
     finishInitialization();
     lastStatus = 'ログインを確認できませんでした。そのまま遊べます。ネットにつないで、ページを開き直してください。';
     render();
