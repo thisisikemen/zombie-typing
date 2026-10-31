@@ -997,3 +997,5 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 
 #account-email { margin-top: 1rem; }
 #account-email input { display: block; box-sizing: border-box; width: 100%; background: #151814; border: 1px solid #66634a; color: var(--ui); padding: .7rem; margin-top: .4rem; font: inherit; }
+
+.site-move-screen .move-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; z-index: -1; }
