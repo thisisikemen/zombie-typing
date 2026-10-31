@@ -16,6 +16,8 @@ export function trustedMessage(event: Pick<MessageEvent, 'origin' | 'source'>, p
 
 export function initOldSiteMove(): boolean {
   if (location.origin !== OLD_ORIGIN || !location.pathname.startsWith('/zombie-typing/')) return false;
+  document.documentElement.style.setProperty('--ui-btn', `url("${new URL('./assets/ui/btn.png', location.href).href}")`);
+  document.documentElement.style.setProperty('--ui-btn-active', `url("${new URL('./assets/ui/btn-active.png', location.href).href}")`);
   document.getElementById('old-site-move')!.hidden = false;
   document.getElementById('stage')?.setAttribute('inert', '');
   const status = document.getElementById('old-move-status')!;
