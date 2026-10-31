@@ -170,3 +170,15 @@ it('旧サイトから新タブを開いた直後の引き継ぎは、ログイ�
  expect(mock.rpc).toHaveBeenCalledWith('sync_player_records',expect.objectContaining({p_expected_user:A,p_updates:{'zombie-typing:player-name':'旧サイト'}}));
  expect(localStorage.getItem('zombie-typing:player-name')).toBeNull();
 });
+
+it('引き継ぎ後は登録欄の案内を変え、持ってきた記録で登録を準備する',async()=>{
+ const heading=document.createElement('h3');heading.id='account-new-heading';document.getElementById('account-guest')!.prepend(heading);
+ await setup();expect(heading.textContent).toBe('初めての方・新しく始める方');
+ localStorage.setItem(key,rec);localStorage.setItem('zombie-typing:old-site-moved','true');
+ window.dispatchEvent(new Event('zombie-records-imported'));
+ expect(heading.textContent).toBe('引き継いだ記録で登録');
+ expect(document.getElementById('account-message')!.textContent).toContain('引き継いだ名前');
+ const consent=document.getElementById('account-import-consent') as HTMLInputElement;consent.checked=true;consent.dispatchEvent(new Event('change'));
+ document.getElementById('account-create')!.click();await flush();
+ expect(JSON.parse(sessionStorage.getItem('zombie-typing:registration-pending')!).records[key]).toBe(rec);
+});

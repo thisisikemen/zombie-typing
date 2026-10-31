@@ -1,3 +1,4 @@
+import { IMPORT_DONE } from './site-move';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { ONLINE_CONFIG } from './ranking';
 import { accountUpdates, cacheAccountRecords, NAME_KEY, pendingNameKey, readAccountRecords, validateAccountRecords, type AccountRecords } from './account-records';
@@ -101,6 +102,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   }
   function render(): void {
     const owner = recordOwner();
+    const moved = localStorage.getItem('zombie-typing:old-site-moved') === 'true';
+    const newHeading = document.getElementById('account-new-heading');
+    if (newHeading) newHeading.textContent = moved ? '引き継いだ記録で登録' : '初めての方・新しく始める方';
+    message.textContent = moved ? '引き継いだ名前・自己ベストを保存します。' : '今の名前・自己ベストを保存します。';
     guest.hidden = Boolean(owner);
     document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : 'ログイン';
     member.hidden = !owner;
@@ -115,6 +120,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     buttons.forEach(b => { b.textContent = owner ? 'アカウント' : 'ログイン・登録'; });
   }
   consent.onchange = render;
+  window.addEventListener(IMPORT_DONE, render);
   async function rpc(id: string, initial: AccountRecords | null, updates: AccountRecords) {
     const { data, error } = await client!.rpc('sync_player_records', { p_expected_user: id, p_initial: initial, p_updates: updates }).abortSignal(AbortSignal.timeout(12000));
     if (error) throw error;
@@ -292,7 +298,6 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     lastStatus = 'ログインを確認できませんでした。そのまま遊べます。ネットにつないで、ページを開き直してください。';
     render();
   });
-  message.textContent = '今の名前・自己ベストを保存します。';
   render();
   return { idle() { void activate().then(sync); }, importRecords };
 }

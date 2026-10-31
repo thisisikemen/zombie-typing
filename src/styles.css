@@ -1005,3 +1005,19 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .ranking-box > :not(.ranking-list) { flex-shrink: 0; }
 .ranking-box .ranking-list { flex: 1 1 auto; min-height: 3rem; }
 .ranking-box .move-hint .plate-btn { min-width: 0; font-size: 1rem; padding: .7rem 1rem; letter-spacing: .1em; }
+
+/* 登録前に、旧サイトの記録を使う人と新しく始める人を区別する。 */
+.account-route h3 { font-size: 1.05rem; letter-spacing: .04em; margin: 0 0 .45rem; }
+.account-route p { margin: .35rem 0 .6rem; }
+.account-route .consent-actions { margin-top: .7rem; }
+.account-new-route { padding-top: .55rem; }
+.account-login-route { border-top: 1px solid var(--ui-border); margin-top: 1rem; padding-top: 1rem; }
+#account-status { font-size: .9rem; }
+#account-dialog { padding: 1.2rem 1.8rem; line-height: 1.45; }
+#account-dialog .dialog-heading h2 { margin-bottom: .6rem; }
+#account-dialog .move-hint { margin: .45rem 0; padding: .65rem .8rem; }
+#account-dialog .account-login-route { margin-top: .65rem; padding-top: .65rem; }
+#account-dialog .account-details { margin-top: .65rem; }
+#account-dialog > .consent-actions { margin-top: .65rem; }
+#account-dialog .plate-btn { padding-block: .6rem; }
+#account-dialog .consent-actions { margin-top: .5rem; }
