@@ -1005,3 +1005,11 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .ranking-box > :not(.ranking-list) { flex-shrink: 0; }
 .ranking-box .ranking-list { flex: 1 1 auto; min-height: 3rem; }
 .ranking-box .move-hint .plate-btn { min-width: 0; font-size: 1rem; padding: .7rem 1rem; letter-spacing: .1em; }
+
+/* 登録前に、旧サイトの記録を使う人と新しく始める人を区別する。 */
+.account-route h3 { font-size: 1.05rem; letter-spacing: .04em; margin: 0 0 .45rem; }
+.account-route p { margin: .35rem 0 .6rem; }
+.account-route .consent-actions { margin-top: .7rem; }
+.account-new-route { padding-top: .55rem; }
+.account-login-route { border-top: 1px solid var(--ui-border); margin-top: 1rem; padding-top: 1rem; }
+#account-status { font-size: .9rem; }

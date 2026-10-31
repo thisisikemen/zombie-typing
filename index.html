@@ -235,13 +235,24 @@
   <dialog id="account-dialog" class="modal-box game-dialog" aria-labelledby="account-heading">
     <div class="dialog-heading"><h2 id="account-heading">ログイン</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
     <p id="account-test-notice" class="dialog-caption" hidden>ただいまテスト中です。登録はテストに参加している方だけ使えます。</p>
+    <section class="move-hint account-route" aria-labelledby="account-old-heading">
+      <h3 id="account-old-heading">旧サイトで遊んでいた方</h3>
+      <p>先に名前と記録を引き継いでから、登録してください。</p>
+      <button type="button" class="plate-btn" data-old-records>旧サイトの記録を引き継ぐ</button>
+      <p class="dialog-caption">もう登録した方も、ここから引き継げます。</p>
+    </section>
     <p id="account-status" role="status" aria-live="polite"></p>
-    <div class="move-hint"><p>旧サイトで遊んでいた方へ</p><button type="button" class="plate-btn" data-old-records>前の記録を引き継ぐ</button><p class="dialog-caption">登録の前でも、あとでもできます。</p></div>
     <div id="account-guest">
-      <p>登録すると、ほかの端末でも記録を使えます。</p>
-      <p id="account-message"></p>
-      <label class="account-consent"><input type="checkbox" id="account-import-consent" /> 今ある記録を使う</label>
-      <div class="consent-actions"><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button></div>
+      <section class="account-route account-new-route" aria-labelledby="account-new-heading">
+        <h3 id="account-new-heading">初めての方・新しく始める方</h3>
+        <p id="account-message"></p>
+        <label class="account-consent"><input type="checkbox" id="account-import-consent" /> 今ある記録を使う</label>
+        <div class="consent-actions"><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button></div>
+      </section>
+      <section class="account-route account-login-route" aria-labelledby="account-login-heading">
+        <h3 id="account-login-heading">登録したことがある方</h3>
+        <div class="consent-actions"><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button></div>
+      </section>
       <div id="account-email" hidden>
         <details><summary>メールで登録・ログイン</summary>
           <p>メールに届く番号で入れます。パスワードはいりません。</p>
