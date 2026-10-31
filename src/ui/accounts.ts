@@ -160,7 +160,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         const result = await rpc(id, registration?.records ?? null, {});
         if (version !== authVersion || !canSwitch()) return;
         if (result.needsRegistration) {
-          lastStatus = '初めての方は、下の説明を読んで「Googleで登録」を押してください。';
+          lastStatus = '初めての方は、使う記録を確認して登録してください。';
           return;
         }
         // 登録前に新サイトで遊んだキーは通常の初期値。旧サイト移行の1回枠を使わない。
@@ -239,7 +239,9 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         const { error } = await client.auth.verifyOtp({email:sentTo,token:token.value.trim(),type:'email'});
         if (error) throw error;
         token.value = ''; await activate(); await sync();
-        feedback.textContent = 'ログインしました。';
+        feedback.textContent = desired && recordOwner() === desired
+          ? 'ログインしました。'
+          : '本人確認はできました。記録はまだ読み込めていません。';
       } catch { feedback.textContent = '番号を確認してください。期限が切れたときは、もう一度メールを送ってください。'; }
       finally { emailBusy = false; }
     };
