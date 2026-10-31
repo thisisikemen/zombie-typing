@@ -64,8 +64,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   function validRankingKey(value: unknown): string | undefined {
     return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? value : undefined;
   }
-  async function rankingIdentity(id: string, legacy?: string): Promise<void> {
-    const { data, error } = await client!.rpc('claim_ranking_identity', { p_expected_user: id, p_legacy_key: legacy ?? null, p_existing_key: validRankingKey(localStorage.getItem(scopedKey('zombie-typing:device-key', id))) ?? null }).abortSignal(AbortSignal.timeout(12000));
+  async function rankingIdentity(id: string, legacy?: string, existing?: string): Promise<void> {
+    const { data, error } = await client!.rpc('claim_ranking_identity', { p_expected_user: id, p_legacy_key: legacy ?? null, p_existing_key: existing ?? validRankingKey(localStorage.getItem(scopedKey('zombie-typing:device-key', id))) ?? null }).abortSignal(AbortSignal.timeout(12000));
     if (error || !validRankingKey(data)) throw new Error('ランキングを引き継げませんでした。すでに別のアカウントに移した記録は使えません。');
     localStorage.setItem(scopedKey('zombie-typing:device-key', id), data);
   }
@@ -147,7 +147,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
           lastStatus = '初めての方は、下の説明を読んで「Googleで登録」を押してください。';
           return;
         }
-        await rankingIdentity(id, registration?.rankingKey);
+        // 登録前に新サイトで遊んだキーは通常の初期値。旧サイト移行の1回枠を使わない。
+        await rankingIdentity(id, undefined, registration?.rankingKey);
         if (version !== authVersion || !canSwitch()) return;
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);

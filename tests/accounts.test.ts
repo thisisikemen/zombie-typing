@@ -151,3 +151,10 @@ describe('登録後の旧サイト引き継ぎ',()=>{
   expect(localStorage.getItem('zombie-typing:player-name')).toBe('以前の名前');
  });
 });
+
+it('新サイトで遊んでから登録しても、旧サイト引き継ぎの枠を使わない',async()=>{
+ const initialKey='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+ mock.session={user:{id:A}};sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec},rankingKey:initialKey}));
+ await setup();
+ expect(mock.rpc).toHaveBeenCalledWith('claim_ranking_identity',expect.objectContaining({p_expected_user:A,p_legacy_key:null,p_existing_key:initialKey}));
+});
