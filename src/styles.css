@@ -1013,3 +1013,9 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .account-new-route { padding-top: .55rem; }
 .account-login-route { border-top: 1px solid var(--ui-border); margin-top: 1rem; padding-top: 1rem; }
 #account-status { font-size: .9rem; }
+#account-dialog { padding: 1.2rem 1.8rem; line-height: 1.45; }
+#account-dialog .dialog-heading h2 { margin-bottom: .6rem; }
+#account-dialog .move-hint { margin: .45rem 0; padding: .65rem .8rem; }
+#account-dialog .account-login-route { margin-top: .65rem; padding-top: .65rem; }
+#account-dialog .account-details { margin-top: .65rem; }
+#account-dialog > .consent-actions { margin-top: .65rem; }
