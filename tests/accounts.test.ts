@@ -16,6 +16,8 @@ async function setup() {
 }
 beforeEach(()=>{
   vi.resetModules(); vi.stubEnv('VITE_ACCOUNTS_ENABLED','true');
+  // CIの公開設定を引き継がず、各テストが使う画面と機能を明示する。
+  vi.stubEnv('VITE_EMAIL_AUTH_ENABLED','false');
   localStorage.clear(); sessionStorage.clear(); history.replaceState(null,'','/');
   document.body.innerHTML=`<button data-account-open hidden></button><dialog id="account-dialog"><h2 id="account-heading"></h2><p id="account-status"></p><div id="account-guest"></div><div id="account-member"></div><p id="account-message"></p><p id="account-identity"></p><p id="account-transfer-result"></p><button id="account-create"></button><button id="account-login"></button><button id="account-logout"></button><button id="account-sync"></button><button id="account-close"></button><input type="checkbox" id="account-import-consent"></dialog>`;
   mock.session=null; mock.callback=null;
