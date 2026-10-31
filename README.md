@@ -4,7 +4,7 @@
 
 **▶ 遊ぶ: https://zombietyping.jp/**
 
-本番はCloudflare Workers Static Assetsで配信。公開コマンドは [運用手順](docs/CLOUDFLARE-LAUNCH.md) を参照。`main`へのpushでは旧GitHub Pagesだけが自動更新される。
+本番はCloudflare Workers Static Assetsで配信。公開コマンドは [運用手順](docs/CLOUDFLARE-LAUNCH.md) を参照。`main`へのpushで、Cloudflareの正式サイトと旧GitHub Pagesが自動更新される。Cloudflareはテスト・依存監査・ビルドが成功した場合だけ公開する。
 
 ## 特徴
 
