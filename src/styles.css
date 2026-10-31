@@ -986,3 +986,16 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 
 .account-details { margin-top: 1rem; color: var(--ui-dim); font-size: .9rem; }
 .account-details summary { cursor: pointer; color: var(--gold); text-underline-offset: .2em; }
+
+.site-move-screen { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 1.5rem; background: radial-gradient(ellipse at center, #28291f, #0b0e0b 75%); overflow: auto; text-align: center; }
+.site-move-screen[hidden] { display: none; }
+.site-move-screen h1 { color: var(--gold); font-size: clamp(1.8rem, 5vw, 3rem); }
+.site-move-screen .plate-btn { display: inline-block; margin: .5rem 0; }
+.move-hint { padding: .8rem; border: 1px solid #66634a; background: #191d18; margin: .8rem 0; }
+.move-hint p { margin: .3rem 0 .6rem; }
+#move-status, #old-move-status { color: var(--gold); }
+
+#account-email { margin-top: 1rem; }
+#account-email input { display: block; box-sizing: border-box; width: 100%; background: #151814; border: 1px solid #66634a; color: var(--ui); padding: .7rem; margin-top: .4rem; font: inherit; }
+
+.site-move-screen .move-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; z-index: -1; }

@@ -286,6 +286,7 @@ export class UI {
   openRanking(diffId?: string): void {
     if (diffId) this.rankingDiff = diffId;
     $<HTMLInputElement>('ranking-name').value = loadPlayerName();
+    $('ranking-move-hint').hidden = Boolean(loadPlayerName()) || localStorage.getItem('zombie-typing:old-site-moved') === 'true';
     this.rankingModal.classList.remove('hidden');
     this.renderRanking();
   }

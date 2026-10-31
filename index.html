@@ -180,6 +180,7 @@
           <input type="text" id="ranking-name" maxlength="10" placeholder="なまえ(10文字まで)" autocomplete="off" />
           <button id="btn-ranking-rename" class="share-btn">変更</button>
         </div>
+        <p id="ranking-move-hint" class="move-hint" hidden>旧サイトで遊んでいた？<br><button type="button" class="plate-btn" data-old-records>前の記録を引き継ぐ</button></p>
         <p id="ranking-name-status" class="form-status" role="status" aria-live="polite"></p>
         <div class="modal-actions">
           <button id="btn-ranking-close" class="plate-btn">閉じる</button>
@@ -211,18 +212,50 @@
     </div>
   </main>
 
+  <section id="old-site-move" class="site-move-screen" hidden aria-labelledby="old-move-heading">
+    <img class="move-art" src="./assets/ui/title-art.jpg" alt="" />
+    <div class="modal-box game-dialog">
+      <p class="dialog-caption">ZOMBIE TYPING</p><h1 id="old-move-heading">引っ越しました！</h1>
+      <p>これからは zombietyping.jp で遊べます。</p>
+      <p>前の記録がある方は、こちらから。</p>
+      <button type="button" class="plate-btn" id="old-move-records">記録を引き継ぐ</button>
+      <p class="dialog-caption">名前・ランキング・自己ベストを持っていけます。</p>
+      <p id="old-move-status" role="status" aria-live="polite"></p>
+      <a class="plate-btn" href="https://zombietyping.jp/" rel="noopener">記録なしで新サイトへ</a>
+      <p class="dialog-caption">記録があるブラウザで開いてください。</p>
+    </div>
+  </section>
+  <dialog id="move-dialog" class="modal-box game-dialog" aria-labelledby="move-heading">
+    <div class="dialog-heading"><h2 id="move-heading">前の記録を引き継ぐ</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <p>① 旧サイトを開く<br>②「記録を引き継ぐ」を押す<br>③ このタブに戻る</p>
+    <p id="move-status" role="status" aria-live="polite"></p>
+    <p class="dialog-caption">元の記録は消えません。ファイルもいりません。</p>
+  </dialog>
+
   <dialog id="account-dialog" class="modal-box game-dialog" aria-labelledby="account-heading">
     <div class="dialog-heading"><h2 id="account-heading">ログイン</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
     <p id="account-test-notice" class="dialog-caption" hidden>ただいまテスト中です。登録はテストに参加している方だけ使えます。</p>
     <p id="account-status" role="status" aria-live="polite"></p>
+    <div class="move-hint"><p>旧サイトで遊んでいた方へ</p><button type="button" class="plate-btn" data-old-records>前の記録を引き継ぐ</button><p class="dialog-caption">登録の前でも、あとでもできます。</p></div>
     <div id="account-guest">
-      <p>登録すると、ほかの端末でも自分の記録で遊べます。</p>
-      <h3>初めての方</h3>
+      <p>登録すると、ほかの端末でも記録を使えます。</p>
       <p id="account-message"></p>
-      <label class="account-consent"><input type="checkbox" id="account-import-consent" /> このブラウザの記録を使って登録する</label>
-      <div class="consent-actions"><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button></div>
-      <h3>登録したことがある方</h3>
-      <div class="consent-actions"><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button></div>
+      <label class="account-consent"><input type="checkbox" id="account-import-consent" /> 今ある記録を使う</label>
+      <div class="consent-actions"><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button></div>
+      <div id="account-email" hidden>
+        <details><summary>メールで登録・ログイン</summary>
+          <p>メールに届く番号で入れます。パスワードはいりません。</p>
+          <form id="account-email-form">
+            <label>メールアドレス<input id="account-email-address" type="email" autocomplete="email" required maxlength="254" /></label>
+            <div class="consent-actions"><button type="submit" class="plate-btn" id="account-email-register">メールで登録</button><button type="button" class="plate-btn" id="account-email-login">メールでログイン</button></div>
+          </form>
+          <form id="account-code-form" hidden>
+            <label>メールに届いた番号<input id="account-email-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required maxlength="10" /></label>
+            <div class="consent-actions"><button type="submit" class="plate-btn" id="account-email-verify">番号でログイン</button></div>
+          </form>
+          <p id="account-email-status" role="status" aria-live="polite"></p>
+        </details>
+      </div>
     </div>
     <div id="account-member" hidden>
       <p id="account-identity"></p><p id="account-transfer-result"></p>
@@ -231,11 +264,8 @@
     </div>
     <details class="account-details">
       <summary>記録について</summary>
-      <p>登録すると、このサイトを開いているブラウザの自己ベスト・VS自己ベスト・名前を保存します。ほかの端末やブラウザの記録は、ひとつにまとめません。</p>
-      <p>旧サイトから記録を移すかどうかは自由です。記録がなくても登録できます。公開ランキングの記録はそのまま残ります。</p>
-      <p>登録したことがある方は、同じGoogleアカウントでログインしてください。登録前の記録は追加せず、アカウントに保存した記録で遊べます。</p>
-      <p>ログアウトすると、登録前の記録に戻ります。アカウントに保存した記録は消えません。</p>
-      <p>ブラウザのデータを消したときなどは、もう一度ログインが必要です。</p>
+      <p>今のブラウザの記録を保存します。ほかの端末の記録は、その端末に残ります。</p>
+      <p>次も同じアカウントでログインしてください。</p>
       <p><a href="./about.html#contact" target="_blank" rel="noopener">アカウントを消したい・困ったとき</a> · <a href="./privacy.html" target="_blank" rel="noopener">プライバシー</a></p>
     </details>
     <div class="consent-actions"><button type="button" class="plate-btn" id="account-sync" hidden>記録を読み直す</button><button type="button" class="plate-btn" id="account-close">ゲームに戻る</button></div>
@@ -254,14 +284,16 @@
 
   <dialog id="records-dialog" class="modal-box game-dialog" aria-labelledby="records-heading">
     <div class="dialog-heading"><h2 id="records-heading">記録の引き継ぎ</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
-    <p>以前の自己ベスト・VS自己ベスト・設定・名前を残したい方のための、任意の引き継ぎです。記録を移さず、そのまま新しく遊び始めても構いません。</p>
-    <p>ファイルにはランキングの識別情報も含まれます。ほかの人には渡さず、ご自身で保管してください。読み込みだけでランキングに送信することはありません。アクセス解析の許可設定は引き継ぎません。</p>
+    <p>旧サイトの名前・ランキング・自己ベストを持ってきます。</p>
+    <div class="consent-actions"><button type="button" class="plate-btn" data-old-records>旧サイトから引き継ぐ</button></div>
+    <details><summary>ファイルで移す・バックアップ</summary>
+    <p>このファイルは自分だけで保管してください。</p>
     <div class="consent-actions"><button type="button" class="plate-btn" id="records-export">現在の記録を書き出す</button></div>
     <div class="records-file"><button type="button" class="plate-btn" id="records-select">記録ファイルを選ぶ</button><input type="file" id="records-file" accept="application/json,.json" hidden /><p id="records-filename" class="dialog-caption">ファイル未選択</p></div>
     <p id="records-status" role="status" aria-live="polite"></p>
     <div class="consent-actions">
       <button type="button" class="plate-btn" id="records-restore" disabled>選んだ記録を読み込む</button>
-      <button type="button" class="plate-btn" id="records-close">閉じる</button>
+      </div></details><div class="consent-actions"><button type="button" class="plate-btn" id="records-close">閉じる</button>
     </div>
   </dialog>
 

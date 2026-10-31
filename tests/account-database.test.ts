@@ -16,6 +16,7 @@ beforeAll(async () => {
     grant execute on function auth.uid() to authenticated,anon;`);
   await db.exec(readFileSync('supabase/migrations/202610310001_optional_accounts.sql','utf8'));
   await db.exec(readFileSync('supabase/migrations/202610310002_require_registration_consent.sql','utf8'));
+  await db.exec(readFileSync('supabase/migrations/202610310003_ranking_identity.sql','utf8'));
 }, 20000);
 afterAll(async () => db?.close());
 async function asUser(id: string, action: () => Promise<unknown>) {
@@ -77,4 +78,33 @@ describe('PostgreSQLによる本人確認・初回引き継ぎ・同期', () => 
       expect(JSON.parse(registered.entries[key]).score).toBe(321);
     });
   });
+});
+
+const legacy = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+async function identity(id: string, legacyKey: string | null = null) {
+ return (await db.query<{key:string}>('select public.claim_ranking_identity($1,$2) as key',[id,legacyKey])).rows[0].key;
+}
+describe('会員のランキング引き継ぎ',()=>{
+ it('同じアカウントの別端末では同じキーを返し、旧記録をあとから一度だけ関連付けできる',async()=>{
+  await asUser(A,async()=>{
+   const initial=await identity(A); expect(await identity(A)).toBe(initial);
+   expect(await identity(A,legacy)).toBe(legacy);
+   expect(await identity(A)).toBe(legacy);
+   expect(await identity(A,legacy)).toBe(legacy);
+   await expect(identity(A,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')).rejects.toThrow('already linked');
+  });
+ });
+ it('他人の記録を読めず、同じ旧記録を2つのアカウントに関連付けできない',async()=>{
+  await asUser(B,async()=>{
+   await expect(identity(A)).rejects.toThrow('authentication changed');
+   await expect(identity(B,legacy)).rejects.toThrow('duplicate key');
+   expect((await db.query('select * from public.player_ranking_identity where user_id=$1',[A])).rows).toHaveLength(0);
+   await expect(db.exec("update public.player_ranking_identity set legacy_claimed=false")).rejects.toThrow('permission denied');
+  });
+ });
+ it('未ログインでは識別キーの読み書きができない',async()=>{
+  await db.exec('set role anon');
+  try { await expect(identity(A)).rejects.toThrow('permission denied'); await expect(db.exec('select * from public.player_ranking_identity')).rejects.toThrow('permission denied'); }
+  finally { await db.exec('reset role'); }
+ });
 });

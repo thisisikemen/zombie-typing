@@ -6,6 +6,8 @@
 
 import { AudioSystem, type SfxName } from './audio/sfx';
 import { analytics, initAnalytics } from './analytics';
+import { initOldSiteMove, initSiteMove, IMPORT_DONE } from './ui/site-move';
+import { mergeBackup, restoreBackup } from './ui/backup';
 import { initRecordTransfer } from './ui/record-transfer';
 import { initGameDialogs } from './ui/dialogs';
 import { initAccounts, type AccountController } from './ui/accounts';
@@ -60,6 +62,7 @@ function countdownSteps(quick: boolean, endless = false): CountdownStep[] {
 }
 
 async function boot(): Promise<void> {
+  if (initOldSiteMove()) return;
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 
   // SEOティッカー: 静的HTMLには紹介文を1つだけ置き(検索エンジン向け)、
@@ -338,7 +341,15 @@ async function boot(): Promise<void> {
     if (state === 'mode') ui.buildModeSelect();
   });
   initAnalytics();
-  initRecordTransfer();
+  initRecordTransfer(backup => accounts!.importRecords(backup));
+  initSiteMove(async backup => {
+    if (accounts) await accounts.importRecords(backup);
+    else restoreBackup(localStorage, mergeBackup(localStorage, backup));
+    settings = loadSettings(); applyAudioSettings();
+    for (const id of ['result-name', 'set-name', 'ranking-name']) (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();
+    if (state === 'mode') ui.buildModeSelect();
+  });
+  window.addEventListener(IMPORT_DONE, () => { document.getElementById('ranking-move-hint')!.hidden = true; });
 
   // ---------- キーボード ----------
 

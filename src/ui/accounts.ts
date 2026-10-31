@@ -1,12 +1,13 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { ONLINE_CONFIG } from './ranking';
 import { accountUpdates, cacheAccountRecords, NAME_KEY, pendingNameKey, readAccountRecords, validateAccountRecords, type AccountRecords } from './account-records';
-import { RECORD_CHANGE, recordOwner, setRecordOwner } from './record-scope';
+import { mergeBackup, restoreBackup, type RecordBackup } from './backup';
+import { RECORD_CHANGE, recordOwner, setRecordOwner, scopedKey } from './record-scope';
 
 const ENABLED = import.meta.env.VITE_ACCOUNTS_ENABLED === 'true';
 const PENDING = 'zombie-typing:registration-pending';
-interface Registration { at: number; records: AccountRecords }
-export interface AccountController { idle(): void }
+interface Registration { at: number; records: AccountRecords; rankingKey?: string }
+export interface AccountController { idle(): void; importRecords(backup: RecordBackup): Promise<void> }
 /** 任意機能。認証・同期の通信をゲームの開始待ちに使わない。 */
 export function initAccounts(canSwitch: () => boolean, refreshed: () => void): AccountController {
   const dialog = document.getElementById('account-dialog') as HTMLDialogElement;
@@ -30,7 +31,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     url.hash = '';
     history.replaceState(null, '', url);
   }
-  if (!ENABLED) return { idle() {} };
+  if (!ENABLED) return { idle() {}, async importRecords(backup) { restoreBackup(localStorage, mergeBackup(localStorage, backup)); } };
   const testing = import.meta.env.VITE_ACCOUNTS_TEST_MODE === 'true';
   document.getElementById('account-test-notice')?.toggleAttribute('hidden', !testing);
   buttons.forEach(b => {
@@ -56,10 +57,40 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (raw) {
       const parsed = JSON.parse(raw) as Registration;
       if (typeof parsed.at === 'number' && Date.now() - parsed.at < 30 * 60_000 && parsed.at <= Date.now()) {
-        registration = { at: parsed.at, records: validateAccountRecords(parsed.records) };
+        registration = { at: parsed.at, records: validateAccountRecords(parsed.records), rankingKey: validRankingKey(parsed.rankingKey) };
       } else sessionStorage.removeItem(PENDING);
     }
   } catch { lastStatus = '記録を準備できませんでした。もう一度「Googleで登録」を押してください。'; }
+  function validRankingKey(value: unknown): string | undefined {
+    return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? value : undefined;
+  }
+  async function rankingIdentity(id: string, legacy?: string): Promise<void> {
+    const { data, error } = await client!.rpc('claim_ranking_identity', { p_expected_user: id, p_legacy_key: legacy ?? null, p_existing_key: validRankingKey(localStorage.getItem(scopedKey('zombie-typing:device-key', id))) ?? null }).abortSignal(AbortSignal.timeout(12000));
+    if (error || !validRankingKey(data)) throw new Error('ランキングを引き継げませんでした。すでに別のアカウントに移した記録は使えません。');
+    localStorage.setItem(scopedKey('zombie-typing:device-key', id), data);
+  }
+  async function importRecords(backup: RecordBackup): Promise<void> {
+    if (!ready) throw new Error('ログインを確認中です。少し待って、もう一度押してください。');
+    if (transitioning || syncing || !canSwitch()) throw new Error('メニューに戻って、もう一度押してください。');
+    const id = recordOwner();
+    if (!id) { restoreBackup(localStorage, mergeBackup(localStorage, backup)); return; }
+    const version = authVersion;
+    transitioning = true; render();
+    try {
+      // 旧端末の秘密キーを所持する本人だけが、1つの会員へ関連付けできる。
+      await rankingIdentity(id, validRankingKey(backup.entries['zombie-typing:device-key']));
+      if (version !== authVersion || id !== recordOwner()) throw new Error('ログインが変わりました。もう一度引き継いでください。');
+      const entries = Object.fromEntries(Object.entries(backup.entries).filter(([key]) => key !== 'zombie-typing:device-key' && key !== 'zombie-typing:settings'));
+      const result = await rpc(id, null, validateAccountRecords(entries));
+      if (version !== authVersion || id !== recordOwner()) throw new Error('ログインが変わりました。もう一度引き継いでください。');
+      // 明示的に引き継いだ名前を優先し、スコアはサーバー側で大きい方を残す。
+      localStorage.removeItem(pendingNameKey(id));
+      cacheAccountRecords(localStorage, id, result.entries);
+      const settings = backup.entries['zombie-typing:settings'];
+      if (settings) localStorage.setItem('zombie-typing:settings', settings);
+      lastStatus = '前の記録を引き継ぎました。'; refreshed();
+    } finally { transitioning = false; render(); }
+  }
   function render(): void {
     const owner = recordOwner();
     guest.hidden = Boolean(owner);
@@ -116,6 +147,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
           lastStatus = '初めての方は、下の説明を読んで「Googleで登録」を押してください。';
           return;
         }
+        await rankingIdentity(id, registration?.rankingKey);
+        if (version !== authVersion || !canSwitch()) return;
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);
         registration = null; sessionStorage.removeItem(PENDING);
@@ -137,7 +170,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     try {
       if (register) {
         if (!consent.checked) return;
-        registration = { at: Date.now(), records: readAccountRecords(localStorage, null) };
+        registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')) };
         sessionStorage.setItem(PENDING, JSON.stringify(registration));
       } else { registration = null; sessionStorage.removeItem(PENDING); }
       if (register && desired) { await activate(); await sync(); return; }
@@ -149,6 +182,51 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   }
   create.onclick = () => void signIn(true);
   login.onclick = () => void signIn(false);
+  // SMTPとOTPテンプレートを実配信で確認するまでは公開しない。
+  if (import.meta.env.VITE_EMAIL_AUTH_ENABLED === 'true') {
+    const emailPanel = document.getElementById('account-email')!;
+    const emailForm = document.getElementById('account-email-form') as HTMLFormElement;
+    const codeForm = document.getElementById('account-code-form') as HTMLFormElement;
+    const address = document.getElementById('account-email-address') as HTMLInputElement;
+    const token = document.getElementById('account-email-code') as HTMLInputElement;
+    const feedback = document.getElementById('account-email-status')!;
+    let emailBusy = false;
+    let sentTo = '';
+    let nextSend = 0;
+    emailPanel.hidden = false;
+    async function sendEmail(register: boolean): Promise<void> {
+      if (!client || !ready || recordOwner() || emailBusy || !address.reportValidity()) return;
+      if (Date.now() < nextSend) { feedback.textContent = '1分待ってから、もう一度押してください。'; return; }
+      if (register && !consent.checked) { feedback.textContent = '「今ある記録を使う」にチェックしてください。'; return; }
+      emailBusy = true;
+      try {
+        if (register) {
+          registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')) };
+          sessionStorage.setItem(PENDING, JSON.stringify(registration));
+        } else { registration = null; sessionStorage.removeItem(PENDING); }
+        const email = address.value.trim();
+        const { error } = await client.auth.signInWithOtp({email, options:{shouldCreateUser:register}});
+        if (error) throw error;
+        sentTo = email; nextSend = Date.now() + 60_000; codeForm.hidden = false;
+        feedback.textContent = 'メールを確認して、届いた番号を入れてください。';
+      } catch { feedback.textContent = '送れませんでした。アドレスを確認して、少し待ってからお試しください。'; }
+      finally { emailBusy = false; }
+    }
+    emailForm.onsubmit = event => { event.preventDefault(); void sendEmail(true); };
+    document.getElementById('account-email-login')!.onclick = () => void sendEmail(false);
+    codeForm.onsubmit = async event => {
+      event.preventDefault();
+      if (!client || !sentTo || emailBusy || !codeForm.reportValidity()) return;
+      emailBusy = true;
+      try {
+        const { error } = await client.auth.verifyOtp({email:sentTo,token:token.value.trim(),type:'email'});
+        if (error) throw error;
+        token.value = ''; await activate(); await sync();
+        feedback.textContent = 'ログインしました。';
+      } catch { feedback.textContent = '番号を確認してください。期限が切れたときは、もう一度メールを送ってください。'; }
+      finally { emailBusy = false; }
+    };
+  }
   syncButton.onclick = () => { void activate().then(sync); };
   logout.onclick = async () => {
     if (!client) return;
@@ -202,7 +280,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     lastStatus = 'ログインを確認できませんでした。そのまま遊べます。ネットにつないで、ページを開き直してください。';
     render();
   });
-  message.textContent = 'このブラウザの自己ベスト・VS自己ベスト・名前を引き継ぎます。ほかの端末の記録はまとめず、その端末に残ります。';
+  message.textContent = '今の名前・自己ベストを保存します。';
   render();
-  return { idle() { void activate().then(sync); } };
+  return { idle() { void activate().then(sync); }, importRecords };
 }
