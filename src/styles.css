@@ -999,3 +999,9 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 #account-email input { display: block; box-sizing: border-box; width: 100%; background: #151814; border: 1px solid #66634a; color: var(--ui); padding: .7rem; margin-top: .4rem; font: inherit; }
 
 .site-move-screen .move-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; z-index: -1; }
+
+/* 引き継ぎ案内を含めても、名前欄と閉じるボタンを画面内に残す。 */
+.ranking-box { box-sizing: border-box; max-height: calc(100dvh - 2rem); display: flex; flex-direction: column; }
+.ranking-box > :not(.ranking-list) { flex-shrink: 0; }
+.ranking-box .ranking-list { flex: 1 1 auto; min-height: 3rem; }
+.ranking-box .move-hint .plate-btn { min-width: 0; font-size: 1rem; padding: .7rem 1rem; letter-spacing: .1em; }
