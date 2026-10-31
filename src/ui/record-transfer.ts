@@ -1,7 +1,7 @@
 import { recordOwner, recordStorage } from './record-scope';
 import { BACKUP_MAX_BYTES, createBackup, parseBackup, restoreBackup, type RecordBackup } from './backup';
 
-export function initRecordTransfer(): void {
+export function initRecordTransfer(importRecords?: (backup: RecordBackup) => Promise<void>): void {
   const dialog = document.getElementById('records-dialog') as HTMLDialogElement;
   const status = document.getElementById('records-status')!;
   const input = document.getElementById('records-file') as HTMLInputElement;
@@ -45,11 +45,12 @@ export function initRecordTransfer(): void {
       status.textContent = error instanceof Error ? error.message : '記録を読み取れませんでした。';
     }
   };
-  restore.onclick = () => {
+  restore.onclick = async () => {
     if (!pending) return;
-    if (recordOwner()) { status.textContent = 'ログイン中はファイルを読み込めません。未登録データへ読み込む場合は先にログアウトしてください。'; return; }
+    if (recordOwner() && !importRecords) { status.textContent = 'ログイン中はファイルを読み込めません。未登録データへ読み込む場合は先にログアウトしてください。'; return; }
     try {
-      restoreBackup(localStorage, pending);
+      if (importRecords) await importRecords(pending);
+      else restoreBackup(localStorage, pending);
       location.reload();
     } catch (error) {
       status.textContent = error instanceof Error ? error.message : '記録を保存できませんでした。';

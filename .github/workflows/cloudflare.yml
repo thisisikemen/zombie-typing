@@ -23,6 +23,7 @@ jobs:
       ADSENSE_PUBLISHER_ID: ${{ vars.ADSENSE_PUBLISHER_ID }}
       VITE_ACCOUNTS_ENABLED: 'true'
       VITE_ACCOUNTS_TEST_MODE: 'false'
+      VITE_EMAIL_AUTH_ENABLED: ${{ vars.VITE_EMAIL_AUTH_ENABLED }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

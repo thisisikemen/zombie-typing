@@ -102,3 +102,19 @@ export function restoreBackup(storage: RecordStorage, backup: RecordBackup): voi
     throw new Error('記録を保存できませんでした。ブラウザの空き容量と保存設定を確認してください。');
   }
 }
+
+/** 引っ越し先で先に遊んでいても、高い自己ベストは下げない。 */
+export function mergeBackup(storage: Pick<Storage, 'getItem'>, backup: RecordBackup): RecordBackup {
+  const entries = { ...parseBackup(JSON.stringify(backup)).entries };
+  for (const [key, incoming] of Object.entries(entries)) {
+    if (!key.includes(':best:') && !key.includes(':vs-best:')) continue;
+    const current = storage.getItem(key);
+    if (current === null) continue;
+    try {
+      const clean = normalize(key, current);
+      const metric = key.includes(':vs-best:') ? 'kills' : key === `${PREFIX}best:endless:endless` ? 'survival' : 'score';
+      if ((JSON.parse(clean)[metric] ?? 0) > (JSON.parse(incoming)[metric] ?? 0)) entries[key] = clean;
+    } catch { /* 古い壊れたキャッシュより検証済みの記録を使う */ }
+  }
+  return { ...backup, entries };
+}
