@@ -31,7 +31,7 @@
 
 `zombietyping.jp` を2026-10-31に本人がXServerドメインで取得した。有効期限は2027-10-31。初年度0円、自動更新設定済みで、更新料金の案内は年3,102円。
 
-Cloudflare Workers Static Assetsで検証用URLを公開済み。[設定値・費用・切り替え順序](CLOUDFLARE-LAUNCH.md)を参照。Cloudflareの無料DNS・Workerの独自ドメイン接続とXServerのネームサーバー変更は完了。DNS反映とHTTPSを確認し、正式公開URLを `https://zombietyping.jp/` へ切り替えた。任意のGoogle登録・個人ベスト保存も一般向けに有効化済み。旧GitHub Pagesは記録書き出し用に維持する。
+Cloudflare Workers Static Assetsで検証用URLを公開済み。[設定値・費用・切り替え順序](CLOUDFLARE-LAUNCH.md)を参照。Cloudflareの無料DNS・Workerの独自ドメイン接続とXServerのネームサーバー変更は完了。DNS反映とHTTPSを確認し、正式公開URLを `https://zombietyping.jp/` へ切り替えた。任意のGoogle登録・個人ベスト保存も一般向けに有効化済み。旧GitHub Pagesは引っ越し案内と記録引き継ぎ用に維持する。
 
 ## ホスティングについての重要な確認
 

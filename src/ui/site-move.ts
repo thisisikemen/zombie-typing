@@ -16,9 +16,22 @@ export function trustedMessage(event: Pick<MessageEvent, 'origin' | 'source'>, p
 
 export function initOldSiteMove(): boolean {
   if (location.origin !== OLD_ORIGIN || !location.pathname.startsWith('/zombie-typing/')) return false;
+  document.documentElement.style.setProperty('--ui-btn', `url("${new URL('./assets/ui/btn.png', location.href).href}")`);
+  document.documentElement.style.setProperty('--ui-btn-active', `url("${new URL('./assets/ui/btn-active.png', location.href).href}")`);
   document.getElementById('old-site-move')!.hidden = false;
   document.getElementById('stage')?.setAttribute('inert', '');
   const status = document.getElementById('old-move-status')!;
+  const summary = document.getElementById('old-move-summary');
+  if (summary) {
+    try {
+      const records = createBackup(localStorage).entries;
+      const name = records['zombie-typing:player-name'];
+      summary.textContent = name ? `${name}さんの記録が見つかりました。` : 'このブラウザの記録を引き継げます。';
+    } catch {
+      summary.textContent = 'このブラウザには記録がありません。';
+      (document.getElementById('old-move-records') as HTMLButtonElement).disabled = true;
+    }
+  }
   let peer: Window | null = null;
   let approved = false;
   let backup: RecordBackup | null = null;

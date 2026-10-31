@@ -51,6 +51,9 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   let authVersion = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let registration: Registration | null = null;
+  let initializationFailed = false;
+  let finishInitialization!: () => void;
+  const initialized = new Promise<void>(resolve => { finishInitialization = resolve; });
   let lastStatus = 'ログインを確認しています。待たずに遊べます。';
   try {
     const raw = sessionStorage.getItem(PENDING);
@@ -64,13 +67,18 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   function validRankingKey(value: unknown): string | undefined {
     return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? value : undefined;
   }
-  async function rankingIdentity(id: string, legacy?: string): Promise<void> {
-    const { data, error } = await client!.rpc('claim_ranking_identity', { p_expected_user: id, p_legacy_key: legacy ?? null, p_existing_key: validRankingKey(localStorage.getItem(scopedKey('zombie-typing:device-key', id))) ?? null }).abortSignal(AbortSignal.timeout(12000));
+  async function rankingIdentity(id: string, legacy?: string, existing?: string): Promise<void> {
+    const { data, error } = await client!.rpc('claim_ranking_identity', { p_expected_user: id, p_legacy_key: legacy ?? null, p_existing_key: existing ?? validRankingKey(localStorage.getItem(scopedKey('zombie-typing:device-key', id))) ?? null }).abortSignal(AbortSignal.timeout(12000));
     if (error || !validRankingKey(data)) throw new Error('ランキングを引き継げませんでした。すでに別のアカウントに移した記録は使えません。');
     localStorage.setItem(scopedKey('zombie-typing:device-key', id), data);
   }
   async function importRecords(backup: RecordBackup): Promise<void> {
-    if (!ready) throw new Error('ログインを確認中です。少し待って、もう一度押してください。');
+    // 旧サイトから新タブを開いた直後も、ログイン復元を待って正しい保存先へ渡す。
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('ログインを確認できませんでした。もう一度押してください。')), 15_000);
+      void initialized.then(() => { clearTimeout(timeout); resolve(); });
+    });
+    if (!ready || initializationFailed || (desired && desired !== recordOwner())) throw new Error('ログインを確認できませんでした。もう一度押してください。');
     if (transitioning || syncing || !canSwitch()) throw new Error('メニューに戻って、もう一度押してください。');
     const id = recordOwner();
     if (!id) { restoreBackup(localStorage, mergeBackup(localStorage, backup)); return; }
@@ -147,7 +155,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
           lastStatus = '初めての方は、下の説明を読んで「Googleで登録」を押してください。';
           return;
         }
-        await rankingIdentity(id, registration?.rankingKey);
+        // 登録前に新サイトで遊んだキーは通常の初期値。旧サイト移行の1回枠を使わない。
+        await rankingIdentity(id, undefined, registration?.rankingKey);
         if (version !== authVersion || !canSwitch()) return;
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);
@@ -274,9 +283,12 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (authError) { lastStatus = 'ログインできませんでした。今ある記録はそのまま残っています。'; }
     else if (!desired) lastStatus = '登録しなくても、すぐに遊べます。';
     render(); await activate(); await sync();
+    finishInitialization();
     if (callback && canSwitch()) { render(); dialog.showModal(); }
   }).catch(() => {
     ready = Boolean(client);
+    initializationFailed = true;
+    finishInitialization();
     lastStatus = 'ログインを確認できませんでした。そのまま遊べます。ネットにつないで、ページを開き直してください。';
     render();
   });
