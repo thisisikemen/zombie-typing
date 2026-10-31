@@ -131,6 +131,7 @@ describe('確認番号によるメール登録の準備',()=>{
   address.value='other@example.com';(document.getElementById('account-email-code') as HTMLInputElement).value='123456';
   document.getElementById('account-code-form')!.dispatchEvent(new Event('submit',{cancelable:true}));await flush();
   expect(mock.auth.verifyOtp).toHaveBeenCalledWith({email:'player@example.com',token:'123456',type:'email'});
+  expect(document.getElementById('account-email-status')!.textContent).not.toBe('ログインしました。');
  });
 });
 

@@ -103,3 +103,5 @@ Googleでログインする場合は、Googleの本人確認と同意を利用�
 メールの確認番号を使う別の登録方法は、独自SMTP未設定のため引き続き公開無効。Googleによる本人確認が未実装であることを意味しない。
 
 確認資料: [Googleのアカウント選択](https://developers.google.com/identity/openid-connect/openid-connect)、[SupabaseのGoogleログイン](https://supabase.com/docs/guides/auth/social-sign-in/auth-google)。
+
+メールの文面と帰宅後の設定手順は [確認番号メールの公開準備](../supabase/email-templates/README.md) に用意した。本人は外出中のため、新しい登録・規約同意・認証キー入力は帰宅の連絡後に行う。公開用フラグは未設定のままにする。
