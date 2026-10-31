@@ -21,6 +21,17 @@ export function initOldSiteMove(): boolean {
   document.getElementById('old-site-move')!.hidden = false;
   document.getElementById('stage')?.setAttribute('inert', '');
   const status = document.getElementById('old-move-status')!;
+  const summary = document.getElementById('old-move-summary');
+  if (summary) {
+    try {
+      const records = createBackup(localStorage).entries;
+      const name = records['zombie-typing:player-name'];
+      summary.textContent = name ? `${name}さんの記録が見つかりました。` : 'このブラウザの記録を引き継げます。';
+    } catch {
+      summary.textContent = 'このブラウザには記録がありません。';
+      (document.getElementById('old-move-records') as HTMLButtonElement).disabled = true;
+    }
+  }
   let peer: Window | null = null;
   let approved = false;
   let backup: RecordBackup | null = null;
