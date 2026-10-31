@@ -110,8 +110,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : 'ログイン';
     member.hidden = !owner;
     status.textContent = lastStatus;
-    // メールアドレスはゲーム画面・ランキング・解析に表示しない。
-    document.getElementById('account-identity')!.textContent = owner ? '記録はアカウントに保存されます。' : '';
+    // 本人用のアカウント画面だけに表示。ランキング・解析には送らない。
+    document.getElementById('account-identity')!.textContent = owner
+      ? (session?.user.id === owner && session.user.email ? `ログイン中：${session.user.email}` : 'ログイン中です。')
+      : '';
     create.disabled = !ready || transitioning || !consent.checked;
     login.disabled = !ready || transitioning;
     logout.disabled = transitioning;
@@ -172,7 +174,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
           : 'アカウントの記録で遊べます。';
       } else {
         setRecordOwner(null);
-        lastStatus = 'ログアウトしました。登録前の記録で遊べます。';
+        lastStatus = 'ログアウトしました。登録せずに遊べます。';
       }
       document.getElementById('account-transfer-result')!.textContent = lastStatus;
       refreshed();
@@ -191,7 +193,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       if (register && desired) { await activate(); await sync(); return; }
       const redirect = new URL(import.meta.env.BASE_URL, location.origin);
       redirect.searchParams.set('account', 'return');
-      const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirect.href } });
+      const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirect.href, queryParams: { prompt: 'select_account' } } });
       if (error) throw error;
     } catch { lastStatus = 'ログイン画面を開けませんでした。少し待って、もう一度お試しください。'; render(); }
   }
@@ -250,6 +252,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       // このブラウザからログアウト。他の端末のセッションは維持する。
       const { error } = await client.auth.signOut({ scope: 'local' });
       if (error) throw error;
+      session = null;
+      if (desired !== null) { desired = null; authVersion++; }
       registration = null; sessionStorage.removeItem(PENDING);
     } catch { lastStatus = 'ログアウトできませんでした。ネットにつないで、もう一度お試しください。'; }
     finally { transitioning = false; void activate(); render(); }

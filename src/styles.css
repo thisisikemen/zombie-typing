@@ -1021,3 +1021,5 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 #account-dialog > .consent-actions { margin-top: .65rem; }
 #account-dialog .plate-btn { padding-block: .6rem; }
 #account-dialog .consent-actions { margin-top: .5rem; }
+
+#account-identity { overflow-wrap: anywhere; color: var(--gold); }

@@ -182,3 +182,32 @@ it('引き継ぎ後は登録欄の案内を変え、持ってきた記録で登�
  document.getElementById('account-create')!.click();await flush();
  expect(JSON.parse(sessionStorage.getItem('zombie-typing:registration-pending')!).records[key]).toBe(rec);
 });
+
+it('Googleでログインを押すとアカウント選択を要求し、自動ログインの復元では要求しない',async()=>{
+ await setup();document.getElementById('account-login')!.click();await flush();
+ expect(mock.auth.signInWithOAuth).toHaveBeenCalledWith(expect.objectContaining({provider:'google',options:expect.objectContaining({queryParams:{prompt:'select_account'}})}));
+});
+it('本人用の画面にログイン先を表示し、ランキングの名前には使わない',async()=>{
+ mock.session={user:{id:A,email:'player@example.com'}};const {scope}=await setup();
+ expect(document.getElementById('account-identity')!.textContent).toBe('ログイン中：player@example.com');
+ expect(localStorage.getItem(scope.scopedKey('zombie-typing:player-name',A))).not.toBe('player@example.com');
+ expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
+});
+it('ログアウト成功後はSDK通知が遅くてもログイン表示を解除する',async()=>{
+ mock.session={user:{id:A,email:'player@example.com'}};
+ mock.auth.signOut.mockImplementation(async()=>({error:null}));
+ const {scope}=await setup();document.getElementById('account-logout')!.click();await flush();
+ expect(mock.auth.signOut).toHaveBeenCalledWith({scope:'local'});
+ expect(scope.recordOwner()).toBeNull();
+ expect(document.getElementById('account-identity')!.textContent).toBe('');
+ expect(document.querySelector('[data-account-open]')!.textContent).toBe('ログイン・登録');
+ expect(document.getElementById('account-status')!.textContent).toContain('ログアウトしました');
+});
+it('ログアウト失敗時はログイン表示と本人の記録を維持する',async()=>{
+ mock.session={user:{id:A,email:'player@example.com'}};
+ mock.auth.signOut.mockImplementation(async()=>({error:new Error('offline')}));
+ const {scope}=await setup();document.getElementById('account-logout')!.click();await flush();
+ expect(scope.recordOwner()).toBe(A);
+ expect(document.getElementById('account-identity')!.textContent).toContain('player@example.com');
+ expect(document.getElementById('account-status')!.textContent).toContain('ログアウトできません');
+});
