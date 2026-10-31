@@ -158,3 +158,15 @@ it('新サイトで遊んでから登録しても、旧サイト引き継ぎの�
  await setup();
  expect(mock.rpc).toHaveBeenCalledWith('claim_ranking_identity',expect.objectContaining({p_expected_user:A,p_legacy_key:null,p_existing_key:initialKey}));
 });
+
+it('旧サイトから新タブを開いた直後の引き継ぎは、ログイン復元を待って本人へ保存する',async()=>{
+ mock.session={user:{id:A}};
+ const {initAccounts}=await import('../src/ui/accounts');
+ const scope=await import('../src/ui/record-scope');
+ const controller=initAccounts(()=>true,()=>{});
+ const pending=controller.importRecords({format:'zombie-typing-records',version:1,entries:{'zombie-typing:player-name':'旧サイト'}});
+ await pending;
+ expect(scope.recordOwner()).toBe(A);
+ expect(mock.rpc).toHaveBeenCalledWith('sync_player_records',expect.objectContaining({p_expected_user:A,p_updates:{'zombie-typing:player-name':'旧サイト'}}));
+ expect(localStorage.getItem('zombie-typing:player-name')).toBeNull();
+});
