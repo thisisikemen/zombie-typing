@@ -245,7 +245,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
           return;
         }
         // 登録前に新サイトで遊んだキーは通常の初期値。旧サイト移行の1回枠を使わない。
-        await rankingIdentity(id, undefined, registration?.rankingKey);
+        const migratedGuest = result.imported && registration?.transferChoice === 'completed';
+        await rankingIdentity(id, migratedGuest ? registration?.rankingKey : undefined, migratedGuest ? undefined : registration?.rankingKey);
         if (version !== authVersion || !canSwitch()) return;
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);
@@ -379,9 +380,11 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       const { error } = await client.rpc('delete_player_account', { p_expected_user: id, p_confirmation: '退会' }).abortSignal(AbortSignal.timeout(12000));
       if (error) throw error;
       if (version !== authVersion || recordOwner() !== id) return;
+      const deletedRankingKey = localStorage.getItem(scopedKey('zombie-typing:device-key', id));
       clearTimeout(timer); authVersion++; desired = null; session = null; registration = null;
       sessionStorage.removeItem(PENDING);
       for (const key of Object.keys(localStorage)) if (key.startsWith(`zombie-typing:account:${id}:`) || key === `zombie-typing:transfer-choice:${id}`) localStorage.removeItem(key);
+      if (deletedRankingKey && localStorage.getItem('zombie-typing:device-key') === deletedRankingKey) localStorage.removeItem('zombie-typing:device-key');
       setRecordOwner(null);
       await client.auth.signOut({ scope: 'local' }).catch(() => {});
       // 削除成功後の通信断でも、削除済みセッションを次の起動で復元しない。

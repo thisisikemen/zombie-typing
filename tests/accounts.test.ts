@@ -258,3 +258,11 @@ it('退会確認を開いた後に会員が変わったら、以前の確認で�
  expect(scope.recordOwner()).toBe(B);expect(mock.rpc.mock.calls.some(call=>call[0]==='delete_player_account')).toBe(false);
  expect((document.getElementById('account-delete-dialog') as HTMLDialogElement).open).toBe(false);
 });
+
+it('旧サイトを引き継いでから初めて登録した場合は、旧ランキングの1回の枠を確定する',async()=>{
+ const legacy='cccccccc-cccc-4ccc-8ccc-cccccccccccc';mock.session={user:{id:A}};
+ sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec},rankingKey:legacy,transferChoice:'completed'}));
+ const original=mock.rpc.getMockImplementation()!;
+ mock.rpc.mockImplementation((name:string,args:any)=>name==='sync_player_records' && args.p_initial ? {abortSignal:()=>Promise.resolve({data:{entries:args.p_initial,imported:true},error:null})} : original(name,args));
+ await setup();expect(mock.rpc).toHaveBeenCalledWith('claim_ranking_identity',expect.objectContaining({p_expected_user:A,p_legacy_key:legacy}));
+});

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setRecordOwner } from '../src/ui/record-scope';
 import { OnlineBackend, sanitizeName } from '../src/ui/ranking';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); setRecordOwner(null); });
 const backend = new OnlineBackend('https://example.supabase.co', 'public-test-key');
 describe('ランキングの送信', () => {
   it('保存禁止でも同じセッションは同じランダムキーを使い、共通キーにしない', async () => {
@@ -46,4 +47,10 @@ it('旧サーバーで新しい投稿RPCが見つからない場合だけ従来�
  const fetch=vi.fn().mockResolvedValueOnce({ok:false,status:404}).mockResolvedValueOnce({ok:true,json:async()=>8});vi.stubGlobal('fetch',fetch);
  expect(await backend.submit('easy',{name:'生存者',score:100,kills:1,wpm:100,accuracy:1,survival:90,cleared:true,ts:1},'score')).toBe(8);
  expect(fetch.mock.calls[1][0]).toContain('/rpc/submit_score');expect(JSON.parse(fetch.mock.calls[1][1].body)).not.toHaveProperty('p_cleared');
+});
+
+it('会員キーが消えた後は勝手に別のランキング枠を作って投稿しない',async()=>{
+ setRecordOwner('deleted-member');vi.stubGlobal('localStorage',{getItem:()=>null});
+ const fetch=vi.fn();vi.stubGlobal('fetch',fetch);
+ await expect(backend.rename('以前の名前')).rejects.toThrow('account ranking identity unavailable');expect(fetch).not.toHaveBeenCalled();
 });

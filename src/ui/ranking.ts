@@ -86,11 +86,15 @@ function deviceKey(): string {
   try {
     let key = recordStorage.getItem(DEVICE_KEY);
     if (!key || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) {
-      key = fallback(); recordStorage.setItem(DEVICE_KEY, key);
+      if (recordOwner()) throw new Error('account ranking identity unavailable');
+      key = crypto.randomUUID(); recordStorage.setItem(DEVICE_KEY, key);
     }
     sessionKeys.set(owner, key);
     return key;
-  } catch { return fallback(); }
+  } catch {
+    if (recordOwner()) throw new Error('account ranking identity unavailable');
+    return fallback();
+  }
 }
 
 // ---------------------------------------------------------------
