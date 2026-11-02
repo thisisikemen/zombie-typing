@@ -88,8 +88,17 @@ export function initAnalytics(): void {
   const status = document.getElementById('analytics-status')!;
   const notice = document.getElementById('analytics-notice')!;
   const close = document.getElementById('analytics-close')!;
+  const select = document.getElementById('set-analytics') as HTMLSelectElement;
   function openSettings(): void { dialog.showModal(); close.focus(); }
-  function refreshNotice(): void { notice.hidden = !configured || analytics.choice !== null; }
+  function refreshNotice(): void {
+    notice.hidden = !configured || analytics.choice !== null;
+    if (select) select.value = analytics.choice ?? 'unset';
+    for (const choice of ['granted', 'denied'] as const) {
+      document.querySelectorAll<HTMLButtonElement>(`[data-analytics-choice="${choice}"]`).forEach(button => {
+        button.setAttribute?.('aria-pressed', String(analytics.choice === choice));
+      });
+    }
+  }
   status.textContent = configured
     ? 'ゲーム改善のため、Google Analyticsでプレイ回数・難易度・成績を集計します。Cookieを使用します。名前や打鍵内容は送りません。許可は任意で、後から変更できます。'
     : '現在、アクセス解析は無効です。ゲームの名前や成績をGoogle Analyticsへ送信していません。';
@@ -97,24 +106,31 @@ export function initAnalytics(): void {
     button.onclick = openSettings;
   });
   document.getElementById('analytics-close')!.onclick = () => dialog.close();
+  function choose(choice: Consent): void {
+    const wasStarted = started;
+    analytics.choose(choice);
+    refreshNotice();
+    if (dialog.open) dialog.close();
+    if (choice === 'granted') start();
+    else if (wasStarted) {
+      Object.assign(window, { [`ga-disable-${id}`]: true });
+      for (const name of ['_ga', `_ga_${id.slice(2)}`]) {
+        for (const path of new Set(['/', location.pathname.replace(/[^/]*$/, '') || '/'])) {
+          document.cookie = `${name}=; Max-Age=0; Path=${path}; SameSite=Lax`;
+        }
+      }
+      location.reload();
+    }
+  }
+  if (select) select.onchange = () => {
+    if (select.value === 'granted' || select.value === 'denied') choose(select.value);
+    else refreshNotice();
+  };
   for (const choice of ['granted', 'denied'] as const) {
     document.querySelectorAll<HTMLButtonElement>(`[data-analytics-choice="${choice}"]`).forEach(button => {
       button.hidden = !configured;
       button.onclick = () => {
-        const wasStarted = started;
-        analytics.choose(choice);
-        refreshNotice();
-        dialog.close();
-        if (choice === 'granted') start();
-        else if (wasStarted) {
-          Object.assign(window, { [`ga-disable-${id}`]: true });
-          for (const name of ['_ga', `_ga_${id.slice(2)}`]) {
-            for (const path of new Set(['/', location.pathname.replace(/[^/]*$/, '') || '/'])) {
-              document.cookie = `${name}=; Max-Age=0; Path=${path}; SameSite=Lax`;
-            }
-          }
-          location.reload();
-        }
+        choose(choice);
       };
     });
   }

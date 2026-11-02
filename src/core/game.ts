@@ -178,7 +178,7 @@ export class Game {
   private recentKana: string[] = [];
   /** ベーシック: 現在の周回内で出した数 */
   private practiceIndex = 0;
-  /** ベーシック: 周回数。0=五十音順、以降はランダム1文字→2文字語→3文字語のループ */
+  /** ベーシック: 0=五十音順、1=ランダム1文字、2〜9=最大かな文字数 */
   private practiceLap = 0;
   /** ベーシック: 最後に湧いた時刻(一定テンポ湧きの基準。初回は即出す) */
   private lastPracticeSpawnAt = -Infinity;
@@ -308,6 +308,10 @@ export class Game {
   handleKey(rawKey: string): void {
     if (this.status !== 'running') return;
     const key = rawKey.toLowerCase();
+    if (this.isPractice() && /^[1-9]$/.test(key)) {
+      this.setPracticeLevel(Number(key));
+      return;
+    }
 
     // 通常ロックオン中
     if (this.targetId !== null) {
@@ -315,11 +319,11 @@ export class Game {
       if (!z) {
         this.targetId = null;
       } else {
-        const res = z.session.input(key);
-        if (res === 'miss') {
+        if (!z.session.currentKeys().has(key)) {
           // 打鍵列が他のゾンビの単語として正しければ自動で狙いを切り替える
-          if (!this.tryAutoSwitch(key)) this.registerMiss();
+          if (!this.tryAutoSwitch(key)) { z.session.input(key); this.registerMiss(); }
         } else {
+          const res = z.session.input(key);
           this.pushRecentKey(key);
           this.registerCorrectShot(z.id);
           if (res === 'complete') this.onZombieKilled(z);
@@ -332,7 +336,7 @@ export class Game {
     if (this.candidateIds.length > 0) {
       const alive = this.candidateIds
         .map((id) => this.getZombie(id))
-        .filter((z): z is Zombie => !!z);
+        .filter((z): z is Zombie => !!z).sort((a, b) => a.x - b.x || a.id - b.id);
       const accepting = alive.filter((z) => z.session.currentKeys().has(key));
       if (accepting.length === 0) {
         // ミスでは候補を消さない(仕様 §5: 打ち切るまで断定しない)
@@ -343,7 +347,7 @@ export class Game {
       this.registerCorrectShot(accepting[0].id);
       let killed: Zombie | null = null;
       for (const z of accepting) {
-        if (z.session.input(key) === 'complete') killed = z;
+        if (z.session.input(key) === 'complete') { killed = z; break; }
       }
       if (killed) {
         this.onZombieKilled(killed);
@@ -363,7 +367,8 @@ export class Game {
 
     // ターゲット未確定 → このキーを受け付けるゾンビを探してロックオン
     if (this.zombies.length === 0) return; // 対象がいなければノーカウント
-    const matches = this.zombies.filter((z) => z.session.currentKeys().has(key));
+    const matches = this.zombies.filter((z) => z.session.currentKeys().has(key))
+      .sort((a, b) => a.x - b.x || a.id - b.id);
     if (matches.length === 0) {
       // 進捗のあるゾンビを最初から打ち直しているケース等を拾う
       if (!this.tryAutoSwitch(key)) this.registerMiss();
@@ -381,7 +386,9 @@ export class Game {
     }
     // 初手が重複 → 全員を「重複候補」状態にして並行入力
     this.registerCorrectShot(matches[0].id);
-    for (const z of matches) z.session.input(key);
+    for (const z of matches) {
+      if (z.session.input(key) === 'complete') { this.onZombieKilled(z); return; }
+    }
     this.candidateIds = matches.map((z) => z.id);
     this.events.push({ type: 'multiLock', zombieIds: this.candidateIds });
   }
@@ -414,8 +421,8 @@ export class Game {
    */
   private tryAutoSwitch(key: string): boolean {
     this.pushRecentKey(key);
-    const excluded = new Set<number>(this.candidateIds);
-    if (this.targetId !== null) excluded.add(this.targetId);
+    const active = new Set<number>(this.candidateIds);
+    if (this.targetId !== null) active.add(this.targetId);
 
     let best: { z: Zombie; s: TypingSession; len: number; cont: boolean } | null = null;
     // 優先度: 手前(x が小さい) > 一致の長さ > 「続きから」
@@ -425,13 +432,12 @@ export class Game {
       (z.x === best.z.x && (len > best.len || (len === best.len && cont && !best.cont)));
 
     for (const z of this.zombies) {
-      if (excluded.has(z.id)) continue;
       const hasProgress = !z.session.isComplete() && z.session.typedRomaji().length > 0;
       // このゾンビに一致する最長のサフィックスを探す
       for (let len = this.recentKeys.length; len >= 2; len--) {
         const suffix = this.recentKeys.slice(-len);
         // 続きから(入力進捗のあるゾンビの残りを打っているケース)
-        if (hasProgress) {
+        if (hasProgress && !active.has(z.id)) {
           const cont = replayInto(z.session.clone(), suffix);
           if (cont) {
             if (better(len, true, z)) best = { z, s: cont, len, cont: true };
@@ -439,6 +445,7 @@ export class Game {
           }
         }
         // 最初から(頭から打ち直しているケース。進捗は上書きされる)
+        // 現在の対象自身も頭から打ち直せる。正打中には呼ばないので横取りしない。
         const fresh = replayInto(new TypingSession(z.word.kana), suffix);
         if (fresh) {
           if (better(len, false, z)) best = { z, s: fresh, len, cont: false };
@@ -467,6 +474,22 @@ export class Game {
       this.recentKeys = [];
       this.events.push({ type: 'release' });
     }
+  }
+
+  get practiceLevel(): number { return Math.min(9, this.practiceLap); }
+
+  /** 数字キーで練習内容を選ぶ。飛ばした敵は得点・撃破・被弾に含めない。 */
+  setPracticeLevel(level: number): void {
+    if (!this.isPractice() || this.status !== 'running' || !Number.isInteger(level) || level < 1 || level > 9) return;
+    this.practiceLap = level;
+    this.practiceIndex = 0;
+    this.practiceLooped = true;
+    this.zombies = [];
+    this.targetId = null;
+    this.candidateIds = [];
+    this.recentKeys = [];
+    this.events.push({ type: 'release' });
+    this.trySpawnPractice(true);
   }
 
   getZombie(id: number): Zombie | undefined {
@@ -874,8 +897,7 @@ export class Game {
     this.events.push({ type: 'spawn', zombieId: z.id });
   }
 
-  /** ベーシックの出題: 1周目=五十音順 → 2周目=ランダム一文字 →
-      3周目=二文字の単語 → 4周目=三文字の単語 → 以降ランダム1〜3文字のループ */
+  /** 五十音 → ランダム1文字 → 最大2〜9文字。最終レベルで練習を続けられる。 */
   private nextPracticeWord(): WordEntry {
     if (this.practiceLap >= 1) this.practiceLooped = true; // 一周後は終了案内を出す
 
@@ -885,27 +907,33 @@ export class Game {
       return { display: ch, kana: ch };
     }
 
-    const stage = (this.practiceLap - 1) % 3; // 0=一文字 / 1=二文字 / 2=三文字
+    const level = this.practiceLevel;
     this.advancePracticeLap(BASIC.randomLapLength);
     const onScreen = new Set(this.zombies.map((z) => z.word.kana));
 
-    if (stage > 0) {
+    if (level >= 2) {
       // 実在する単語(漢字表示つき)から選ぶ。初手キーの重複も避ける
       const blocked = new Set<string>();
       for (const z of this.zombies) for (const k of z.session.currentKeys()) blocked.add(k);
-      const len = stage + 1;
-      const picked = this.pool.pick(this.rng, [len, len], blocked, onScreen, new Set(this.recentKana));
+      // 新しい長さを多めにしつつ、短い言葉も交ぜる。
+      const min = this.rng() < 0.65 ? level : 2;
+      const picked = this.pool.pick(this.rng, [min, level], blocked, onScreen, new Set(this.recentKana))
+        ?? this.pool.pick(this.rng, [2, level], blocked, onScreen, new Set(this.recentKana));
       if (picked) {
         this.recentKana.push(picked.word.kana);
-        if (this.recentKana.length > SPAWN.recentWordMemory) this.recentKana.shift();
+        if (this.recentKana.length > 120) this.recentKana.shift();
         return picked.word;
       }
       // 在庫がなければランダム一文字にフォールバック
     }
 
     // ランダム一文字(記号 ー、。?! は除外。画面上と同じ文字も避ける)
-    const kanaPool = BASIC.sequence.slice(0, -5).filter((c) => !onScreen.has(c));
-    const ch = kanaPool[Math.floor(this.rng() * kanaPool.length)];
+    const available = BASIC.sequence.slice(0, -5).filter((c) => !onScreen.has(c));
+    const fresh = available.filter(c => !this.recentKana.includes(c));
+    const kanaPool = fresh.length ? fresh : available;
+    const ch = kanaPool[Math.min(kanaPool.length - 1, Math.floor(this.rng() * kanaPool.length))];
+    this.recentKana.push(ch);
+    if (this.recentKana.length > 120) this.recentKana.shift();
     return { display: ch, kana: ch };
   }
 

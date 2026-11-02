@@ -1023,3 +1023,86 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 #account-dialog .consent-actions { margin-top: .5rem; }
 
 #account-identity { overflow-wrap: anywhere; color: var(--gold); }
+
+/* 共通の金属プレートを、小さい操作にも使う。 */
+.plate-btn.compact-btn { min-width: 0; font-size: .9rem; letter-spacing: .04em; text-indent: .04em; padding: .65rem 1rem; }
+.setting-row small { display: block; margin-top: .25rem; font-size: .72em; color: var(--ui-dim); }
+.setting-row select { font: inherit; padding: .4rem .6rem; background: #161813; color: #f2eee2; border: 1px solid var(--ui-border); border-radius: 3px; }
+.plate-btn[aria-pressed="true"], .plate-btn.ranking-tab.active { background-image: var(--ui-btn-active); color: #ffdf9a; filter: brightness(1.25); }
+.auth-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin: 1rem 0; }
+.auth-columns section { display: flex; flex-direction: column; gap: .5rem; }
+.auth-columns section + section { border-left: 1px solid var(--ui-border); padding-left: 1.4rem; }
+.auth-columns h3 { margin: 0 0 .25rem; color: #c8c3b6; font-size: .95rem; }
+.auth-columns .plate-btn { width: 100%; white-space: nowrap; letter-spacing: .03em; text-indent: 0; }
+#account-dialog { width: min(43rem, 94vw); box-sizing: border-box; }
+#account-dialog .account-benefit { color: #eee8d7; font-size: 1.08rem; line-height: 1.6; margin-top: .25rem; }
+#account-dialog .account-status:empty { display: none; }
+#account-dialog .move-hint { font-size: .9rem; border-color: #535145; background: rgba(41, 43, 31, .5); }
+.transfer-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
+.account-footer { display: flex; justify-content: space-between; align-items: center; gap: .7rem; border-top: 1px solid var(--ui-border); padding-top: .8rem; margin-top: .9rem; }
+#account-email { margin-top: .5rem; }
+#account-email input, #account-delete-confirm, #account-name { box-sizing: border-box; width: 100%; background: #151814; border: 1px solid #66634a; border-radius: 3px; color: #f2eee2; padding: .65rem; margin-top: .3rem; font: inherit; }
+#account-email input:focus, #account-delete-confirm:focus, #account-name:focus { outline: 1px solid var(--accent); }
+.profile-heading { display: flex; align-items: center; gap: 1rem; padding: .3rem 0 .9rem; }
+.profile-emblem { display: grid; place-items: center; width: 3.6rem; height: 3.6rem; border: 1px solid #8a7952; border-radius: 50%; color: #dbc187; background: radial-gradient(#35382a, #12140f); font: 900 2.1rem Georgia, serif; text-shadow: 2px 2px #000; flex-shrink: 0; }
+#account-dialog .profile-heading h3 { font-size: 1.35rem; margin: .1rem 0; }
+#account-dialog .profile-heading p { margin: 0; font-size: .75rem; }
+.profile-heading .dialog-caption:first-child { letter-spacing: .13em; color: #b4a67f; }
+.profile-name-form { border-top: 1px solid var(--ui-border); padding: .7rem 0; font-size: .85rem; }
+.profile-name-form > div { display: flex; gap: .6rem; align-items: center; }
+.profile-name-form input { flex: 1; min-width: 0; }
+.profile-name-form .form-status:empty { display: none; }
+.profile-records-heading { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+#account-dialog .profile-records-heading h3 { margin: .3rem 0 .5rem; font-size: .95rem; }
+.profile-records-heading > span { font-size: .7rem; color: var(--ui-dim); }
+.profile-records { max-height: 31dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--ui-border) transparent; }
+.profile-record { padding: .65rem .8rem; border-left: 2px solid var(--stage-color); background: rgba(38, 40, 30, .45); margin-bottom: .4rem; }
+.profile-stage, .profile-values { display: flex; align-items: center; justify-content: space-between; gap: .4rem .75rem; flex-wrap: wrap; }
+.profile-stage strong { color: var(--stage-color); font-size: .9rem; }
+.profile-rank { color: #e2c981; font-size: .8rem; }
+.profile-values { justify-content: flex-start; color: #b9b6a9; font-size: .75rem; margin-top: .3rem; font-variant-numeric: tabular-nums; }
+.profile-values > strong { color: #e8e3d3; min-width: 6.5rem; font-size: 1rem; }
+.outcome-pill { display: inline-block; padding: .1em .65em; border: 1px solid; border-radius: 99px; font-size: .75rem; font-weight: 700; white-space: nowrap; vertical-align: middle; }
+.outcome-pill.dawn { color: #d4e8a3; border-color: #687c43; background: rgba(89, 112, 51, .18); }
+.outcome-pill.night { color: #ed9990; border-color: #83504b; background: rgba(128, 46, 37, .15); }
+.rk-sub { display: flex; align-items: center; gap: .3rem .7rem; flex-wrap: wrap; }
+#account-dialog .profile-note { font-size: .68rem; margin: .4rem 0 .7rem; }
+.profile-actions { display: flex; justify-content: flex-start; gap: .5rem; flex-wrap: wrap; }
+.profile-actions .danger-btn { margin-left: auto; }
+.danger-btn { color: #efb3a6; }
+#account-delete-dialog { width: min(36rem, 94vw); }
+#account-delete-status { color: #efb3a6; }
+@media (max-width: 600px) {
+  #account-dialog { padding: 1rem; }
+  .auth-columns { gap: .65rem; }
+  .auth-columns section + section { padding-left: .65rem; }
+  #account-dialog .auth-columns .plate-btn { font-size: .85rem; padding-inline: .5rem; }
+  .account-footer { flex-wrap: wrap; }
+  .account-footer .plate-btn { flex: 1; }
+}
+
+.plate-btn.ranking-tab { background-image: var(--ui-btn); background-size: 100% 100%; background-color: transparent; border: 0; border-radius: 0; padding-inline: .4rem; }
+.plate-btn.ranking-tab.active, .plate-btn.ranking-tab:hover { background-image: var(--ui-btn-active); }
+
+/* プロフィールが長くても、操作と閉じるボタンをパネル内に残す。 */
+#account-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
+#account-dialog > .dialog-heading, #account-dialog > .account-footer, #account-dialog > .account-status, #account-dialog > #account-retry { flex-shrink: 0; }
+#account-guest { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+#account-member { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+#account-member > :not(.profile-records) { flex-shrink: 0; }
+#account-member .profile-records { flex: 1 1 auto; min-height: 4.2rem; max-height: 34dvh; }
+.profile-name-form { display: grid; grid-template-columns: 6.5rem 1fr; align-items: center; gap: .25rem .7rem; }
+.profile-name-form .form-status { grid-column: 1 / -1; }
+.profile-heading { padding-bottom: .6rem; }
+#account-dialog .account-status { margin: .55rem 0; font-size: .8rem; }
+#account-dialog .account-footer { margin-top: .55rem; padding-top: .6rem; }
+.profile-record { display: grid; grid-template-columns: 6.8rem 1fr; gap: .5rem; padding: .55rem .7rem; }
+.profile-stage { flex-direction: column; align-items: flex-start; gap: .15rem; }
+.profile-values { margin-top: 0; gap: .3rem .65rem; }
+.profile-values > strong { min-width: 5.3rem; font-size: .9rem; }
+.profile-values .outcome-pill { font-size: .68rem; }
+@media (max-width: 600px) {
+  .profile-name-form { grid-template-columns: 1fr; }
+  .profile-record { grid-template-columns: 1fr; gap: .3rem; }
+  .profile-stage { flex-direction: row; align-items: center; }
+}

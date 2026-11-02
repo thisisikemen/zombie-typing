@@ -343,7 +343,7 @@ async function boot(): Promise<void> {
   initAnalytics();
   initRecordTransfer(backup => accounts!.importRecords(backup));
   initSiteMove(async backup => {
-    if (accounts) await accounts.importRecords(backup);
+    if (accounts) await accounts.importRecords(backup, true);
     else restoreBackup(localStorage, mergeBackup(localStorage, backup));
     settings = loadSettings(); applyAudioSettings();
     for (const id of ['result-name', 'set-name', 'ranking-name']) (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();

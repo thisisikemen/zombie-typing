@@ -8,7 +8,7 @@ export function initRecordTransfer(importRecords?: (backup: RecordBackup) => Pro
   const restore = document.getElementById('records-restore') as HTMLButtonElement;
   let pending: RecordBackup | null = null;
   document.getElementById('records-select')!.onclick = () => input.click();
-  document.getElementById('records-open')!.onclick = () => dialog.showModal();
+  for (const id of ['records-open', 'records-help-open']) document.getElementById(id)!.onclick = () => dialog.showModal();
   document.getElementById('records-close')!.onclick = () => dialog.close();
   dialog.addEventListener('keydown', (event) => event.stopPropagation());
   document.getElementById('records-export')!.onclick = () => {
