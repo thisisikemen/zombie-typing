@@ -219,6 +219,7 @@ it('ログアウト失敗時はログイン表示と本人の記録を維持す�
  expect(scope.recordOwner()).toBe(A);
  expect(document.getElementById('account-identity')!.textContent).toContain('player@example.com');
  expect(document.getElementById('account-status')!.textContent).toContain('ログアウトできません');
+ expect(document.getElementById('account-details-status')!.textContent).toContain('ログアウトできません');
 });
 
 

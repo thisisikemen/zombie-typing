@@ -144,6 +144,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (ownerChanged) { details.close(); (details.querySelector('details') as HTMLDetailsElement).open = false; }
     document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : page === 'home' ? 'ログイン・登録' : page === 'register' ? '新しく登録' : emailRegister ? 'メールで登録' : 'メールでログイン';
     status.textContent = lastStatus;
+    document.getElementById('account-details-status')!.textContent = details.open ? lastStatus : '';
     document.getElementById('account-identity')!.textContent = owner && details.open
       ? (session?.user.id === owner && session.user.email ? `ログイン中：${session.user.email}` : 'ログイン中です。') : '';
     const name = document.getElementById('account-name') as HTMLInputElement;
@@ -192,7 +193,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   const help = document.getElementById('account-help-dialog') as HTMLDialogElement;
   for (const id of ['account-help-open', 'account-guest-help-open']) document.getElementById(id)!.onclick = () => help.showModal();
   document.getElementById('account-details-open')!.onclick = () => { if (!recordOwner()) return; details.showModal(); render(); };
-  details.addEventListener('close', () => { document.getElementById('account-identity')!.textContent = ''; });
+  details.addEventListener('close', () => {
+    document.getElementById('account-identity')!.textContent = '';
+    document.getElementById('account-details-status')!.textContent = '';
+  });
   dialog.addEventListener('close', () => details.close());
   for (const el of document.querySelectorAll<HTMLButtonElement>('[data-dismiss-transfer]')) el.onclick = async () => {
     el.disabled = true;
@@ -235,7 +239,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       lastStatus = `記録を保存しました（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}）`;
       refreshed(); void loadOverview();
     } catch {
-      if (version === authVersion) lastStatus = '保存できませんでした。記録はこのブラウザに残っています。「記録を読み直す」を押して、もう一度お試しください。';
+      if (version === authVersion) lastStatus = '保存できませんでした。記録はこのブラウザに残っています。更新ボタン（↻）を押して、もう一度お試しください。';
     } finally { syncing = false; render(); }
   }
   async function activate(): Promise<void> {

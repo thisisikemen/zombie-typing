@@ -1128,6 +1128,7 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 #account-dialog.member-view .account-footer { margin-top: .35rem; padding-top: .4rem; }
 #account-dialog .profile-values > strong { min-width: 6.4rem; }
 #account-details-dialog { width: min(36rem, 94vw); }
+#account-details-status:empty { display: none; }
 .account-details-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
 .account-delete-section { border-top: 1px solid var(--ui-border); margin-top: 1.5rem; padding-top: 1rem; }
 .account-delete-section summary { cursor: pointer; color: var(--ui-dim); font-size: .9rem; }
