@@ -10,7 +10,7 @@ import { RECORD_CHANGE, recordOwner, setRecordOwner, scopedKey } from './record-
 
 const ENABLED = import.meta.env.VITE_ACCOUNTS_ENABLED === 'true';
 const PENDING = 'zombie-typing:registration-pending';
-interface Registration { at: number; records: AccountRecords; rankingKey?: string; transferChoice?: TransferChoice }
+interface Registration { at: number; records: AccountRecords; rankingKey?: string; transferChoice?: TransferChoice; verifiedOwner?: string }
 export interface AccountController { idle(): void; importRecords(backup: RecordBackup, oldSite?: boolean): Promise<void> }
 /** 任意機能。認証・同期の通信をゲームの開始待ちに使わない。 */
 export function initAccounts(canSwitch: () => boolean, refreshed: () => void): AccountController {
@@ -20,8 +20,11 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   const member = document.getElementById('account-member')!;
   const details = document.getElementById('account-details-dialog') as HTMLDialogElement;
   const message = document.getElementById('account-message')!;
-  let page: 'home' | 'register' | 'email' = 'home';
+  let page: 'home' | 'register' | 'email' | 'existing' = 'home';
   let emailRegister = false;
+  // 登録の入口で既存会員と分かった場合は、本人がログインを選ぶまで待つ。
+  let existingLoginOwner: string | null = null;
+  let unregisteredOwner: string | null = null;
   let personalRanks: PersonalRank[] | null = null;
   let rankError = false;
   let profileOwner: string | null = null;
@@ -59,6 +62,9 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   let desired: string | null = null;
   let ready = false;
   let transitioning = false;
+  let authBusy = false;
+  let emailVerificationPending = false;
+  let oauthAwaitingReturn = false;
   let syncing = false;
   let authVersion = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -72,7 +78,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (raw) {
       const parsed = JSON.parse(raw) as Registration;
       if (typeof parsed.at === 'number' && Date.now() - parsed.at < 30 * 60_000 && parsed.at <= Date.now()) {
-        registration = { at: parsed.at, records: validateAccountRecords(parsed.records), rankingKey: validRankingKey(parsed.rankingKey), transferChoice: parsed.transferChoice };
+        registration = { at: parsed.at, records: validateAccountRecords(parsed.records), rankingKey: validRankingKey(parsed.rankingKey), transferChoice: parsed.transferChoice, verifiedOwner: validRankingKey(parsed.verifiedOwner) };
       } else sessionStorage.removeItem(PENDING);
     }
   } catch { lastStatus = '記録を準備できませんでした。もう一度「Googleで登録」を押してください。'; }
@@ -114,12 +120,14 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   }
   function showPage(next: typeof page): void {
     page = next;
-    for (const name of ['home', 'register', 'email'] as const) document.getElementById(`account-${name}`)!.hidden = page !== name;
-    document.getElementById('account-back-row')!.hidden = page === 'home';
+    for (const name of ['home', 'register', 'email', 'existing'] as const) document.getElementById(`account-${name}`)!.hidden = page !== name;
+    document.getElementById('account-back-row')!.hidden = page !== 'email';
+    document.getElementById('account-benefits')!.hidden = page === 'email' || page === 'existing';
     if (dialog.open) {
       if (page === 'email') document.getElementById('account-email-address')!.focus();
-      else if (page === 'register') document.getElementById('account-confirm-create')!.focus();
-      else create.focus();
+      else if (page === 'register') create.focus();
+      else if (page === 'existing') document.getElementById('account-existing-login')!.focus();
+      else login.focus();
     }
   }
   function render(): void {
@@ -142,18 +150,23 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     document.getElementById('account-guest-help-open')!.hidden = Boolean(owner);
     document.getElementById('account-details-open')!.hidden = !owner;
     if (ownerChanged) { details.close(); (details.querySelector('details') as HTMLDetailsElement).open = false; }
-    document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : page === 'home' ? 'ログイン・登録' : page === 'register' ? '新しく登録' : emailRegister ? 'メールで登録' : 'メールでログイン';
+    document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : page === 'home' ? 'ログイン' : page === 'register' ? '新規登録' : page === 'existing' ? 'アカウントを確認' : emailRegister ? 'メールで登録' : 'メールでログイン';
+    document.getElementById('account-register-intro')!.textContent = desired && desired === unregisteredOwner
+      ? 'このアカウントは、まだ登録されていません。' : 'はじめての方はこちらから';
+    document.getElementById('account-register-intro')!.hidden = !desired || desired !== unregisteredOwner;
+    create.textContent = desired && desired === unregisteredOwner ? 'このアカウントで登録' : 'Googleで登録';
     status.textContent = lastStatus;
     document.getElementById('account-details-status')!.textContent = details.open ? lastStatus : '';
     document.getElementById('account-identity')!.textContent = owner && details.open
       ? (session?.user.id === owner && session.user.email ? `ログイン中：${session.user.email}` : 'ログイン中です。') : '';
     const name = document.getElementById('account-name') as HTMLInputElement;
     if (ownerChanged || document.activeElement !== name) name.value = loadPlayerName();
-    for (const id of ['account-create', 'account-login', 'account-confirm-create', 'account-email-register', 'account-email-login']) {
-      (document.getElementById(id) as HTMLButtonElement).disabled = !ready || transitioning;
+    for (const id of ['account-create', 'account-login', 'account-existing-login', 'account-email-register', 'account-email-login']) {
+      (document.getElementById(id) as HTMLButtonElement).disabled = !ready || transitioning || authBusy;
     }
+    document.querySelectorAll<HTMLButtonElement>('[data-account-nav]').forEach(b => { b.disabled = transitioning || authBusy; });
     logout.disabled = transitioning || syncing;
-    (document.getElementById('account-retry') as HTMLButtonElement).hidden = !desired || Boolean(owner);
+    (document.getElementById('account-retry') as HTMLButtonElement).hidden = !desired || Boolean(owner) || existingLoginOwner === desired || unregisteredOwner === desired;
     (document.getElementById('account-retry') as HTMLButtonElement).disabled = transitioning || syncing;
     syncButton.hidden = !desired;
     syncButton.disabled = syncing || transitioning;
@@ -189,7 +202,14 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     }
     render();
   }
-  document.getElementById('account-back')!.onclick = () => { showPage('home'); render(); };
+  document.getElementById('account-back')!.onclick = () => { showPage(emailRegister ? 'register' : 'home'); render(); };
+  document.getElementById('account-register-open')!.onclick = () => { showPage('register'); render(); };
+  for (const id of ['account-login-open', 'account-existing-back']) document.getElementById(id)!.onclick = () => { showPage('home'); render(); };
+  document.getElementById('account-existing-login')!.onclick = () => {
+    if (!desired || existingLoginOwner !== desired || transitioning || authBusy) return;
+    registration = null; sessionStorage.removeItem(PENDING); existingLoginOwner = null;
+    void activate().then(sync);
+  };
   const help = document.getElementById('account-help-dialog') as HTMLDialogElement;
   for (const id of ['account-help-open', 'account-guest-help-open']) document.getElementById(id)!.onclick = () => help.showModal();
   document.getElementById('account-details-open')!.onclick = () => { if (!recordOwner()) return; details.showModal(); render(); };
@@ -243,37 +263,49 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     } finally { syncing = false; render(); }
   }
   async function activate(): Promise<void> {
-    if (!ready || transitioning || !canSwitch()) return;
+    // 別の認証方法を選び直している間、古いセッションの更新で登録を確定させない。
+    if (!ready || transitioning || emailVerificationPending || oauthAwaitingReturn || !canSwitch()) return;
     const id = desired;
     if (recordOwner() === id) { render(); return; }
+    if (id && existingLoginOwner === id) { render(); return; }
     const version = authVersion;
     transitioning = true; render();
     try {
       if (id) {
         // 失敗時はゲストのまま。登録端末の記録も引き継ぎ指示も失わない。
-        const result = await rpc(id, registration?.records ?? null, {});
+        const intent = registration?.verifiedOwner === id ? registration : null;
+        const result = await rpc(id, intent?.records ?? null, {});
         if (version !== authVersion || !canSwitch()) return;
         if (result.needsRegistration) {
-          lastStatus = '初めての方は、使う記録を確認して登録してください。';
+          unregisteredOwner = id;
+          showPage('register');
+          lastStatus = '初めての方は、名前と記録を確認して登録してください。';
+          return;
+        }
+        if (intent && !result.imported) {
+          // DB側も同じ会員の初期記録を上書きしない。読み込み・キーの関連付け前に案内する。
+          existingLoginOwner = id;
+          showPage('existing'); lastStatus = '';
           return;
         }
         // 登録前に新サイトで遊んだキーは通常の初期値。旧サイト移行の1回枠を使わない。
-        const migratedGuest = result.imported && registration?.transferChoice === 'completed';
-        await rankingIdentity(id, migratedGuest ? registration?.rankingKey : undefined, migratedGuest ? undefined : registration?.rankingKey);
+        const migratedGuest = result.imported && intent?.transferChoice === 'completed';
+        await rankingIdentity(id, migratedGuest ? intent?.rankingKey : undefined, migratedGuest ? undefined : intent?.rankingKey);
         if (version !== authVersion || !canSwitch()) return;
         cacheAccountRecords(localStorage, id, result.entries);
         setRecordOwner(id);
-        if (result.imported && registration?.transferChoice && registration.transferChoice !== 'pending') {
-          try { await saveTransferChoice(registration.transferChoice, id); } catch { /* Registration already succeeded; leave the recovery route available. */ }
+        if (result.imported && intent?.transferChoice && intent.transferChoice !== 'pending') {
+          try { await saveTransferChoice(intent.transferChoice, id); } catch { /* Registration already succeeded; leave the recovery route available. */ }
         }
         showPage('home');
         registration = null; sessionStorage.removeItem(PENDING);
-        lastStatus = result.imported
-          ? 'このブラウザの記録を引き継ぎました。'
-          : 'アカウントの記録で遊べます。';
+        unregisteredOwner = null;
+        lastStatus = result.imported ? '登録しました。名前と自己ベストを保存しました。' : 'ログインしました。保存済みの記録で遊べます。';
       } else {
         setRecordOwner(null);
-        lastStatus = 'ログアウトしました。登録せずに遊べます。';
+        existingLoginOwner = null; unregisteredOwner = null;
+        showPage('home');
+        lastStatus = 'ログアウトしました。ログインしていなくても遊べます。';
       }
       refreshed(); void loadOverview();
     } catch {
@@ -281,21 +313,33 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     } finally { transitioning = false; render(); if (version !== authVersion) void activate().then(sync); }
   }
   async function signIn(register: boolean): Promise<void> {
-    if (!client || !ready || recordOwner()) return;
+    if (!client || !ready || recordOwner() || transitioning || authBusy) return;
+    authBusy = true; render();
     try {
+      emailVerificationPending = false;
+      existingLoginOwner = null;
       if (register) {
         registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')), transferChoice: transferChoice(null) };
         sessionStorage.setItem(PENDING, JSON.stringify(registration));
       } else { registration = null; sessionStorage.removeItem(PENDING); }
-      if (register && desired) { await activate(); await sync(); return; }
+      if (register && desired === unregisteredOwner && desired) {
+        registration!.verifiedOwner = desired; sessionStorage.setItem(PENDING, JSON.stringify(registration));
+        await activate(); await sync(); return;
+      }
       const redirect = new URL(import.meta.env.BASE_URL, location.origin);
       redirect.searchParams.set('account', 'return');
+      oauthAwaitingReturn = true;
       const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirect.href, queryParams: { prompt: 'select_account' } } });
       if (error) throw error;
-    } catch { lastStatus = 'ログイン画面を開けませんでした。少し待って、もう一度お試しください。'; render(); }
+    } catch {
+      oauthAwaitingReturn = false;
+      if (desired && !recordOwner()) existingLoginOwner = desired;
+      registration = null; sessionStorage.removeItem(PENDING);
+      lastStatus = 'ログイン画面を開けませんでした。少し待って、もう一度お試しください。';
+    }
+    finally { authBusy = false; render(); }
   }
-  create.onclick = () => { showPage('register'); render(); };
-  document.getElementById('account-confirm-create')!.onclick = () => void signIn(true);
+  create.onclick = () => void signIn(true);
   login.onclick = () => void signIn(false);
   // 実配信が有効な環境だけ、メールの入口を表示する。
   if (import.meta.env.VITE_EMAIL_AUTH_ENABLED === 'true') {
@@ -308,8 +352,9 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     let activeEmailRegister = false;
     const emailButtons = ['account-email-send', 'account-email-verify', 'account-email-resend', 'account-back'];
     const setEmailBusy = (busy: boolean) => {
-      emailBusy = busy;
+      emailBusy = busy; authBusy = busy;
       for (const id of emailButtons) (document.getElementById(id) as HTMLButtonElement).disabled = busy;
+      render();
     };
     function openEmail(register: boolean): void {
       emailRegister = register; sentTo = ''; token.value = ''; feedback.textContent = '';
@@ -324,9 +369,12 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     document.getElementById('account-email-register')!.onclick = () => openEmail(true);
     document.getElementById('account-email-login')!.onclick = () => openEmail(false);
     async function sendEmail(): Promise<void> {
-      if (!client || !ready || recordOwner() || emailBusy || page !== 'email' || !address.reportValidity()) return;
+      if (!client || !ready || recordOwner() || transitioning || emailBusy || page !== 'email' || !address.reportValidity()) return;
       if (Date.now() < nextSend) { feedback.textContent = '送り直すときは1分待ってください。'; return; }
       const register = emailRegister;
+      // 本人確認が終わるまでは、以前に認証した会員へ新しい登録待ち記録を送らない。
+      emailVerificationPending = true; oauthAwaitingReturn = false;
+      existingLoginOwner = null; unregisteredOwner = null;
       setEmailBusy(true);
       try {
         if (register) {
@@ -340,7 +388,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         emailForm.hidden = true; codeForm.hidden = false;
         feedback.textContent = `${email} に送った番号を入力してください。`;
         token.focus();
-      } catch { feedback.textContent = '送れませんでした。アドレスを確認して、少し待ってからお試しください。'; }
+      } catch {
+        registration = null; sessionStorage.removeItem(PENDING);
+        feedback.textContent = '送れませんでした。アドレスを確認して、少し待ってからお試しください。';
+      }
       finally { setEmailBusy(false); }
     }
     emailForm.onsubmit = event => { event.preventDefault(); void sendEmail(); };
@@ -350,13 +401,24 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       if (!client || !sentTo || emailBusy || !codeForm.reportValidity()) return;
       setEmailBusy(true);
       try {
-        const { error } = await client.auth.verifyOtp({ email: sentTo, token: token.value.trim(), type: 'email' });
+        const { data, error } = await client.auth.verifyOtp({ email: sentTo, token: token.value.trim(), type: 'email' });
         if (error) throw error;
+        const verifiedOwner = data?.session?.user.id;
+        // 応答を待つ間に会員が変わった場合、以前の本人確認で次の会員を登録しない。
+        if (!verifiedOwner || verifiedOwner !== desired) throw new Error('authentication changed');
+        if (registration) {
+          registration.verifiedOwner = verifiedOwner; sessionStorage.setItem(PENDING, JSON.stringify(registration));
+        }
+        emailVerificationPending = false;
         token.value = ''; await activate(); await sync();
         feedback.textContent = desired && recordOwner() === desired ? 'ログインしました。' : '本人確認はできました。記録はまだ読み込めていません。';
         if (recordOwner()) { showPage('home'); render(); }
-        else if (!activeEmailRegister && desired) { showPage('register'); render(); }
-      } catch { feedback.textContent = '番号を確認してください。期限が切れたときは、もう一度メールを送ってください。'; }
+        else if (!activeEmailRegister && desired && unregisteredOwner === desired) { showPage('register'); render(); }
+      } catch (error) {
+        feedback.textContent = error instanceof Error && error.message === 'authentication changed'
+          ? 'ログインが切り替わりました。もう一度、ログイン方法を選んでください。'
+          : '番号を確認してください。期限が切れたときは、もう一度メールを送ってください。';
+      }
       finally { setEmailBusy(false); }
     };
   }
@@ -426,7 +488,13 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     client.auth.onAuthStateChange((_event, next) => {
       session = next;
       const nextId = next?.user.id ?? null;
-      if (nextId !== desired) { desired = nextId; authVersion++; }
+      if (nextId !== desired) {
+        if (existingLoginOwner || (registration?.verifiedOwner && registration.verifiedOwner !== nextId)) {
+          existingLoginOwner = null; registration = null; sessionStorage.removeItem(PENDING); showPage('home');
+        }
+        unregisteredOwner = null;
+        desired = nextId; authVersion++;
+      }
       if (ready) {
         if (!canSwitch() && nextId !== recordOwner()) { lastStatus = 'ログインが切り替わりました。メニューに戻ると、使う記録が変わります。'; render(); }
         setTimeout(() => { void activate().then(sync); }, 0);
@@ -439,6 +507,14 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
     session = data.session; desired = session?.user.id ?? null;
+    if (registration) {
+      if (callback && code && desired) {
+        registration.verifiedOwner = desired; sessionStorage.setItem(PENDING, JSON.stringify(registration));
+      } else if (registration.verifiedOwner !== desired || authError) {
+        // 認証を途中でやめて戻った場合、前のセッションを登録先として流用しない。
+        registration = null; sessionStorage.removeItem(PENDING);
+      }
+    }
     ready = true;
     if (authError) { lastStatus = 'ログインできませんでした。今ある記録はそのまま残っています。'; }
     else if (!desired) lastStatus = '';

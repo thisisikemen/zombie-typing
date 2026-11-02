@@ -232,30 +232,30 @@
     </div>
   </section>
   <dialog id="move-dialog" class="modal-box game-dialog" aria-labelledby="move-heading">
-    <div class="dialog-heading"><h2 id="move-heading">前の記録を引き継ぐ</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="move-heading">前の記録を引き継ぐ</h2></div>
     <p>① 旧サイトを開く<br>②「記録を引き継ぐ」を押す<br>③ このタブに戻る</p>
     <p id="move-status" role="status" aria-live="polite"></p>
     <p class="dialog-caption">元の記録は消えません。ファイルもいりません。</p>
   </dialog>
 
   <dialog id="account-dialog" class="modal-box game-dialog account-dialog" aria-labelledby="account-heading">
-    <div class="dialog-heading"><h2 id="account-heading">ログイン・登録</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="account-heading">ログイン</h2><button type="button" class="plate-btn compact-btn" id="account-details-open" hidden>詳細</button></div>
     <p id="account-test-notice" class="dialog-caption" hidden>ただいまテスト中です。登録はテスト参加者だけ使えます。</p>
     <div id="account-guest">
-      <div id="account-home">
-        <p class="account-benefit">名前と自己ベストを保存。<br>ほかのパソコンでも、続きから遊べます。</p>
+      <section id="account-home" aria-label="登録済みの方のログイン">
+        <p class="auth-intro">登録済みの方はこちらから</p>
+        <div class="auth-methods"><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button><button type="button" class="plate-btn" id="account-email-login" data-email-entry hidden>メールでログイン</button></div>
+        <p class="auth-switch"><button type="button" class="account-text-btn" id="account-register-open" data-account-nav>はじめての方はこちら</button></p>
+      </section>
+      <section id="account-register" hidden aria-label="はじめての方の登録">
+        <p class="auth-intro" id="account-register-intro">はじめての方はこちらから</p>
+        <p id="account-message" class="dialog-caption">今の名前・自己ベストをアカウントに保存します。</p>
         <section class="move-hint account-route" id="account-old-hint" data-transfer-prompt>
           <h3>旧サイトで遊んでいた方</h3><p>下のボタンから、名前と記録を引き継いでください。</p>
           <div class="transfer-actions"><button type="button" class="plate-btn compact-btn" data-old-records>記録を引き継ぐ</button><button type="button" class="plate-btn compact-btn" data-dismiss-transfer>引き継ぎは不要</button></div>
         </section>
-        <div class="auth-columns">
-          <section><h3>はじめての方</h3><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button><button type="button" class="plate-btn" id="account-email-register" data-email-entry hidden>メールで登録</button></section>
-          <section><h3>登録済みの方</h3><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button><button type="button" class="plate-btn" id="account-email-login" data-email-entry hidden>メールでログイン</button></section>
-        </div>
-      </div>
-      <section id="account-register" hidden>
-        <h3>保存する記録を確認</h3><p id="account-message">今の名前・自己ベストをアカウントに保存します。</p><p class="dialog-caption">ほかの端末の未登録の記録は、その端末に残ります。</p>
-        <div class="consent-actions"><button type="button" class="plate-btn plate-btn-hot" id="account-confirm-create">この記録で登録する</button></div>
+        <div class="auth-methods"><button type="button" class="plate-btn" id="account-create" disabled>Googleで登録</button><button type="button" class="plate-btn" id="account-email-register" data-email-entry hidden>メールで登録</button></div>
+        <p class="auth-switch"><button type="button" class="account-text-btn" id="account-login-open" data-account-nav>アカウントをお持ちの方はこちら</button></p>
       </section>
       <section id="account-email" hidden>
         <p id="account-email-description"></p>
@@ -269,7 +269,15 @@
         </form>
         <p id="account-email-status" role="status" aria-live="polite"></p>
       </section>
-      <div class="consent-actions" id="account-back-row" hidden><button type="button" class="plate-btn" id="account-back">ログイン方法を選び直す</button></div>
+      <section id="account-existing" hidden>
+        <h3>すでに登録されています</h3>
+        <p>新しいアカウントは作っていません。ログインして、保存済みの名前・自己ベストを使えます。</p>
+        <div class="auth-methods"><button type="button" class="plate-btn" id="account-existing-login">このアカウントでログイン</button></div>
+        <p class="auth-switch"><button type="button" class="account-text-btn" id="account-existing-back" data-account-nav>別のアカウントを選ぶ</button></p>
+      </section>
+      <div class="consent-actions" id="account-back-row" hidden><button type="button" class="account-text-btn" id="account-back" data-account-nav>戻る</button></div>
+      <div id="account-benefits" class="account-benefit"><p>ログインすると、ステージごとの自己ベストと世界順位をまとめて見られます。<br>名前と記録を保存して、ほかのパソコンでも遊べます。</p><p class="dialog-caption">ログインしていなくても遊べます。</p></div>
+      <p class="account-help-link"><button type="button" class="account-text-btn" id="account-guest-help-open">記録・ログインのよくある質問</button></p>
     </div>
     <div id="account-member" hidden>
       <div class="profile-heading">
@@ -285,11 +293,11 @@
       <p class="dialog-caption profile-note">WPM・正確率・生還状況は、自己ベストを出した回の記録です。</p>
     </div>
     <p id="account-status" class="account-status" role="status" aria-live="polite"></p><button type="button" id="account-retry" class="plate-btn compact-btn" hidden>記録を読み直す</button>
-    <div class="account-footer"><button type="button" class="plate-btn compact-btn" id="account-guest-help-open">記録・ログインのよくある質問</button><button type="button" class="plate-btn compact-btn" id="account-details-open" hidden>詳細</button><button type="button" class="plate-btn compact-btn" id="account-close">閉じる</button></div>
+    <div class="account-footer"><button type="button" class="plate-btn compact-btn" id="account-close">閉じる</button></div>
   </dialog>
 
   <dialog id="account-details-dialog" class="modal-box game-dialog" aria-labelledby="account-details-heading">
-    <div class="dialog-heading"><h2 id="account-details-heading">アカウントの詳細</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="account-details-heading">アカウントの詳細</h2></div>
     <p class="dialog-caption">ログイン情報はこの詳細画面にだけ表示します。</p>
     <p id="account-identity"></p>
     <p id="account-details-status" class="account-status" role="status" aria-live="polite"></p>
@@ -299,7 +307,7 @@
   </dialog>
 
   <dialog id="account-help-dialog" class="modal-box game-dialog" aria-labelledby="account-help-heading">
-    <div class="dialog-heading"><h2 id="account-help-heading">よくある質問・困ったとき</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="account-help-heading">よくある質問・困ったとき</h2></div>
     <h3>登録すると何ができる？</h3><p>名前と自己ベストを保存し、同じアカウントでほかのパソコンにも持っていけます。登録しなくても遊べます。</p>
     <h3>記録が見つからない</h3><p>登録したときと同じGoogleアカウント・メールアドレスを使ってください。未登録の記録は、遊んだブラウザに残っています。ログアウトすると、そのブラウザの未登録の記録に戻ります。</p>
     <h3>旧サイトの記録を持ってきたい</h3><p id="transfer-help-status">記録があるブラウザで引き継いでください。登録済みでも引き継げます。自己ベストは高い方を残します。</p>
@@ -310,13 +318,13 @@
   </dialog>
 
   <dialog id="account-delete-dialog" class="modal-box game-dialog" aria-labelledby="account-delete-heading">
-    <div class="dialog-heading"><h2 id="account-delete-heading">アカウントを削除する</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="account-delete-heading">アカウントを削除する</h2></div>
     <p>このアカウントの名前・自己ベスト・ランキング記録を削除します。元には戻せません。</p><p class="dialog-caption">Googleアカウント自体や、未登録で遊んだ記録は消えません。</p>
     <form id="account-delete-form"><label for="account-delete-confirm">確認のため「退会」と入力してください</label><input id="account-delete-confirm" autocomplete="off" required pattern="退会" /><p id="account-delete-status" role="status"></p><div class="consent-actions"><button type="submit" class="plate-btn danger-btn" id="account-delete-submit" disabled>退会して記録を削除</button><button type="button" class="plate-btn" data-dialog-close>キャンセル</button></div></form>
   </dialog>
 
   <dialog id="analytics-dialog" class="modal-box game-dialog" aria-labelledby="analytics-heading">
-    <div class="dialog-heading"><h2 id="analytics-heading">ゲーム改善用Cookie</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="analytics-heading">ゲーム改善用Cookie</h2></div>
     <p id="analytics-status"></p>
     <p><a href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a></p>
     <div class="consent-actions dialog-choices">
@@ -327,7 +335,7 @@
   </dialog>
 
   <dialog id="records-dialog" class="modal-box game-dialog" aria-labelledby="records-heading">
-    <div class="dialog-heading"><h2 id="records-heading">記録の引き継ぎ</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <div class="dialog-heading"><h2 id="records-heading">記録の引き継ぎ</h2></div>
     <p>旧サイトの名前・ランキング・自己ベストを持ってきます。</p>
     <div class="consent-actions"><button type="button" class="plate-btn" data-old-records>旧サイトから引き継ぐ</button><button type="button" class="plate-btn" data-dismiss-transfer>引き継ぎは不要</button></div>
     <details><summary>ファイルで移す・バックアップ</summary>
