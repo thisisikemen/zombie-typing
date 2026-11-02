@@ -677,22 +677,32 @@ export class UI {
       rankingBackend
         .submit(data.diffId, entry, data.rankBy)
         .then(async (rank) => {
+          if (this.shareData !== data) return;
           // submit が返すのは「保存されている自己ベスト」の順位。
           // 自己ベスト未更新の回のために「今回のスコア自体の順位」も計算する
           this.lastRank = rank;
           try {
             const list = await rankingBackend.load(data.diffId, data.rankBy);
+            if (this.shareData !== data) return;
             const current = data.rankBy === 'survival' ? Math.round(data.survival) : data.score;
             const better = list.filter(
               (e) => (data.rankBy === 'survival' ? e.survival : e.score) > current,
             ).length;
             this.lastCurrentRank = better + 1;
           } catch {
+            if (this.shareData !== data) return;
             this.lastCurrentRank = null;
+          }
+          // 保存済み自己ベストだけが1位の回は対象外。今回も世界1位と確認できた時だけ。
+          if (data.endless && rankingBackend.online && rank === 1 && this.lastCurrentRank === 1) {
+            heading.textContent = '世界で一番長く生き延びた';
+            heading.className = 'world-best';
+            $('result-sub').textContent = 'エンドレス 世界1位';
           }
           this.setRegisterStatus(name);
         })
         .catch(() => {
+          if (this.shareData !== data) return;
           $('register-status').textContent = 'ランキング登録に失敗しました';
         });
     }

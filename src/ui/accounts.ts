@@ -18,6 +18,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   const status = document.getElementById('account-status')!;
   const guest = document.getElementById('account-guest')!;
   const member = document.getElementById('account-member')!;
+  const details = document.getElementById('account-details-dialog') as HTMLDialogElement;
   const message = document.getElementById('account-message')!;
   let page: 'home' | 'register' | 'email' = 'home';
   let emailRegister = false;
@@ -137,11 +138,14 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       : '今の名前・自己ベストをアカウントに保存します。';
     guest.hidden = Boolean(owner);
     member.hidden = !owner;
+    dialog.classList.toggle('member-view', Boolean(owner));
+    document.getElementById('account-guest-help-open')!.hidden = Boolean(owner);
+    document.getElementById('account-details-open')!.hidden = !owner;
+    if (ownerChanged) { details.close(); (details.querySelector('details') as HTMLDetailsElement).open = false; }
     document.getElementById('account-heading')!.textContent = owner ? 'アカウント' : page === 'home' ? 'ログイン・登録' : page === 'register' ? '新しく登録' : emailRegister ? 'メールで登録' : 'メールでログイン';
     status.textContent = lastStatus;
-    document.getElementById('account-identity')!.textContent = owner
+    document.getElementById('account-identity')!.textContent = owner && details.open
       ? (session?.user.id === owner && session.user.email ? `ログイン中：${session.user.email}` : 'ログイン中です。') : '';
-    document.getElementById('account-player-name')!.textContent = loadPlayerName() || '名無しの生存者';
     const name = document.getElementById('account-name') as HTMLInputElement;
     if (ownerChanged || document.activeElement !== name) name.value = loadPlayerName();
     for (const id of ['account-create', 'account-login', 'account-confirm-create', 'account-email-register', 'account-email-login']) {
@@ -152,6 +156,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     (document.getElementById('account-retry') as HTMLButtonElement).disabled = transitioning || syncing;
     syncButton.hidden = !desired;
     syncButton.disabled = syncing || transitioning;
+    syncButton.setAttribute('aria-busy', String(syncing || transitioning));
+    (document.getElementById('account-details-open') as HTMLButtonElement).disabled = transitioning;
     (document.getElementById('account-delete-open') as HTMLButtonElement).disabled = transitioning || syncing;
     (document.getElementById('account-name-save') as HTMLButtonElement).disabled = transitioning;
     buttons.forEach(b => { b.textContent = owner ? 'アカウント' : 'ログイン・登録'; });
@@ -184,7 +190,10 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   }
   document.getElementById('account-back')!.onclick = () => { showPage('home'); render(); };
   const help = document.getElementById('account-help-dialog') as HTMLDialogElement;
-  document.getElementById('account-help-open')!.onclick = () => help.showModal();
+  for (const id of ['account-help-open', 'account-guest-help-open']) document.getElementById(id)!.onclick = () => help.showModal();
+  document.getElementById('account-details-open')!.onclick = () => { if (!recordOwner()) return; details.showModal(); render(); };
+  details.addEventListener('close', () => { document.getElementById('account-identity')!.textContent = ''; });
+  dialog.addEventListener('close', () => details.close());
   for (const el of document.querySelectorAll<HTMLButtonElement>('[data-dismiss-transfer]')) el.onclick = async () => {
     el.disabled = true;
     try { await saveTransferChoice('dismissed'); (document.getElementById('records-dialog') as HTMLDialogElement).close(); }
@@ -358,7 +367,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       if (error) throw error;
       session = null;
       if (desired !== null) { desired = null; authVersion++; }
-      registration = null; sessionStorage.removeItem(PENDING);
+      registration = null; sessionStorage.removeItem(PENDING); details.close();
     } catch { lastStatus = 'ログアウトできませんでした。ネットにつないで、もう一度お試しください。'; }
     finally { transitioning = false; void activate(); render(); }
   };

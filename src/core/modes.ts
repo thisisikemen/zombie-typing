@@ -70,7 +70,7 @@ export const MODES: ModeDef[] = [
       {
         id: 'basic',
         label: 'ベーシック',
-        wordHint: '五十音 → 最大9文字へ',
+        wordHint: '五十音 → 9文字の言葉へ',
         zombieHint: '超入門・キーボードガイド付き',
         duration: 90,
         durationHint: '無制限',

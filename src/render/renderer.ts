@@ -1246,16 +1246,30 @@ export class Renderer {
     if (game.ghost) this.drawGhostHud(ctx, game);
 
     if (game.isPractice()) {
-      ctx.textAlign = 'center';
-      ctx.font = '700 18px "Hiragino Kaku Gothic ProN", sans-serif';
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
-      ctx.lineWidth = 4;
       const level = game.practiceLevel;
-      const label = level === 0 ? '五十音順' : level === 1 ? 'ランダム1文字' : `最大${level}文字`;
-      const guide = `${label}  ｜  1：ランダム1文字  2〜9：最大文字数を選ぶ  ｜  Esc：終了`;
-      ctx.strokeText(guide, W / 2, 108);
-      ctx.fillStyle = 'rgba(232, 228, 216, 0.9)';
-      ctx.fillText(guide, W / 2, 108);
+      const label = level === 0 ? '五十音順' : level === 1 ? 'ランダム1文字' : `${level}文字の言葉`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = '900 38px "Hiragino Kaku Gothic ProN", sans-serif';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)'; ctx.lineWidth = 6;
+      const title = `レベル ${level}　${label}`;
+      ctx.strokeText(title, W / 2, 175);
+      ctx.fillStyle = '#f4e6c5'; ctx.fillText(title, W / 2, 175);
+
+      // 下のキーボードと同じ部品で、押すキーだと分かる説明にする。
+      const caption = 'キーで、文字の難しさを変えて練習できます';
+      ctx.font = '700 21px "Hiragino Kaku Gothic ProN", sans-serif';
+      const textW = ctx.measureText(caption).width;
+      const start = W / 2 - (126 + textW) / 2;
+      this.drawGuideKey(ctx, start, 198, 36, 36, '0', false);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ddd5c4'; ctx.fillText('〜', start + 53, 217);
+      this.drawGuideKey(ctx, start + 70, 198, 36, 36, '9', false);
+      ctx.font = '700 21px "Hiragino Kaku Gothic ProN", sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)'; ctx.lineWidth = 4;
+      ctx.strokeText(caption, start + 126, 217);
+      ctx.fillStyle = '#e8e0cf'; ctx.fillText(caption, start + 126, 217);
     }
 
     ctx.restore();
@@ -1277,6 +1291,18 @@ export class Renderer {
     g.addColorStop(1, `rgba(120, 4, 4, ${alpha})`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
+  }
+
+  private drawGuideKey(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, label: string, hot: boolean): void {
+    ctx.fillStyle = hot ? '#ff9a2a' : '#201d1a';
+    if (hot) { ctx.shadowColor = 'rgba(255, 154, 42, 0.9)'; ctx.shadowBlur = 12; }
+    roundRect(ctx, x, y, w, h, 5); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = hot ? '#ffd9a8' : '#4a453c'; ctx.lineWidth = 1.2;
+    roundRect(ctx, x, y, w, h, 5); ctx.stroke();
+    ctx.fillStyle = hot ? '#241505' : '#c8c2b4';
+    ctx.font = `700 ${label.length > 2 ? 12 : 17}px ui-monospace, Menlo, monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label.length === 1 ? label.toUpperCase() : label, x + w / 2, y + h / 2 + 1);
   }
 
   /**
@@ -1329,25 +1355,8 @@ export class Renderer {
     const keysX = panelX + (panelW - rowW) / 2;
     const keysY = panelY + 12;
 
-    const drawKey = (x: number, y: number, w: number, label: string, hot: boolean) => {
-      ctx.fillStyle = hot ? '#ff9a2a' : '#201d1a';
-      if (hot) {
-        ctx.shadowColor = 'rgba(255, 154, 42, 0.9)';
-        ctx.shadowBlur = 12;
-      }
-      roundRect(ctx, x, y, w, K, 5);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = hot ? '#ffd9a8' : '#4a453c';
-      ctx.lineWidth = 1.2;
-      roundRect(ctx, x, y, w, K, 5);
-      ctx.stroke();
-      ctx.fillStyle = hot ? '#241505' : '#c8c2b4';
-      ctx.font = `700 ${label.length > 2 ? 12 : 17}px ui-monospace, Menlo, monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label.length === 1 ? label.toUpperCase() : label, x + w / 2, y + K / 2 + 1);
-    };
+    const drawKey = (x: number, y: number, w: number, label: string, hot: boolean) =>
+      this.drawGuideKey(ctx, x, y, w, K, label, hot);
 
     // 4 段のキー
     rows.forEach((row, r) => {

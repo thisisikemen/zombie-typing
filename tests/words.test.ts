@@ -3,8 +3,8 @@ import words from '../src/data/words.json';
 import { canonicalRomaji, createTypingSession, firstKeys } from '../src/core/typing/engine';
 
 describe('単語データ', () => {
-  it('1500語以上ある', () => {
-    expect(words.length).toBeGreaterThanOrEqual(1500);
+  it('1800語以上ある', () => {
+    expect(words.length).toBeGreaterThanOrEqual(1800);
   });
 
   it('全単語がエンジンで変換できる(未対応かなが無い)', () => {
@@ -41,7 +41,7 @@ describe('単語データ', () => {
   });
 });
 
-it('ベーシックの2〜9文字を各100語以上用意し、同じ読みを重複登録しない', () => {
- for(let length=2;length<=9;length++)expect(words.filter(w=>w.kana.length===length).length).toBeGreaterThanOrEqual(100);
+it('ベーシックの2〜9文字を各150語以上用意し、同じ読みを重複登録しない', () => {
+ for(let length=2;length<=9;length++)expect(words.filter(w=>w.kana.length===length).length).toBeGreaterThanOrEqual(150);
  expect(new Set(words.map(w=>w.kana)).size).toBe(words.length);
 });
