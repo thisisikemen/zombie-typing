@@ -22,7 +22,7 @@ beforeEach(()=>{
   localStorage.clear(); sessionStorage.clear(); history.replaceState(null,'','/');
   document.body.innerHTML = readFileSync('index.html', 'utf8').split('<body>')[1].split('</body>')[0].replace(/<script[\s\S]*?<\/script>/g, '');
   mock.session=null; mock.callback=null;
-  mock.rpc.mockReset().mockImplementation((name:string)=>({abortSignal:()=>Promise.resolve({data:name === 'player_account_overview' ? {rankings:[],transfer_choice:'pending'} : name === 'claim_ranking_identity' ? 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' : {entries:{[key]:rec},imported:false},error:null})}));
+  mock.rpc.mockReset().mockImplementation((name:string,args:any)=>({abortSignal:()=>Promise.resolve({data:name === 'player_account_overview' ? {rankings:[],transfer_choice:'pending'} : name === 'claim_ranking_identity' ? 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' : {entries:args.p_initial ?? {[key]:rec},imported:Boolean(args.p_initial)},error:null})}));
   mock.auth.signInWithOtp.mockReset().mockResolvedValue({error:null});
   mock.auth.verifyOtp.mockReset().mockResolvedValue({error:null});
   mock.auth.getSession.mockReset().mockImplementation(async()=>({data:{session:mock.session},error:null}));
@@ -37,12 +37,12 @@ describe('任意ログインの画面とセッション復元',()=>{
     localStorage.setItem(key,rec);
     await setup();
     expect(mock.rpc).not.toHaveBeenCalled();expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
-    const button=document.getElementById('account-create') as HTMLButtonElement;
+    const button=document.getElementById('account-register-open') as HTMLButtonElement;
     expect(button.disabled).toBe(false);
     button.click();
     expect(document.getElementById('account-register')!.hidden).toBe(false);
     expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
-    document.getElementById('account-confirm-create')!.click();await flush();
+    document.getElementById('account-create')!.click();await flush();
     const pending=JSON.parse(sessionStorage.getItem('zombie-typing:registration-pending')!);
     expect(pending.records).toEqual({[key]:rec});
     expect(mock.auth.signInWithOAuth).toHaveBeenCalledWith(expect.objectContaining({provider:'google'}));
@@ -59,7 +59,7 @@ describe('任意ログインの画面とセッション復元',()=>{
   });
   it('登録の戻り先で記録を引き継ぎ、成功後だけ引き継ぎ待ちを消す',async()=>{
     mock.session={user:{id:A}};
-    sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec}}));
+    sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),verifiedOwner:A,records:{[key]:rec}}));
     await setup();
     expect(mock.rpc.mock.calls[0][1].p_initial).toEqual({[key]:rec});
     expect(sessionStorage.getItem('zombie-typing:registration-pending')).toBeNull();
@@ -71,15 +71,15 @@ describe('任意ログインの画面とセッション復元',()=>{
       : {entries:{},imported:false,needs_registration:true},error:null})}));
     const {scope}=await setup();expect(scope.recordOwner()).toBeNull();
     expect(document.getElementById('account-status')?.textContent).toContain('初めて');
-    document.getElementById('account-create')!.click();
-    document.getElementById('account-confirm-create')!.click();await flush();
+    document.getElementById('account-register-open')!.click();
+    document.getElementById('account-create')!.click();await flush();
     expect(scope.recordOwner()).toBe(A);
     expect(mock.rpc.mock.calls.some(call=>call[1].p_initial?.[key]===rec)).toBe(true);
     expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
   });
   it('同期に失敗しても未登録の記録と登録待ちの記録を消さない',async()=>{
     mock.session={user:{id:A}};localStorage.setItem(key,rec);
-    sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec}}));
+    sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),verifiedOwner:A,records:{[key]:rec}}));
     mock.rpc.mockImplementation(()=>({abortSignal:()=>Promise.resolve({error:new Error('offline')})}));
     const {scope}=await setup();
     expect(scope.recordOwner()).toBeNull();expect(localStorage.getItem(key)).toBe(rec);
@@ -160,7 +160,7 @@ describe('登録後の旧サイト引き継ぎ',()=>{
 
 it('新サイトで遊んでから登録しても、旧サイト引き継ぎの枠を使わない',async()=>{
  const initialKey='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
- mock.session={user:{id:A}};sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec},rankingKey:initialKey}));
+ mock.session={user:{id:A}};sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),verifiedOwner:A,records:{[key]:rec},rankingKey:initialKey}));
  await setup();
  expect(mock.rpc).toHaveBeenCalledWith('claim_ranking_identity',expect.objectContaining({p_expected_user:A,p_legacy_key:null,p_existing_key:initialKey}));
 });
@@ -183,7 +183,7 @@ it('引き継ぎ済みのゲストには案内を隠し、確認画面から持�
  window.dispatchEvent(new Event('zombie-records-imported'));
  expect(document.getElementById('account-old-hint')!.hidden).toBe(true);
  expect(document.getElementById('account-message')!.textContent).toContain('引き継いだ名前');
- document.getElementById('account-create')!.click();document.getElementById('account-confirm-create')!.click();await flush();
+ document.getElementById('account-register-open')!.click();document.getElementById('account-create')!.click();await flush();
  expect(JSON.parse(sessionStorage.getItem('zombie-typing:registration-pending')!).records[key]).toBe(rec);
 });
 
@@ -267,7 +267,7 @@ it('退会確認を開いた後に会員が変わったら、以前の確認で�
 
 it('旧サイトを引き継いでから初めて登録した場合は、旧ランキングの1回の枠を確定する',async()=>{
  const legacy='cccccccc-cccc-4ccc-8ccc-cccccccccccc';mock.session={user:{id:A}};
- sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),records:{[key]:rec},rankingKey:legacy,transferChoice:'completed'}));
+ sessionStorage.setItem('zombie-typing:registration-pending',JSON.stringify({at:Date.now(),verifiedOwner:A,records:{[key]:rec},rankingKey:legacy,transferChoice:'completed'}));
  const original=mock.rpc.getMockImplementation()!;
  mock.rpc.mockImplementation((name:string,args:any)=>name==='sync_player_records' && args.p_initial ? {abortSignal:()=>Promise.resolve({data:{entries:args.p_initial,imported:true},error:null})} : original(name,args));
  await setup();expect(mock.rpc).toHaveBeenCalledWith('claim_ranking_identity',expect.objectContaining({p_expected_user:A,p_legacy_key:legacy}));
@@ -283,4 +283,186 @@ it('プロフィールには名前欄を一つだけ置き、個人情報・ロ�
  mock.callback?.('SIGNED_IN',{user:{id:B,email:'other@example.com'}});await flush();
  expect((document.getElementById('account-details-dialog') as HTMLDialogElement).open).toBe(false);
  expect(document.getElementById('account-identity')!.textContent).toBe('');
+});
+
+describe('ログインと新規登録を分けた入口', () => {
+  it('最初はログインだけを表示し、登録とメール入力から元の入口へ戻れる', async () => {
+    vi.stubEnv('VITE_EMAIL_AUTH_ENABLED', 'true');
+    await setup();
+    expect(document.getElementById('account-home')!.hidden).toBe(false);
+    expect(document.getElementById('account-register')!.hidden).toBe(true);
+    expect(document.getElementById('account-heading')!.textContent).toBe('ログイン');
+    document.getElementById('account-register-open')!.click();
+    expect(document.getElementById('account-home')!.hidden).toBe(true);
+    expect(document.getElementById('account-register')!.hidden).toBe(false);
+    expect(document.getElementById('account-heading')!.textContent).toBe('新規登録');
+    document.getElementById('account-email-register')!.click();
+    document.getElementById('account-back')!.click();
+    expect(document.getElementById('account-register')!.hidden).toBe(false);
+    document.getElementById('account-login-open')!.click();
+    document.getElementById('account-email-login')!.click();
+    document.getElementById('account-back')!.click();
+    expect(document.getElementById('account-home')!.hidden).toBe(false);
+    expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
+    expect(mock.auth.signInWithOtp).not.toHaveBeenCalled();
+  });
+
+  it('閉じるは下に一つ、会員の詳細は見出し横に置き、×を重ねない', async () => {
+    mock.session = { user: { id: A } };
+    await setup();
+    const profile = document.getElementById('account-dialog')!;
+    expect(profile.querySelector('.dialog-heading #account-details-open')).not.toBeNull();
+    expect(profile.querySelectorAll('.account-footer button')).toHaveLength(1);
+    for (const id of ['account-dialog', 'account-details-dialog', 'account-help-dialog', 'account-delete-dialog']) {
+      expect(document.getElementById(id)!.querySelector('.dialog-close')).toBeNull();
+    }
+  });
+
+  it('登録から既存会員を確認したら案内で止め、ログイン選択後に既存の記録だけを読む', async () => {
+    mock.session = { user: { id: A } };
+    const guest = JSON.stringify({ ...JSON.parse(rec), score: 999 });
+    localStorage.setItem(key, guest);
+    sessionStorage.setItem('zombie-typing:registration-pending', JSON.stringify({ at: Date.now(), verifiedOwner: A, records: { [key]: guest } }));
+    const original = mock.rpc.getMockImplementation()!;
+    mock.rpc.mockImplementation((name: string, args: any) => name === 'sync_player_records'
+      ? { abortSignal: () => Promise.resolve({ data: { entries: { [key]: rec }, imported: false }, error: null }) }
+      : original(name, args));
+    const { scope, controller } = await setup();
+    expect(scope.recordOwner()).toBeNull();
+    expect(document.getElementById('account-existing')!.hidden).toBe(false);
+    expect(document.getElementById('account-existing')!.textContent).toContain('すでに登録されています');
+    expect(mock.rpc.mock.calls.some(call => call[0] === 'claim_ranking_identity')).toBe(false);
+    expect(localStorage.getItem(scope.scopedKey(key, A))).toBeNull();
+    controller.idle(); await flush();
+    mock.callback?.('TOKEN_REFRESHED', mock.session); await flush();
+    expect(scope.recordOwner()).toBeNull();
+    document.getElementById('account-existing-login')!.click(); await flush();
+    expect(scope.recordOwner()).toBe(A);
+    expect(localStorage.getItem(scope.scopedKey(key, A))).toBe(rec);
+    expect(localStorage.getItem(key)).toBe(guest);
+    expect(sessionStorage.getItem('zombie-typing:registration-pending')).toBeNull();
+    const syncs = mock.rpc.mock.calls.filter(call => call[0] === 'sync_player_records');
+    expect(syncs.slice(1).every(call => call[1].p_initial === null)).toBe(true);
+    expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
+  });
+
+  it('既存会員の確認中に会員が変わったら、前の登録待ち記録を次の会員へ渡さない', async () => {
+    mock.session = { user: { id: A } };
+    sessionStorage.setItem('zombie-typing:registration-pending', JSON.stringify({ at: Date.now(), verifiedOwner: A, records: { [key]: rec } }));
+    const original = mock.rpc.getMockImplementation()!;
+    mock.rpc.mockImplementation((name: string, args: any) => name === 'sync_player_records'
+      ? { abortSignal: () => Promise.resolve({ data: { entries: {}, imported: false }, error: null }) }
+      : original(name, args));
+    const { scope } = await setup();
+    expect(scope.recordOwner()).toBeNull();
+    mock.callback?.('SIGNED_IN', { user: { id: B } }); await flush();
+    expect(scope.recordOwner()).toBe(B);
+    expect(mock.rpc.mock.calls.filter(call => call[0] === 'sync_player_records' && call[1].p_expected_user === B).every(call => call[1].p_initial === null)).toBe(true);
+    expect(sessionStorage.getItem('zombie-typing:registration-pending')).toBeNull();
+  });
+
+  it('メールの登録入口でも本人確認後に既存会員と分かれば、ログインの選択を待つ', async () => {
+    vi.stubEnv('VITE_EMAIL_AUTH_ENABLED', 'true');
+    const original = mock.rpc.getMockImplementation()!;
+    mock.rpc.mockImplementation((name: string, args: any) => name === 'sync_player_records'
+      ? { abortSignal: () => Promise.resolve({ data: { entries: { [key]: rec }, imported: false }, error: null }) }
+      : original(name, args));
+    mock.auth.verifyOtp.mockImplementation(async () => {
+      mock.callback?.('SIGNED_IN', { user: { id: A } });
+      return { data: { session: { user: { id: A } } }, error: null };
+    });
+    const { scope } = await setup();
+    document.getElementById('account-register-open')!.click();
+    document.getElementById('account-email-register')!.click();
+    (document.getElementById('account-email-address') as HTMLInputElement).value = 'player@example.com';
+    document.getElementById('account-email-form')!.dispatchEvent(new Event('submit', { cancelable: true })); await flush();
+    (document.getElementById('account-email-code') as HTMLInputElement).value = '123456';
+    document.getElementById('account-code-form')!.dispatchEvent(new Event('submit', { cancelable: true })); await flush();
+    expect(scope.recordOwner()).toBeNull();
+    expect(document.getElementById('account-existing')!.hidden).toBe(false);
+    document.getElementById('account-existing-login')!.click(); await flush();
+    expect(scope.recordOwner()).toBe(A);
+    expect(mock.auth.signInWithOtp).toHaveBeenCalledTimes(1);
+    expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
+  });
+});
+
+it('認証を中断して戻った登録待ちデータを、以前のセッションへ登録しない', async () => {
+  mock.session = { user: { id: A } };
+  sessionStorage.setItem('zombie-typing:registration-pending', JSON.stringify({ at: Date.now(), records: { [key]: rec } }));
+  await setup();
+  expect(mock.rpc.mock.calls[0][1].p_initial).toBeNull();
+  expect(sessionStorage.getItem('zombie-typing:registration-pending')).toBeNull();
+});
+
+it('別のGoogleアカウントを選んでいる間、以前のセッションの更新で登録を進めない', async () => {
+  mock.session = { user: { id: A } };
+  sessionStorage.setItem('zombie-typing:registration-pending', JSON.stringify({ at: Date.now(), verifiedOwner: A, records: { [key]: rec } }));
+  const original = mock.rpc.getMockImplementation()!;
+  mock.rpc.mockImplementation((name: string, args: any) => name === 'sync_player_records'
+    ? { abortSignal: () => Promise.resolve({ data: { entries: {}, imported: false }, error: null }) }
+    : original(name, args));
+  const { scope, controller } = await setup();
+  const before = mock.rpc.mock.calls.length;
+  document.getElementById('account-existing-back')!.click();
+  document.getElementById('account-register-open')!.click();
+  document.getElementById('account-create')!.click(); await flush();
+  mock.callback?.('TOKEN_REFRESHED', mock.session); controller.idle(); await flush();
+  expect(scope.recordOwner()).toBeNull();
+  expect(mock.rpc).toHaveBeenCalledTimes(before);
+  expect(mock.auth.signInWithOAuth).toHaveBeenCalledTimes(1);
+});
+
+it('確認メールを待つ間は以前の会員へ送らず、番号で確認した会員だけに登録する', async () => {
+  vi.stubEnv('VITE_EMAIL_AUTH_ENABLED', 'true');
+  mock.session = { user: { id: A } };
+  localStorage.setItem(key, rec);
+  sessionStorage.setItem('zombie-typing:registration-pending', JSON.stringify({ at: Date.now(), verifiedOwner: A, records: { [key]: rec } }));
+  const original = mock.rpc.getMockImplementation()!;
+  mock.rpc.mockImplementation((name: string, args: any) => name === 'sync_player_records'
+    ? { abortSignal: () => Promise.resolve({ data: { entries: args.p_initial ?? {}, imported: args.p_expected_user === B && Boolean(args.p_initial) }, error: null }) }
+    : original(name, args));
+  mock.auth.verifyOtp.mockImplementation(async () => {
+    mock.callback?.('SIGNED_IN', { user: { id: B } });
+    return { data: { session: { user: { id: B } } }, error: null };
+  });
+  const { scope, controller } = await setup();
+  const before = mock.rpc.mock.calls.length;
+  document.getElementById('account-existing-back')!.click();
+  document.getElementById('account-register-open')!.click();
+  document.getElementById('account-email-register')!.click();
+  (document.getElementById('account-email-address') as HTMLInputElement).value = 'different@example.com';
+  document.getElementById('account-email-form')!.dispatchEvent(new Event('submit', { cancelable: true })); await flush();
+  mock.callback?.('TOKEN_REFRESHED', mock.session); controller.idle(); await flush();
+  expect(mock.rpc).toHaveBeenCalledTimes(before);
+  (document.getElementById('account-email-code') as HTMLInputElement).value = '123456';
+  document.getElementById('account-code-form')!.dispatchEvent(new Event('submit', { cancelable: true })); await flush();
+  expect(scope.recordOwner()).toBe(B);
+  expect(mock.rpc.mock.calls.slice(before).filter(call => call[0] === 'sync_player_records').every(call => call[1].p_expected_user === B)).toBe(true);
+});
+
+it('正しいOAuthの戻り先では、本人確認した会員に登録待ち記録を結び付ける', async () => {
+  mock.session = { user: { id: A } };
+  history.replaceState(null, '', '/?account=return&code=verified-code');
+  sessionStorage.setItem('zombie-typing:registration-pending', JSON.stringify({ at: Date.now(), records: { [key]: rec } }));
+  const { scope } = await setup();
+  expect(mock.auth.exchangeCodeForSession).toHaveBeenCalledWith('verified-code');
+  expect(mock.rpc.mock.calls[0][1]).toMatchObject({ p_expected_user: A, p_initial: { [key]: rec } });
+  expect(scope.recordOwner()).toBe(A);
+  expect(location.search).toBe('');
+});
+
+it('メール確認の応答と現在の会員が食い違う場合、その応答で登録を確定しない', async () => {
+  vi.stubEnv('VITE_EMAIL_AUTH_ENABLED', 'true');
+  mock.auth.verifyOtp.mockResolvedValue({ data: { session: { user: { id: B } } }, error: null });
+  const { scope } = await setup();
+  document.getElementById('account-register-open')!.click();
+  document.getElementById('account-email-register')!.click();
+  (document.getElementById('account-email-address') as HTMLInputElement).value = 'player@example.com';
+  document.getElementById('account-email-form')!.dispatchEvent(new Event('submit', { cancelable: true })); await flush();
+  (document.getElementById('account-email-code') as HTMLInputElement).value = '123456';
+  document.getElementById('account-code-form')!.dispatchEvent(new Event('submit', { cancelable: true })); await flush();
+  expect(scope.recordOwner()).toBeNull();
+  expect(mock.rpc).not.toHaveBeenCalled();
+  expect(document.getElementById('account-email-status')!.textContent).toContain('ログインが切り替わりました');
 });

@@ -1029,13 +1029,25 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .setting-row small { display: block; margin-top: .25rem; font-size: .72em; color: var(--ui-dim); }
 .setting-row select { font: inherit; padding: .4rem .6rem; background: #161813; color: #f2eee2; border: 1px solid var(--ui-border); border-radius: 3px; }
 .plate-btn[aria-pressed="true"], .plate-btn.ranking-tab.active { background-image: var(--ui-btn-active); color: #ffdf9a; filter: brightness(1.25); }
-.auth-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin: 1rem 0; }
-.auth-columns section { display: flex; flex-direction: column; gap: .5rem; }
-.auth-columns section + section { border-left: 1px solid var(--ui-border); padding-left: 1.4rem; }
-.auth-columns h3 { margin: 0 0 .25rem; color: #c8c3b6; font-size: .95rem; }
-.auth-columns .plate-btn { width: 100%; white-space: nowrap; letter-spacing: .03em; text-indent: 0; }
+/* ログインと新規登録は別ページ。主操作は中央に縦並び。 */
+.auth-methods { display: flex; flex-direction: column; gap: .65rem; width: min(23rem, 100%); margin: .9rem auto; }
+#account-dialog .auth-methods .plate-btn { width: 100%; padding-block: .8rem; letter-spacing: .04em; text-indent: 0; }
+#account-dialog .auth-intro { margin: .1rem 0 .75rem; text-align: center; color: #c8c3b6; }
+#account-dialog .auth-switch { text-align: center; margin: 1rem 0; }
+.account-text-btn { appearance: none; background: transparent; border: 0; color: var(--gold); font: inherit; font-size: .9rem; text-decoration: underline; text-underline-offset: .25em; cursor: pointer; padding: .2rem .35rem; }
+.account-text-btn:hover, .account-text-btn:focus-visible { color: #fff0c6; }
+.account-text-btn:disabled { opacity: .5; cursor: default; }
+#account-dialog .account-help-link { text-align: center; margin: .4rem 0; }
+.account-help-link .account-text-btn { font-size: .8rem; color: var(--ui-dim); }
+#account-dialog .account-benefit { border-top: 1px solid var(--ui-border); padding-top: .7rem; margin-top: 1rem; text-align: center; }
+#account-dialog .account-benefit p { margin: .35rem 0; font-size: .9rem; line-height: 1.7; }
+#account-dialog .account-benefit .dialog-caption { font-size: .8rem; color: var(--ui-dim); }
+#account-register > #account-message { text-align: center; }
+#account-dialog .dialog-heading { align-items: baseline; }
+#account-dialog .dialog-heading > .plate-btn { flex: 0 0 auto; padding: .4rem .8rem; }
+#account-dialog .account-footer { justify-content: center; }
 #account-dialog { width: min(43rem, 94vw); box-sizing: border-box; }
-#account-dialog .account-benefit { color: #eee8d7; font-size: 1.08rem; line-height: 1.6; margin-top: .25rem; }
+#account-dialog .account-benefit { color: #eee8d7; }
 #account-dialog .account-status:empty { display: none; }
 #account-dialog .move-hint { font-size: .9rem; border-color: #535145; background: rgba(41, 43, 31, .5); }
 .transfer-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
@@ -1074,11 +1086,8 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 #account-delete-status { color: #efb3a6; }
 @media (max-width: 600px) {
   #account-dialog { padding: 1rem; }
-  .auth-columns { gap: .65rem; }
-  .auth-columns section + section { padding-left: .65rem; }
-  #account-dialog .auth-columns .plate-btn { font-size: .85rem; padding-inline: .5rem; }
   .account-footer { flex-wrap: wrap; }
-  .account-footer .plate-btn { flex: 1; }
+  .account-footer .plate-btn { flex: 0 1 auto; }
 }
 
 .plate-btn.ranking-tab { background-image: var(--ui-btn); background-size: 100% 100%; background-color: transparent; border: 0; border-radius: 0; padding-inline: .4rem; }
