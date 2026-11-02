@@ -15,6 +15,8 @@ import {
 import { loadBest, loadVsBest, type Settings } from './store';
 import { TIPS } from './tips';
 import { analytics } from '../analytics';
+import { rankingOutcome } from './profile';
+import { transferChoice } from './transfer-state';
 
 export type ScreenName = 'title' | 'mode' | 'result' | 'pause' | 'none';
 
@@ -286,7 +288,7 @@ export class UI {
   openRanking(diffId?: string): void {
     if (diffId) this.rankingDiff = diffId;
     $<HTMLInputElement>('ranking-name').value = loadPlayerName();
-    $('ranking-move-hint').hidden = Boolean(loadPlayerName()) || localStorage.getItem('zombie-typing:old-site-moved') === 'true';
+    $('ranking-move-hint').hidden = Boolean(loadPlayerName()) || transferChoice() !== 'pending';
     this.rankingModal.classList.remove('hidden');
     this.renderRanking();
   }
@@ -305,7 +307,7 @@ export class UI {
     }
     for (const diff of rankedDiffs) {
       const tab = document.createElement('button');
-      tab.className = `ranking-tab${diff.id === this.rankingDiff ? ' active' : ''}`;
+      tab.className = `plate-btn compact-btn ranking-tab${diff.id === this.rankingDiff ? ' active' : ''}`;
       tab.textContent = diff.label;
       tab.style.setProperty('--tab-color', diff.color);
       tab.onclick = () => {
@@ -342,17 +344,20 @@ export class UI {
               metric === 'survival'
                 ? `スコア ${e.score.toLocaleString()}・撃破 ${e.kills}・WPM ${e.wpm}`
                 : `撃破 ${e.kills}・WPM ${e.wpm}・${(e.accuracy * 100).toFixed(1)}%`;
+            const outcome = activeDiff && !activeDiff.endless ? rankingOutcome(e.survival, activeDiff.duration, e.cleared) : null;
+            const badge = outcome ? ` <span class="outcome-pill ${outcome.cleared ? 'dawn' : 'night'}">${outcome.label}</span>` : '';
             return `
         <li class="ranking-row${i < 3 ? ` top${i + 1}` : ''}">
           <span class="rk-pos">${i + 1}</span>
           <span class="rk-main"><span class="rk-name">${escapeHtml(e.name)}</span>
-            <span class="rk-sub">${sub}</span></span>
+            <span class="rk-sub">${sub}${badge}</span></span>
           <span class="rk-score">${main}</span>
         </li>`;
           })
           .join('');
       })
       .catch(() => {
+        if (this.rankingDiff !== requested) return;
         list.innerHTML = '<li class="ranking-empty">読み込みに失敗しました。</li>';
       });
   }
@@ -666,6 +671,7 @@ export class UI {
         wpm: data.wpm,
         accuracy: data.accuracy,
         survival: Math.round(data.survival),
+        cleared: data.cleared,
         ts: Date.now(),
       };
       rankingBackend

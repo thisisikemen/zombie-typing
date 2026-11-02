@@ -108,3 +108,59 @@ describe('会員のランキング引き継ぎ',()=>{
   finally { await db.exec('reset role'); }
  });
 });
+
+const C='33333333-3333-4333-8333-333333333333';
+const D='44444444-4444-4444-8444-444444444444';
+const CKEY='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const DKEY='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+describe('プロフィール・引き継ぎ表示・本人の退会', () => {
+ beforeAll(async () => {
+  await db.exec(`create table public.scores (device_key uuid not null, difficulty text not null, name text, score integer not null, kills integer, wpm integer, accuracy real, survival_seconds integer, primary key(device_key,difficulty));
+   insert into auth.users values ('${C}'),('${D}');`);
+  await db.exec(readFileSync('supabase/migrations/202611020001_account_profile.sql','utf8'));
+  await asUser(C, async()=>{await sync(C,records(100));await db.query('select public.claim_ranking_identity($1,null,$2)',[C,CKEY]);});
+  await asUser(D, async()=>{await sync(D,records(200));await db.query('select public.claim_ranking_identity($1,null,$2)',[D,DKEY]);});
+  await db.exec(`insert into public.scores(device_key,difficulty,score,survival_seconds) values ('${CKEY}','normal',100,80),('${DKEY}','normal',200,120),('${CKEY}','endless',500,600),('${DKEY}','endless',900,500);
+   insert into public.scores(device_key,difficulty,score,survival_seconds) select gen_random_uuid(),'normal',1000+n,120 from generate_series(1,150) n;`);
+ });
+ const overview=async(id:string)=>(await db.query<{result:any}>('select public.player_account_overview($1) as result',[id])).rows[0].result;
+ it('上位100位より外の本人順位を返し、エンドレスは時間で数える',async()=>{
+  await asUser(C,async()=>{
+   const result=await overview(C);
+   expect(result.rankings.find((r:any)=>r.difficulty==='normal').rank).toBe(152);
+   expect(result.rankings.find((r:any)=>r.difficulty==='endless').rank).toBe(1);
+   expect(JSON.stringify(result)).not.toContain(CKEY);
+   await expect(overview(D)).rejects.toThrow('authentication changed');
+  });
+ });
+ it('引き継ぎ不要の選択を本人だけに保存し、完了状態は後から不要に戻さない',async()=>{
+  await asUser(C,async()=>{
+   await db.query('select public.set_player_transfer_choice($1,$2)',[C,'dismissed']);expect((await overview(C)).transfer_choice).toBe('dismissed');
+   await db.query('select public.set_player_transfer_choice($1,$2)',[C,'completed']);
+   await db.query('select public.set_player_transfer_choice($1,$2)',[C,'dismissed']);expect((await overview(C)).transfer_choice).toBe('completed');
+   await expect(db.query('select public.set_player_transfer_choice($1,$2)',[D,'completed'])).rejects.toThrow('authentication changed');
+  });
+ });
+ it('未認証の概要取得・引き継ぎ設定・退会を拒否する',async()=>{
+  await db.exec('set role anon');
+  try {
+   await expect(overview(C)).rejects.toThrow('permission denied');
+   await expect(db.query('select public.set_player_transfer_choice($1,$2)',[C,'completed'])).rejects.toThrow('permission denied');
+   await expect(db.query('select public.delete_player_account($1,$2)',[C,'退会'])).rejects.toThrow('permission denied');
+  } finally { await db.exec('reset role'); }
+ });
+ it('確認なし・他人の退会を拒否し、本人の退会では関連記録だけを削除する',async()=>{
+  await asUser(C,async()=>{
+   await expect(db.query('select public.delete_player_account($1,$2)',[D,'退会'])).rejects.toThrow('authentication changed');
+   await expect(db.query('select public.delete_player_account($1,$2)',[C,''])).rejects.toThrow('confirmation required');
+   await db.query('select public.delete_player_account($1,$2)',[C,'退会']);
+   await expect(overview(C)).rejects.toThrow('authentication changed');
+  });
+  expect((await db.query('select * from auth.users where id=$1',[C])).rows).toHaveLength(0);
+  expect((await db.query('select * from public.player_records where user_id=$1',[C])).rows).toHaveLength(0);
+  expect((await db.query('select * from public.player_ranking_identity where user_id=$1',[C])).rows).toHaveLength(0);
+  expect((await db.query('select * from public.scores where device_key=$1',[CKEY])).rows).toHaveLength(0);
+  expect((await db.query('select * from public.player_records where user_id=$1',[D])).rows).toHaveLength(1);
+  expect((await db.query('select * from public.scores where device_key=$1',[DKEY])).rows).toHaveLength(2);
+ });
+});

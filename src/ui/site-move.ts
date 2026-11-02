@@ -1,4 +1,5 @@
 import { createBackup, parseBackup, type RecordBackup } from './backup';
+import { cacheTransferChoice } from './transfer-state';
 
 export const OLD_ORIGIN = 'https://thisisikemen.github.io';
 export const NEW_ORIGIN = 'https://zombietyping.jp';
@@ -83,6 +84,7 @@ export function initSiteMove(importRecords: (backup: RecordBackup) => Promise<vo
       await importRecords(backup);
       status.textContent = '引き継ぎできました！ このまま遊べます。';
       localStorage.setItem('zombie-typing:old-site-moved', 'true');
+      cacheTransferChoice('completed');
       window.dispatchEvent(new Event(IMPORT_DONE));
       peer!.postMessage({type: DONE}, OLD_ORIGIN);
       peer = null;

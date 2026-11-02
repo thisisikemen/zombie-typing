@@ -18,6 +18,8 @@ export interface RankEntry {
   accuracy: number; // 0〜1
   /** 生存秒数(エンドレスの順位付けに使う) */
   survival: number;
+  /** 新形式の記録は、時間の丸めと独立してクリア結果を持つ。 */
+  cleared?: boolean;
   ts: number;
 }
 
@@ -167,11 +169,12 @@ export class OnlineBackend implements RankingBackend {
 
   async load(difficulty: string, metric: RankMetric): Promise<RankEntry[]> {
     const orderCol = metric === 'survival' ? 'survival_seconds' : 'score';
-    const query = (withSurvival: boolean) =>
+    const query = (withSurvival: boolean, withOutcome = false) =>
       `${this.url}/rest/v1/scores?difficulty=eq.${encodeURIComponent(difficulty)}` +
-      `&select=name,score,kills,wpm,accuracy,updated_at${withSurvival ? ',survival_seconds' : ''}` +
+      `&select=name,score,kills,wpm,accuracy,updated_at${withSurvival ? ',survival_seconds' : ''}${withOutcome ? ',cleared' : ''}` +
       `&order=${withSurvival ? orderCol : 'score'}.desc&limit=${MAX_ENTRIES}`;
-    let res = await fetch(query(true), { headers: this.headers(), signal: AbortSignal.timeout(10000) });
+    let res = await fetch(query(true, true), { headers: this.headers(), signal: AbortSignal.timeout(10000) });
+    if (!res.ok) res = await fetch(query(true), { headers: this.headers(), signal: AbortSignal.timeout(10000) });
     if (!res.ok && metric === 'score') {
       // サーバー側に survival_seconds カラムが無い(SQL 未実行)場合のフォールバック
       res = await fetch(query(false), { headers: this.headers(), signal: AbortSignal.timeout(10000) });
@@ -184,6 +187,7 @@ export class OnlineBackend implements RankingBackend {
       wpm: number;
       accuracy: number;
       survival_seconds: number | null;
+      cleared?: boolean | null;
       updated_at: string;
     }[];
     return rows.map((r) => ({
@@ -193,6 +197,7 @@ export class OnlineBackend implements RankingBackend {
       wpm: r.wpm,
       accuracy: r.accuracy,
       survival: r.survival_seconds ?? 0,
+      cleared: typeof r.cleared === 'boolean' ? r.cleared : undefined,
       ts: Date.parse(r.updated_at),
     }));
   }
@@ -207,13 +212,20 @@ export class OnlineBackend implements RankingBackend {
       p_wpm: entry.wpm,
       p_accuracy: entry.accuracy,
       p_survival_seconds: Math.round(entry.survival),
+      p_cleared: entry.cleared ?? false,
     };
-    let res = await fetch(`${this.url}/rest/v1/rpc/submit_score`, {
+    let res = await fetch(`${this.url}/rest/v1/rpc/submit_score_with_outcome`, {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(10000),
     });
+    if (res.status === 404) {
+      delete payload.p_cleared;
+      res = await fetch(`${this.url}/rest/v1/rpc/submit_score`, {
+        method: 'POST', headers: this.headers(), body: JSON.stringify(payload), signal: AbortSignal.timeout(10000),
+      });
+    }
     if (res.status === 404) {
       // サーバー側の RPC が旧シグネチャ(survival 未対応)の場合のフォールバック
       delete payload.p_survival_seconds;

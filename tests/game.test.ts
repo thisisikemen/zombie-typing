@@ -741,3 +741,60 @@ describe('単語プールの排他選択', () => {
     expect(r2!.exclusive).toBe(false);
   });
 });
+
+
+describe('入力対象の復帰と重複時の手前優先', () => {
+ it('現在ロックしている言葉も、頭から打ち直して復帰できる', () => {
+  const g=emptyPoolGame();const z=makeZombie('おはようございます');g.zombies.push(z);
+  for (const k of 'ohayo') g.handleKey(k);
+  for (const k of 'ohayougozaimasu') g.handleKey(k);
+  expect(g.getZombie(z.id)).toBeUndefined();expect(g.kills).toBe(1);
+ });
+ it('後ろへ誤ロックしても、手前の言葉を打ち直せばその場で戻る', () => {
+  const g=emptyPoolGame();const near=makeZombie('おはようございます',1,500);const far=makeZombie('うわばき',1,1200);
+  g.zombies.push(near,far);for (const k of 'ohayo') g.handleKey(k);
+  g.releaseTarget();g.handleKey('u');g.handleKey('w');expect(g.targetId).toBe(far.id);
+  for (const k of 'ohayougozaimasu') g.handleKey(k);
+  expect(g.getZombie(near.id)).toBeUndefined();expect(g.getZombie(far.id)).toBeDefined();
+ });
+ it('同じ一文字が並んでも手前だけ撃破し、後方は正常な未完了状態で残す', () => {
+  const g=emptyPoolGame();const far=makeZombie('あ',1,1200);const near=makeZombie('あ',1,500);g.zombies.push(far,near);
+  g.handleKey('a');expect(g.getZombie(near.id)).toBeUndefined();expect(far.session.isComplete()).toBe(false);
+  g.handleKey('a');expect(g.kills).toBe(2);
+ });
+ it('同じ複数文字が並ぶ場合も、打ち切りで後方を完了状態にしない', () => {
+  const g=emptyPoolGame();const far=makeZombie('ねこ',1,1200);const near=makeZombie('ねこ',1,500);g.zombies.push(far,near);
+  for(const k of 'neko')g.handleKey(k);
+  expect(g.getZombie(near.id)).toBeUndefined();expect(far.session.isComplete()).toBe(false);
+  g.handleKey('o');expect(g.kills).toBe(2);
+ });
+});
+describe('ベーシックの数字キー', () => {
+ it('1で五十音を飛ばし、2〜9で最大文字数を変更する。HP・得点・正確率は変えない', () => {
+  const g=new Game(basic,new WordPool(),lcg());g.update(.5);
+  const before={hp:g.hp,score:g.score,kills:g.kills,miss:g.missKeys,correct:g.correctKeys};
+  for(let level=1;level<=9;level++) {
+   g.handleKey(String(level));expect(g.practiceLevel).toBe(level);expect(g.zombies).toHaveLength(1);
+   expect(g.zombies[0].word.kana.length).toBeLessThanOrEqual(level);
+   if(level>1)expect(g.zombies[0].word.kana.length).toBeGreaterThanOrEqual(2);
+  }
+  expect({hp:g.hp,score:g.score,kills:g.kills,miss:g.missKeys,correct:g.correctKeys}).toEqual(before);
+ });
+ it('30問ごとに次の最大文字数へ進み、9の後も最大9文字で練習できる', () => {
+  const g=new Game(basic,new WordPool(),lcg());g.setPracticeLevel(8);
+  for(let i=0;i<65;i++){
+   const z=g.zombies[0];for(const k of z.session.remainingRomaji())g.handleKey(k);
+  }
+  expect(g.practiceLevel).toBe(9);expect(g.status).toBe('running');
+ });
+ it('同じレベルでの30問は、直近の同じ単語を繰り返さない', () => {
+  const g=new Game(basic,new WordPool(),lcg());g.setPracticeLevel(9);const seen=new Set<string>();
+  for(let i=0;i<30;i++){
+   const z=g.zombies[0];expect(seen.has(z.word.kana)).toBe(false);seen.add(z.word.kana);
+   for(const k of z.session.remainingRomaji())g.handleKey(k);
+  }
+ });
+ it('通常モードでは数字を押しても練習レベルへ切り替えない', () => {
+  const g=emptyPoolGame();g.handleKey('9');expect(g.practiceLevel).toBe(0);expect(g.zombies).toHaveLength(0);
+ });
+});

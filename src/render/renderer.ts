@@ -1245,15 +1245,17 @@ export class Renderer {
     // VS: ゴーストの比較用ミニ HUD(メイン HUD の下の細い帯)
     if (game.ghost) this.drawGhostHud(ctx, game);
 
-    // 練習で五十音を一周したら、終了方法をさりげなく案内する
-    if (game.isPractice() && game.practiceLooped) {
+    if (game.isPractice()) {
       ctx.textAlign = 'center';
       ctx.font = '700 18px "Hiragino Kaku Gothic ProN", sans-serif';
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
       ctx.lineWidth = 4;
-      ctx.strokeText('五十音を一周! 終了する場合は ESC', W / 2, 108);
+      const level = game.practiceLevel;
+      const label = level === 0 ? '五十音順' : level === 1 ? 'ランダム1文字' : `最大${level}文字`;
+      const guide = `${label}  ｜  1：ランダム1文字  2〜9：最大文字数を選ぶ  ｜  Esc：終了`;
+      ctx.strokeText(guide, W / 2, 108);
       ctx.fillStyle = 'rgba(232, 228, 216, 0.9)';
-      ctx.fillText('五十音を一周! 終了する場合は ESC', W / 2, 108);
+      ctx.fillText(guide, W / 2, 108);
     }
 
     ctx.restore();
