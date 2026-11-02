@@ -193,14 +193,19 @@ it('Googleでログインを押すとアカウント選択を要求し、自動�
 });
 it('本人用の画面にログイン先を表示し、ランキングの名前には使わない',async()=>{
  mock.session={user:{id:A,email:'player@example.com'}};const {scope}=await setup();
+ expect(document.getElementById('account-identity')!.textContent).toBe('');
+ expect(document.getElementById('account-member')!.textContent).not.toContain('player@example.com');
+ document.getElementById('account-details-open')!.click();
  expect(document.getElementById('account-identity')!.textContent).toBe('ログイン中：player@example.com');
+ (document.getElementById('account-details-dialog') as HTMLDialogElement).close();await flush();
+ expect(document.getElementById('account-identity')!.textContent).toBe('');
  expect(localStorage.getItem(scope.scopedKey('zombie-typing:player-name',A))).not.toBe('player@example.com');
  expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
 });
 it('ログアウト成功後はSDK通知が遅くてもログイン表示を解除する',async()=>{
  mock.session={user:{id:A,email:'player@example.com'}};
  mock.auth.signOut.mockImplementation(async()=>({error:null}));
- const {scope}=await setup();document.getElementById('account-logout')!.click();await flush();
+ const {scope}=await setup();document.getElementById('account-details-open')!.click();document.getElementById('account-logout')!.click();await flush();
  expect(mock.auth.signOut).toHaveBeenCalledWith({scope:'local'});
  expect(scope.recordOwner()).toBeNull();
  expect(document.getElementById('account-identity')!.textContent).toBe('');
@@ -210,10 +215,11 @@ it('ログアウト成功後はSDK通知が遅くてもログイン表示を解�
 it('ログアウト失敗時はログイン表示と本人の記録を維持する',async()=>{
  mock.session={user:{id:A,email:'player@example.com'}};
  mock.auth.signOut.mockImplementation(async()=>({error:new Error('offline')}));
- const {scope}=await setup();document.getElementById('account-logout')!.click();await flush();
+ const {scope}=await setup();document.getElementById('account-details-open')!.click();document.getElementById('account-logout')!.click();await flush();
  expect(scope.recordOwner()).toBe(A);
  expect(document.getElementById('account-identity')!.textContent).toContain('player@example.com');
  expect(document.getElementById('account-status')!.textContent).toContain('ログアウトできません');
+ expect(document.getElementById('account-details-status')!.textContent).toContain('ログアウトできません');
 });
 
 
@@ -265,4 +271,16 @@ it('旧サイトを引き継いでから初めて登録した場合は、旧ラ�
  const original=mock.rpc.getMockImplementation()!;
  mock.rpc.mockImplementation((name:string,args:any)=>name==='sync_player_records' && args.p_initial ? {abortSignal:()=>Promise.resolve({data:{entries:args.p_initial,imported:true},error:null})} : original(name,args));
  await setup();expect(mock.rpc).toHaveBeenCalledWith('claim_ranking_identity',expect.objectContaining({p_expected_user:A,p_legacy_key:legacy}));
+});
+
+it('プロフィールには名前欄を一つだけ置き、個人情報・ログアウト・退会・Q&Aは詳細に集める',async()=>{
+ mock.session={user:{id:A,email:'private@example.com'}};await setup();
+ const profile=document.getElementById('account-dialog')!;
+ expect(profile.querySelectorAll('#account-name')).toHaveLength(1);
+ for(const id of ['account-identity','account-logout','account-delete-open','account-help-open'])expect(profile.querySelector(`#${id}`)).toBeNull();
+ expect(profile.textContent).not.toContain('private@example.com');
+ document.getElementById('account-details-open')!.click();expect(document.getElementById('account-identity')!.textContent).toContain('private@example.com');
+ mock.callback?.('SIGNED_IN',{user:{id:B,email:'other@example.com'}});await flush();
+ expect((document.getElementById('account-details-dialog') as HTMLDialogElement).open).toBe(false);
+ expect(document.getElementById('account-identity')!.textContent).toBe('');
 });

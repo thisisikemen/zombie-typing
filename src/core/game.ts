@@ -178,8 +178,9 @@ export class Game {
   private recentKana: string[] = [];
   /** ベーシック: 現在の周回内で出した数 */
   private practiceIndex = 0;
-  /** ベーシック: 0=五十音順、1=ランダム1文字、2〜9=最大かな文字数 */
+  /** ベーシック: 0=五十音順、1=ランダム1文字、2〜9=かな文字数 */
   private practiceLap = 0;
+  private practiceAdvancePending = false;
   /** ベーシック: 最後に湧いた時刻(一定テンポ湧きの基準。初回は即出す) */
   private lastPracticeSpawnAt = -Infinity;
   /** ベーシック: 五十音を一周して「あ」に戻ったか(HUD の終了案内表示用) */
@@ -308,7 +309,7 @@ export class Game {
   handleKey(rawKey: string): void {
     if (this.status !== 'running') return;
     const key = rawKey.toLowerCase();
-    if (this.isPractice() && /^[1-9]$/.test(key)) {
+    if (this.isPractice() && /^[0-9]$/.test(key)) {
       this.setPracticeLevel(Number(key));
       return;
     }
@@ -448,6 +449,9 @@ export class Game {
         // 現在の対象自身も頭から打ち直せる。正打中には呼ばないので横取りしない。
         const fresh = replayInto(new TypingSession(z.word.kana), suffix);
         if (fresh) {
+          // 「まめまき」の mamem + 誤入力e が末尾のmameに一致しても、
+          // 正しく打ったmamemを消さない。打ち直しは元の位置に追いついてから採用。
+          if (fresh.progress() < z.session.progress()) continue;
           if (better(len, false, z)) best = { z, s: fresh, len, cont: false };
           break;
         }
@@ -480,10 +484,11 @@ export class Game {
 
   /** 数字キーで練習内容を選ぶ。飛ばした敵は得点・撃破・被弾に含めない。 */
   setPracticeLevel(level: number): void {
-    if (!this.isPractice() || this.status !== 'running' || !Number.isInteger(level) || level < 1 || level > 9) return;
+    if (!this.isPractice() || this.status !== 'running' || !Number.isInteger(level) || level < 0 || level > 9) return;
     this.practiceLap = level;
     this.practiceIndex = 0;
-    this.practiceLooped = true;
+    this.practiceAdvancePending = false;
+    this.practiceLooped = level > 0;
     this.zombies = [];
     this.targetId = null;
     this.candidateIds = [];
@@ -668,6 +673,13 @@ export class Game {
   private trySpawnPractice(force = false): void {
     if (this.zombies.length >= BASIC.maxOnScreen) return;
     if (!force && this.time - this.lastPracticeSpawnAt < BASIC.spawnIntervalSec) return;
+    // 前のレベルの最後の文字が残る間は、表示も出題レベルも切り替えない。
+    if (this.practiceAdvancePending) {
+      if (this.zombies.length > 0) return;
+      this.practiceLap = Math.min(9, this.practiceLap + 1);
+      this.practiceIndex = 0;
+      this.practiceAdvancePending = false;
+    }
 
     this.lastPracticeSpawnAt = this.time;
     const word = this.nextPracticeWord();
@@ -897,7 +909,7 @@ export class Game {
     this.events.push({ type: 'spawn', zombieId: z.id });
   }
 
-  /** 五十音 → ランダム1文字 → 最大2〜9文字。最終レベルで練習を続けられる。 */
+  /** 五十音 → ランダム1文字 → 2〜9文字ちょうど。最終レベルで練習を続けられる。 */
   private nextPracticeWord(): WordEntry {
     if (this.practiceLap >= 1) this.practiceLooped = true; // 一周後は終了案内を出す
 
@@ -915,10 +927,7 @@ export class Game {
       // 実在する単語(漢字表示つき)から選ぶ。初手キーの重複も避ける
       const blocked = new Set<string>();
       for (const z of this.zombies) for (const k of z.session.currentKeys()) blocked.add(k);
-      // 新しい長さを多めにしつつ、短い言葉も交ぜる。
-      const min = this.rng() < 0.65 ? level : 2;
-      const picked = this.pool.pick(this.rng, [min, level], blocked, onScreen, new Set(this.recentKana))
-        ?? this.pool.pick(this.rng, [2, level], blocked, onScreen, new Set(this.recentKana));
+      const picked = this.pool.pick(this.rng, [level, level], blocked, onScreen, new Set(this.recentKana));
       if (picked) {
         this.recentKana.push(picked.word.kana);
         if (this.recentKana.length > 120) this.recentKana.shift();
@@ -941,8 +950,7 @@ export class Game {
   private advancePracticeLap(lapLength: number): void {
     this.practiceIndex++;
     if (this.practiceIndex >= lapLength) {
-      this.practiceIndex = 0;
-      this.practiceLap++;
+      this.practiceAdvancePending = true;
     }
   }
 

@@ -87,7 +87,7 @@
         </nav>
       </div>
       <p class="seo-ticker">
-        <span class="ticker-track" id="ticker-track"><span class="ticker-text">ゾンビタイピングは、インストール不要・無料で遊べるブラウザの日本語タイピングゲーム。迫りくるゾンビの頭上の単語をローマ字入力で打ち切って撃ち倒し、夜明けまで生き延びろ。&#9670; 五十音とキーボードガイドで学べる超入門ベーシック、イージー・ノーマル・ハードの「夜明けまで」、3分間の最凶ハードコア、生存時間を競うエンドレス「夜は明けない」を収録。&#9670; 収録単語は1,500語以上。WPM(1分あたりの正確なキー入力数)と正確率がリザルトに表示されるので、タイピング練習・ローマ字入力の上達にも役立つ。&#9670; 難易度別のオンラインランキングに名前を残して、自己ベストを更新しよう。寿司打やe-typingなどのタイピングゲームが好きな人にもおすすめ。PCブラウザとキーボードがあれば今すぐプレイできる。&#9670;&#160;</span></span>
+        <span class="ticker-track" id="ticker-track"><span class="ticker-text">ゾンビタイピングは、インストール不要・無料で遊べるブラウザの日本語タイピングゲーム。迫りくるゾンビの頭上の単語をローマ字入力で打ち切って撃ち倒し、夜明けまで生き延びろ。&#9670; 五十音とキーボードガイドで学べる超入門ベーシック、イージー・ノーマル・ハードの「夜明けまで」、3分間の最凶ハードコア、生存時間を競うエンドレス「夜は明けない」を収録。&#9670; 収録単語は1,800語以上。WPM(1分あたりの正確なキー入力数)と正確率がリザルトに表示されるので、タイピング練習・ローマ字入力の上達にも役立つ。&#9670; 難易度別のオンラインランキングに名前を残して、自己ベストを更新しよう。寿司打やe-typingなどのタイピングゲームが好きな人にもおすすめ。PCブラウザとキーボードがあれば今すぐプレイできる。&#9670;&#160;</span></span>
       </p>
       <div class="tips-bar"><span class="tips-tag">TIP</span><span class="tips-text" id="tips-title"></span></div>
     </div>
@@ -272,15 +272,30 @@
       <div class="consent-actions" id="account-back-row" hidden><button type="button" class="plate-btn" id="account-back">ログイン方法を選び直す</button></div>
     </div>
     <div id="account-member" hidden>
-      <div class="profile-heading"><span class="profile-emblem" aria-hidden="true">Z</span><div><p class="dialog-caption">SURVIVOR PROFILE</p><h3 id="account-player-name"></h3><p id="account-identity" class="dialog-caption"></p></div></div>
-      <form id="account-name-form" class="profile-name-form"><label for="account-name">プレイヤー名</label><div><input id="account-name" maxlength="10" autocomplete="off" required /><button type="submit" class="plate-btn compact-btn" id="account-name-save">変更</button></div><p id="account-name-status" class="form-status" role="status"></p></form>
-      <div class="profile-records-heading"><h3>生存者の自己ベスト</h3><span>全5ステージ · スクロールで確認</span></div>
+      <div class="profile-heading">
+        <span class="profile-emblem" aria-hidden="true">Z</span>
+        <form id="account-name-form" class="profile-name-form">
+          <label for="account-name" class="dialog-caption">SURVIVOR PROFILE <span class="sr-only">プレイヤー名</span></label>
+          <div><input id="account-name" aria-label="プレイヤー名" maxlength="10" autocomplete="off" required placeholder="名無しの生存者" /><button type="submit" class="plate-btn compact-btn" id="account-name-save">変更</button></div>
+          <p id="account-name-status" class="form-status" role="status"></p>
+        </form>
+      </div>
+      <div class="profile-records-heading"><h3>生存者の自己ベスト</h3><button type="button" class="plate-btn compact-btn profile-refresh" id="account-sync" aria-label="記録を更新" title="記録を更新"><span aria-hidden="true">↻</span></button></div>
       <div id="account-records" class="profile-records" aria-label="ステージ別の自己ベスト"></div>
       <p class="dialog-caption profile-note">WPM・正確率・生還状況は、自己ベストを出した回の記録です。</p>
-      <div class="profile-actions"><button type="button" class="plate-btn compact-btn" id="account-sync">記録を読み直す</button><button type="button" class="plate-btn compact-btn" id="account-logout">ログアウト</button><button type="button" class="plate-btn compact-btn danger-btn" id="account-delete-open">退会</button></div>
     </div>
     <p id="account-status" class="account-status" role="status" aria-live="polite"></p><button type="button" id="account-retry" class="plate-btn compact-btn" hidden>記録を読み直す</button>
-    <div class="account-footer"><button type="button" class="plate-btn compact-btn" id="account-help-open">記録・ログインのよくある質問</button><button type="button" class="plate-btn compact-btn" id="account-close">閉じる</button></div>
+    <div class="account-footer"><button type="button" class="plate-btn compact-btn" id="account-guest-help-open">記録・ログインのよくある質問</button><button type="button" class="plate-btn compact-btn" id="account-details-open" hidden>詳細</button><button type="button" class="plate-btn compact-btn" id="account-close">閉じる</button></div>
+  </dialog>
+
+  <dialog id="account-details-dialog" class="modal-box game-dialog" aria-labelledby="account-details-heading">
+    <div class="dialog-heading"><h2 id="account-details-heading">アカウントの詳細</h2><button type="button" class="dialog-close" data-dialog-close aria-label="閉じる">×</button></div>
+    <p class="dialog-caption">ログイン情報はこの詳細画面にだけ表示します。</p>
+    <p id="account-identity"></p>
+    <p id="account-details-status" class="account-status" role="status" aria-live="polite"></p>
+    <div class="account-details-actions"><button type="button" class="plate-btn" id="account-help-open">Q&amp;A・記録について</button><button type="button" class="plate-btn" id="account-logout">ログアウト</button></div>
+    <details class="account-delete-section"><summary>アカウントの削除</summary><p class="dialog-caption">退会すると、このアカウントの記録が削除されます。</p><button type="button" class="plate-btn compact-btn danger-btn" id="account-delete-open">退会の手続きへ</button></details>
+    <div class="consent-actions"><button type="button" class="plate-btn" data-dialog-close>戻る</button></div>
   </dialog>
 
   <dialog id="account-help-dialog" class="modal-box game-dialog" aria-labelledby="account-help-heading">

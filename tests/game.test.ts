@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BASIC, BOSS, ENERGY, FIELD, PLAYER, TIERS, type Tier } from '../src/config';
 import { Game, type Zombie } from '../src/core/game';
 import { getDifficulty, getMode } from '../src/core/modes';
-import { TypingSession } from '../src/core/typing/engine';
+import { canonicalRomaji, TypingSession } from '../src/core/typing/engine';
 import { WordPool } from '../src/core/words';
 
 const normal = getDifficulty(getMode('dawn'), 'normal');
@@ -770,17 +770,17 @@ describe('入力対象の復帰と重複時の手前優先', () => {
  });
 });
 describe('ベーシックの数字キー', () => {
- it('1で五十音を飛ばし、2〜9で最大文字数を変更する。HP・得点・正確率は変えない', () => {
+ it('1で五十音を飛ばし、2〜9で文字数を変更する。HP・得点・正確率は変えない', () => {
   const g=new Game(basic,new WordPool(),lcg());g.update(.5);
   const before={hp:g.hp,score:g.score,kills:g.kills,miss:g.missKeys,correct:g.correctKeys};
   for(let level=1;level<=9;level++) {
    g.handleKey(String(level));expect(g.practiceLevel).toBe(level);expect(g.zombies).toHaveLength(1);
-   expect(g.zombies[0].word.kana.length).toBeLessThanOrEqual(level);
+   expect(g.zombies[0].word.kana.length).toBe(level);
    if(level>1)expect(g.zombies[0].word.kana.length).toBeGreaterThanOrEqual(2);
   }
   expect({hp:g.hp,score:g.score,kills:g.kills,miss:g.missKeys,correct:g.correctKeys}).toEqual(before);
  });
- it('30問ごとに次の最大文字数へ進み、9の後も最大9文字で練習できる', () => {
+ it('30問を打ち終えてから次の文字数へ進み、9の後も9文字で練習できる', () => {
   const g=new Game(basic,new WordPool(),lcg());g.setPracticeLevel(8);
   for(let i=0;i<65;i++){
    const z=g.zombies[0];for(const k of z.session.remainingRomaji())g.handleKey(k);
@@ -797,4 +797,44 @@ describe('ベーシックの数字キー', () => {
  it('通常モードでは数字を押しても練習レベルへ切り替えない', () => {
   const g=emptyPoolGame();g.handleKey('9');expect(g.practiceLevel).toBe(0);expect(g.zombies).toHaveLength(0);
  });
+});
+
+describe('正しく打った進捗を誤入力で失わない',()=>{
+ it('豆まきのmamemのあとでeを誤入力しても、正しいmamemを残す',()=>{
+  const g=emptyPoolGame();const z=makeZombie('まめまき');g.zombies.push(z);
+  for(const k of 'mamem')g.handleKey(k);g.handleKey('e');
+  expect(z.session.typedRomaji()).toBe('mamem');expect(z.session.remainingRomaji()).toBe('aki');
+  for(const k of 'aki')g.handleKey(k);expect(g.kills).toBe(1);
+ });
+ it('繰り返しのある単語のどの位置でも、1打の誤入力で受理済み文字列を変更しない',()=>{
+  for(const kana of ['まめまき','きつつき','こころ','さかな','おはようございます','しんぶんし']){
+   const keys=canonicalRomaji(kana);
+   for(let i=1;i<keys.length;i++)for(const wrong of 'abcdefghijklmnopqrstuvwxyz'){
+    const g=emptyPoolGame();const z=makeZombie(kana);g.zombies.push(z);
+    for(const k of keys.slice(0,i))g.handleKey(k);
+    if(z.session.currentKeys().has(wrong))continue;
+    const typed=z.session.typedRomaji();g.handleKey(wrong);
+    expect(z.session.typedRomaji(),`${kana}: ${typed}+${wrong}`).toBe(typed);
+    for(const k of keys.slice(i))g.handleKey(k);expect(g.kills).toBe(1);
+   }
+  }
+ });
+});
+it('0キーで五十音順に戻り、2〜9の各レベルは出題中の文字数を一定に保つ',()=>{
+ const g=new Game(basic,new WordPool(),lcg());
+ for(let level=2;level<=9;level++){
+  g.handleKey(String(level));
+  for(let i=0;i<15;i++){
+   expect(g.practiceLevel).toBe(level);const z=g.zombies[0];expect(z.word.kana.length).toBe(level);
+   for(const k of z.session.remainingRomaji())g.handleKey(k);
+  }
+ }
+ g.handleKey('0');expect(g.practiceLevel).toBe(0);expect(g.zombies[0].word.kana).toBe('あ');
+});
+it('最後の問題が残っている間はレベル表示を先に上げず、前レベルの文字も混ぜない',()=>{
+ const g=new Game(basic,new WordPool(),lcg());g.setPracticeLevel(2);
+ for(let i=0;i<29;i++)for(const k of g.zombies[0].session.remainingRomaji())g.handleKey(k);
+ expect(g.practiceLevel).toBe(2);expect(g.zombies[0].word.kana.length).toBe(2);
+ for(const k of g.zombies[0].session.remainingRomaji())g.handleKey(k);
+ expect(g.practiceLevel).toBe(3);expect(g.zombies).toHaveLength(1);expect(g.zombies[0].word.kana.length).toBe(3);
 });
