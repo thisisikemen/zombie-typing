@@ -770,13 +770,14 @@ describe('入力対象の復帰と重複時の手前優先', () => {
  });
 });
 describe('ベーシックの数字キー', () => {
- it('1で五十音を飛ばし、2〜9で文字数を変更する。HP・得点・正確率は変えない', () => {
-  const g=new Game(basic,new WordPool(),lcg());g.update(.5);
+ it('1〜9で次の文字数を選んでも、出現済みの文字・HP・得点・正確率は変えない', () => {
+  const g=new Game(basic,new WordPool(),lcg());g.update(1);
   const before={hp:g.hp,score:g.score,kills:g.kills,miss:g.missKeys,correct:g.correctKeys};
+  const existing=g.zombies[0];
   for(let level=1;level<=9;level++) {
    g.handleKey(String(level));expect(g.practiceLevel).toBe(level);expect(g.zombies).toHaveLength(1);
-   expect(g.zombies[0].word.kana.length).toBe(level);
-   if(level>1)expect(g.zombies[0].word.kana.length).toBeGreaterThanOrEqual(2);
+   expect(g.zombies[0]).toBe(existing);
+   expect(existing.word.kana).toBe('あ');
   }
   expect({hp:g.hp,score:g.score,kills:g.kills,miss:g.missKeys,correct:g.correctKeys}).toEqual(before);
  });
@@ -823,13 +824,17 @@ describe('正しく打った進捗を誤入力で失わない',()=>{
 it('0キーで五十音順に戻り、2〜9の各レベルは出題中の文字数を一定に保つ',()=>{
  const g=new Game(basic,new WordPool(),lcg());
  for(let level=2;level<=9;level++){
+  const existing=[...g.zombies];
   g.handleKey(String(level));
+  for(const z of existing)for(const k of z.session.remainingRomaji())g.handleKey(k);
   for(let i=0;i<15;i++){
    expect(g.practiceLevel).toBe(level);const z=g.zombies[0];expect(z.word.kana.length).toBe(level);
    for(const k of z.session.remainingRomaji())g.handleKey(k);
   }
  }
- g.handleKey('0');expect(g.practiceLevel).toBe(0);expect(g.zombies[0].word.kana).toBe('あ');
+ const last=g.zombies[0];g.handleKey('0');expect(g.practiceLevel).toBe(0);expect(g.zombies[0]).toBe(last);
+ for(const k of last.session.remainingRomaji())g.handleKey(k);
+ expect(g.zombies[0].word.kana).toBe('あ');
 });
 it('最後の問題が残っている間はレベル表示を先に上げず、前レベルの文字も混ぜない',()=>{
  const g=new Game(basic,new WordPool(),lcg());g.setPracticeLevel(2);
@@ -837,4 +842,83 @@ it('最後の問題が残っている間はレベル表示を先に上げず、�
  expect(g.practiceLevel).toBe(2);expect(g.zombies[0].word.kana.length).toBe(2);
  for(const k of g.zombies[0].session.remainingRomaji())g.handleKey(k);
  expect(g.practiceLevel).toBe(3);expect(g.zombies).toHaveLength(1);expect(g.zombies[0].word.kana.length).toBe(3);
+});
+
+describe('ベーシックのレベル変更で出現済みの敵を残す', () => {
+  function threeZombies() {
+    const game = new Game(basic, new WordPool(), lcg(17));
+    game.setPracticeLevel(9);
+    for (let t = 0; t < 12 && game.zombies.length < 3; t += .25) game.update(.25);
+    expect(game.zombies).toHaveLength(BASIC.maxOnScreen);
+    return game;
+  }
+
+  it('3体と入力途中の対象を保ち、撃破で空いた枠だけ次のレベルの問題を出す', () => {
+    const game = threeZombies();
+    const existing = [...game.zombies];
+    const front = existing[0];
+    for (const key of front.session.remainingRomaji().slice(0, 2)) game.handleKey(key);
+    expect(game.targetId).toBe(front.id);
+    const typed = front.session.typedRomaji();
+    const positions = existing.map(z => z.x);
+    const state = { hp: game.hp, score: game.score, kills: game.kills, correct: game.correctKeys, misses: game.missKeys };
+    game.drainEvents();
+    game.handleKey('2');
+    expect(game.practiceLevel).toBe(2);
+    expect(game.zombies).toEqual(existing);
+    expect(game.zombies.map(z => z.x)).toEqual(positions);
+    expect(game.targetId).toBe(front.id);
+    expect(front.session.typedRomaji()).toBe(typed);
+    expect({ hp: game.hp, score: game.score, kills: game.kills, correct: game.correctKeys, misses: game.missKeys }).toEqual(state);
+    expect(game.drainEvents()).toEqual([]);
+    for (let t = 0; t < 6; t += .25) game.update(.25);
+    expect(game.zombies).toEqual(existing);
+    expect(game.drainEvents().some(event => event.type === 'spawn')).toBe(false);
+    for (const key of front.session.remainingRomaji()) game.handleKey(key);
+    expect(game.kills).toBe(1);
+    expect(game.getZombie(front.id)).toBeUndefined();
+    for (let t = 0; t < 1.5 && game.zombies.length < 3; t += .25) game.update(.25);
+    expect(game.zombies).toHaveLength(3);
+    for (const z of existing.slice(1)) expect(game.getZombie(z.id)).toBe(z);
+    const added = game.zombies.filter(z => !existing.includes(z));
+    expect(added).toHaveLength(1);
+    expect(added[0].word.kana.length).toBe(2);
+  });
+
+  it('レベルを下げても先頭の被弾を回避できず、通過後の空きに新しい問題が出る', () => {
+    const game = threeZombies();
+    const existing = [...game.zombies];
+    const front = existing[0];
+    const hp = game.hp;
+    front.x = FIELD.lineX + 1;
+    game.handleKey('2');
+    expect(game.getZombie(front.id)).toBe(front);
+    game.update(.25);
+    expect(game.getZombie(front.id)).toBeUndefined();
+    expect(game.hp).toBe(hp - TIERS[1].damage);
+    expect(game.kills).toBe(0);
+    for (let t = 0; t < 6 && game.zombies.length < 3; t += .25) game.update(.25);
+    expect(game.zombies).toHaveLength(3);
+    for (const z of existing.slice(1)) expect(game.getZombie(z.id)).toBe(z);
+    expect(game.zombies.find(z => !existing.includes(z))!.word.kana.length).toBe(2);
+  });
+
+  it('同じ初手の複数候補も入力進捗を保ったまま打ち続けられる', () => {
+    const game = new Game(basic, new WordPool([]), lcg());
+    const near = makeZombie('ねこ', 1, 800);
+    const far = makeZombie('ねっこ', 1, 1200);
+    game.zombies.push(near, far);
+    game.handleKey('n');
+    const candidates = [...game.candidateIds];
+    expect(candidates).toHaveLength(2);
+    game.handleKey('9');
+    expect(game.candidateIds).toEqual(candidates);
+    expect(near.session.typedRomaji()).toBe('n');
+    expect(far.session.typedRomaji()).toBe('n');
+    for (const key of 'eko') game.handleKey(key);
+    expect(game.kills).toBe(1);
+    expect(game.getZombie(near.id)).toBeUndefined();
+    expect(game.getZombie(far.id)).toBe(far);
+    expect(game.missKeys).toBe(0);
+  });
 });

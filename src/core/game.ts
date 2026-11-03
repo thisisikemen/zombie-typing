@@ -482,19 +482,14 @@ export class Game {
 
   get practiceLevel(): number { return Math.min(9, this.practiceLap); }
 
-  /** 数字キーで練習内容を選ぶ。飛ばした敵は得点・撃破・被弾に含めない。 */
+  /** 数字キーで次の出題を選ぶ。出現済みの敵・入力進捗・出現間隔は維持する。 */
   setPracticeLevel(level: number): void {
     if (!this.isPractice() || this.status !== 'running' || !Number.isInteger(level) || level < 0 || level > 9) return;
     this.practiceLap = level;
     this.practiceIndex = 0;
     this.practiceAdvancePending = false;
     this.practiceLooped = level > 0;
-    this.zombies = [];
-    this.targetId = null;
-    this.candidateIds = [];
-    this.recentKeys = [];
-    this.events.push({ type: 'release' });
-    this.trySpawnPractice(true);
+    if (this.zombies.length === 0) this.trySpawnPractice(true);
   }
 
   getZombie(id: number): Zombie | undefined {
