@@ -1257,7 +1257,7 @@ export class Renderer {
       ctx.fillStyle = '#f4e6c5'; ctx.fillText(title, W / 2, 175);
 
       // 下のキーボードと同じ部品で、押すキーだと分かる説明にする。
-      const caption = 'キーで、文字の難しさを変えて練習できます';
+      const caption = 'キーで、次に出る文字の難しさを変えられます';
       ctx.font = '700 21px "Hiragino Kaku Gothic ProN", sans-serif';
       const textW = ctx.measureText(caption).width;
       const start = W / 2 - (126 + textW) / 2;
