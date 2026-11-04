@@ -346,7 +346,10 @@ async function boot(): Promise<void> {
       (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();
     }
     if (state === 'mode') ui.buildModeSelect();
-  }, () => audio.play('shell'));
+  }, () => {
+    userGesture();
+    void audio.ensureInit().then(() => audio.play('shell'));
+  });
   initAnalytics();
   initRecordTransfer(backup => accounts!.importRecords(backup));
   initSiteMove(async backup => {
