@@ -84,6 +84,7 @@ export type GameEvent =
   | { type: 'lock'; zombieId: number }
   | { type: 'multiLock'; zombieIds: number[] }
   | { type: 'release' }
+  | { type: 'practiceLevel'; level: number }
   | { type: 'spawn'; zombieId: number }
   | { type: 'bonus'; effect: BonusEffectId; text: string }
   | { type: 'clear' }
@@ -489,6 +490,7 @@ export class Game {
     this.practiceIndex = 0;
     this.practiceAdvancePending = false;
     this.practiceLooped = level > 0;
+    this.events.push({ type: 'practiceLevel', level });
     if (this.zombies.length === 0) this.trySpawnPractice(true);
   }
 

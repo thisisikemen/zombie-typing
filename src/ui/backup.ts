@@ -1,4 +1,5 @@
 import { MODES } from '../core/modes';
+import { PLAY_TIME_PREFIX, parsePlayTimeEntry } from './play-time';
 
 export const BACKUP_MAX_BYTES = 2 * 1024 * 1024;
 const PREFIX = 'zombie-typing:';
@@ -33,6 +34,7 @@ function timeline(value: unknown): number[] {
 }
 
 function normalize(key: string, raw: string): string {
+  if (key.startsWith(PLAY_TIME_PREFIX)) return String(parsePlayTimeEntry(key, raw).elapsed_ms);
   if (key === NAME) {
     if (Array.from(raw).length > 10 || /[\u0000-\u001f\u007f]/.test(raw)) throw new Error('名前の形式が違います。');
     return raw;
@@ -65,7 +67,7 @@ export function parseBackup(text: string): RecordBackup {
   if (root.format !== 'zombie-typing-records' || root.version !== 1) throw new Error('ゾンビタイピングから書き出した記録ファイルを選んでください。');
   const entries: Record<string, string> = {};
   for (const [key, raw] of Object.entries(object(root.entries))) {
-    if (!allowedKeys.has(key) || typeof raw !== 'string') throw new Error('対象外のデータが含まれています。');
+    if ((!allowedKeys.has(key) && !key.startsWith(PLAY_TIME_PREFIX)) || typeof raw !== 'string') throw new Error('対象外のデータが含まれています。');
     try { entries[key] = normalize(key, raw); } catch (error) {
       if (error instanceof SyntaxError) throw new Error('記録の内容を読み取れませんでした。');
       throw error;
@@ -75,11 +77,17 @@ export function parseBackup(text: string): RecordBackup {
   return { format: 'zombie-typing-records', version: 1, entries };
 }
 
-export function createBackup(storage: Pick<Storage, 'getItem'>): RecordBackup {
+export function createBackup(storage: Pick<Storage, 'getItem'> & { keys?: () => string[] }): RecordBackup {
   const entries: Record<string, string> = {};
   for (const key of allowedKeys) {
     const value = storage.getItem(key);
     if (value !== null) entries[key] = value;
+  }
+  for (const key of storage.keys?.() ?? []) {
+    if (key.startsWith(PLAY_TIME_PREFIX)) {
+      const value = storage.getItem(key);
+      if (value !== null) entries[key] = value;
+    }
   }
   return parseBackup(JSON.stringify({ format: 'zombie-typing-records', version: 1, entries }));
 }
@@ -107,6 +115,13 @@ export function restoreBackup(storage: RecordStorage, backup: RecordBackup): voi
 export function mergeBackup(storage: Pick<Storage, 'getItem'>, backup: RecordBackup): RecordBackup {
   const entries = { ...parseBackup(JSON.stringify(backup)).entries };
   for (const [key, incoming] of Object.entries(entries)) {
+    if (key.startsWith(PLAY_TIME_PREFIX)) {
+      const current = storage.getItem(key);
+      if (current !== null) {
+        try { entries[key] = String(Math.max(Number(normalize(key, current)), Number(incoming))); } catch { /* 検証済みの記録を使う */ }
+      }
+      continue;
+    }
     if (!key.includes(':best:') && !key.includes(':vs-best:')) continue;
     const current = storage.getItem(key);
     if (current === null) continue;

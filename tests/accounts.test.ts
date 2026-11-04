@@ -22,7 +22,7 @@ beforeEach(()=>{
   localStorage.clear(); sessionStorage.clear(); history.replaceState(null,'','/');
   document.body.innerHTML = readFileSync('index.html', 'utf8').split('<body>')[1].split('</body>')[0].replace(/<script[\s\S]*?<\/script>/g, '');
   mock.session=null; mock.callback=null;
-  mock.rpc.mockReset().mockImplementation((name:string,args:any)=>({abortSignal:()=>Promise.resolve({data:name === 'player_account_overview' ? {rankings:[],transfer_choice:'pending'} : name === 'claim_ranking_identity' ? 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' : {entries:args.p_initial ?? {[key]:rec},imported:Boolean(args.p_initial)},error:null})}));
+  mock.rpc.mockReset().mockImplementation((name:string,args:any)=>({abortSignal:()=>Promise.resolve({data:name === 'sync_player_play_time' ? {counters:[]} : name === 'player_account_overview' ? {rankings:[],transfer_choice:'pending'} : name === 'claim_ranking_identity' ? 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' : {entries:args.p_initial ?? {[key]:rec},imported:Boolean(args.p_initial)},error:null})}));
   mock.auth.signInWithOtp.mockReset().mockResolvedValue({error:null});
   mock.auth.verifyOtp.mockReset().mockResolvedValue({error:null});
   mock.auth.getSession.mockReset().mockImplementation(async()=>({data:{session:mock.session},error:null}));
@@ -223,10 +223,10 @@ it('ログアウト失敗時はログイン表示と本人の記録を維持す�
 });
 
 
-it('ログイン中は旧サイトの案内をプロフィールに出さず、全5ステージの自己ベストを表示する', async () => {
+it('ログイン中は旧サイトの案内をプロフィールに出さず、全6ステージの自己ベストを表示する', async () => {
  mock.session={user:{id:A}};await setup();
  expect(document.getElementById('account-old-hint')!.hidden).toBe(true);
- expect(document.querySelectorAll('.profile-record')).toHaveLength(5);
+ expect(document.querySelectorAll('.profile-record')).toHaveLength(6);
  expect(document.getElementById('account-records')!.textContent).toContain('100 pt');
 });
 it('不要を選んだ案内は隠し、会員を切り替えても他人の選択を使わない', async () => {
@@ -465,4 +465,15 @@ it('メール確認の応答と現在の会員が食い違う場合、その応�
   expect(scope.recordOwner()).toBeNull();
   expect(mock.rpc).not.toHaveBeenCalled();
   expect(document.getElementById('account-email-status')!.textContent).toContain('ログインが切り替わりました');
+});
+
+it('アカウントを押した時だけ指定の効果音を呼び、セッション復元や再描画では鳴らさない', async () => {
+ const {initAccounts}=await import('../src/ui/accounts');
+ const sound=vi.fn();initAccounts(()=>true,()=>{},sound);await flush();
+ expect(sound).not.toHaveBeenCalled();
+ document.querySelector<HTMLButtonElement>('[data-account-open]')!.click();
+ expect(sound).toHaveBeenCalledTimes(1);
+ document.getElementById('account-close')!.click();
+ document.querySelector<HTMLButtonElement>('[data-account-open]')!.click();
+ expect(sound).toHaveBeenCalledTimes(2);
 });

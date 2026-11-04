@@ -7,13 +7,14 @@ import { ONLINE_CONFIG } from './ranking';
 import { accountUpdates, cacheAccountRecords, NAME_KEY, pendingNameKey, readAccountRecords, validateAccountRecords, type AccountRecords } from './account-records';
 import { mergeBackup, restoreBackup, type RecordBackup } from './backup';
 import { RECORD_CHANGE, recordOwner, setRecordOwner, scopedKey } from './record-scope';
+import { mergePlayCounters, PLAY_TIME_CHANGE, PLAY_TIME_PREFIX, parsePlayTimeEntry, readPlayCounters, syncPlayTime, validatePlayCounters, type PlayCounter } from './play-time';
 
 const ENABLED = import.meta.env.VITE_ACCOUNTS_ENABLED === 'true';
 const PENDING = 'zombie-typing:registration-pending';
-interface Registration { at: number; records: AccountRecords; rankingKey?: string; transferChoice?: TransferChoice; verifiedOwner?: string }
+interface Registration { at: number; records: AccountRecords; rankingKey?: string; transferChoice?: TransferChoice; verifiedOwner?: string; playTime?: PlayCounter[] }
 export interface AccountController { idle(): void; importRecords(backup: RecordBackup, oldSite?: boolean): Promise<void> }
 /** 任意機能。認証・同期の通信をゲームの開始待ちに使わない。 */
-export function initAccounts(canSwitch: () => boolean, refreshed: () => void): AccountController {
+export function initAccounts(canSwitch: () => boolean, refreshed: () => void, onOpen: () => void = () => {}): AccountController {
   const dialog = document.getElementById('account-dialog') as HTMLDialogElement;
   const status = document.getElementById('account-status')!;
   const guest = document.getElementById('account-guest')!;
@@ -51,7 +52,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   document.getElementById('account-test-notice')?.toggleAttribute('hidden', !testing);
   buttons.forEach(b => {
     b.hidden = false;
-    b.onclick = () => { showPage('home'); render(); dialog.showModal(); if (recordOwner()) void loadOverview(); };
+    b.onclick = () => { onOpen(); showPage('home'); render(); dialog.showModal(); if (recordOwner()) void loadOverview(); };
     // Enterでボタンを押すとき、ゲーム開始のキー操作へ流さない。
     b.addEventListener('keydown', e => e.stopPropagation());
   });
@@ -78,7 +79,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     if (raw) {
       const parsed = JSON.parse(raw) as Registration;
       if (typeof parsed.at === 'number' && Date.now() - parsed.at < 30 * 60_000 && parsed.at <= Date.now()) {
-        registration = { at: parsed.at, records: validateAccountRecords(parsed.records), rankingKey: validRankingKey(parsed.rankingKey), transferChoice: parsed.transferChoice, verifiedOwner: validRankingKey(parsed.verifiedOwner) };
+        registration = { at: parsed.at, records: validateAccountRecords(parsed.records), rankingKey: validRankingKey(parsed.rankingKey), transferChoice: parsed.transferChoice, verifiedOwner: validRankingKey(parsed.verifiedOwner), playTime: validatePlayCounters(parsed.playTime ?? []) };
       } else sessionStorage.removeItem(PENDING);
     }
   } catch { lastStatus = '記録を準備できませんでした。もう一度「Googleで登録」を押してください。'; }
@@ -106,12 +107,15 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       // 旧端末の秘密キーを所持する本人だけが、1つの会員へ関連付けできる。
       await rankingIdentity(id, validRankingKey(backup.entries['zombie-typing:device-key']));
       if (version !== authVersion || id !== recordOwner()) throw new Error('ログインが変わりました。もう一度引き継いでください。');
-      const entries = Object.fromEntries(Object.entries(backup.entries).filter(([key]) => key !== 'zombie-typing:device-key' && key !== 'zombie-typing:settings'));
+      const entries = Object.fromEntries(Object.entries(backup.entries).filter(([key]) => key !== 'zombie-typing:device-key' && key !== 'zombie-typing:settings' && !key.startsWith(PLAY_TIME_PREFIX)));
       const result = await rpc(id, null, validateAccountRecords(entries));
       if (version !== authVersion || id !== recordOwner()) throw new Error('ログインが変わりました。もう一度引き継いでください。');
       // 明示的に引き継いだ名前を優先し、スコアはサーバー側で大きい方を残す。
       localStorage.removeItem(pendingNameKey(id));
       cacheAccountRecords(localStorage, id, result.entries);
+      mergePlayCounters(id, Object.entries(backup.entries).filter(([key]) => key.startsWith(PLAY_TIME_PREFIX)).map(([key, value]) => parsePlayTimeEntry(key, value)));
+      await syncPlayTime(client!, id, () => version === authVersion && id === recordOwner());
+      if (version !== authVersion || id !== recordOwner()) throw new Error('ログインが変わりました。もう一度引き継いでください。');
       const settings = backup.entries['zombie-typing:settings'];
       if (settings) localStorage.setItem('zombie-typing:settings', settings);
       if (oldSite) await saveTransferChoice('completed', id);
@@ -156,6 +160,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
     document.getElementById('account-register-intro')!.hidden = !desired || desired !== unregisteredOwner;
     create.textContent = desired && desired === unregisteredOwner ? 'このアカウントで登録' : 'Googleで登録';
     status.textContent = lastStatus;
+    status.hidden = Boolean(owner);
+    document.getElementById('account-member-status')!.textContent = owner ? lastStatus : '';
     document.getElementById('account-details-status')!.textContent = details.open ? lastStatus : '';
     document.getElementById('account-identity')!.textContent = owner && details.open
       ? (session?.user.id === owner && session.user.email ? `ログイン中：${session.user.email}` : 'ログイン中です。') : '';
@@ -237,6 +243,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
   };
   window.addEventListener(IMPORT_DONE, render);
   window.addEventListener(TRANSFER_CHANGE, refreshTransferPrompts);
+  window.addEventListener(PLAY_TIME_CHANGE, () => { if (recordOwner()) renderProfile(personalRanks, rankError); });
   async function rpc(id: string, initial: AccountRecords | null, updates: AccountRecords) {
     const { data, error } = await client!.rpc('sync_player_records', { p_expected_user: id, p_initial: initial, p_updates: updates }).abortSignal(AbortSignal.timeout(12000));
     if (error) throw error;
@@ -256,6 +263,8 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       if (version !== authVersion || id !== recordOwner()) return;
       if (sentName !== undefined && localStorage.getItem(pendingNameKey(id)) === sentName) localStorage.removeItem(pendingNameKey(id));
       cacheAccountRecords(localStorage, id, result.entries);
+      await syncPlayTime(client, id, () => version === authVersion && id === recordOwner());
+      if (version !== authVersion || id !== recordOwner()) return;
       lastStatus = `記録を保存しました（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}）`;
       refreshed(); void loadOverview();
     } catch {
@@ -293,6 +302,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
         await rankingIdentity(id, migratedGuest ? intent?.rankingKey : undefined, migratedGuest ? undefined : intent?.rankingKey);
         if (version !== authVersion || !canSwitch()) return;
         cacheAccountRecords(localStorage, id, result.entries);
+        if (result.imported) mergePlayCounters(id, intent?.playTime ?? []);
         setRecordOwner(id);
         if (result.imported && intent?.transferChoice && intent.transferChoice !== 'pending') {
           try { await saveTransferChoice(intent.transferChoice, id); } catch { /* Registration already succeeded; leave the recovery route available. */ }
@@ -319,7 +329,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       emailVerificationPending = false;
       existingLoginOwner = null;
       if (register) {
-        registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')), transferChoice: transferChoice(null) };
+        registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')), transferChoice: transferChoice(null), playTime: readPlayCounters(null) };
         sessionStorage.setItem(PENDING, JSON.stringify(registration));
       } else { registration = null; sessionStorage.removeItem(PENDING); }
       if (register && desired === unregisteredOwner && desired) {
@@ -378,7 +388,7 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void): A
       setEmailBusy(true);
       try {
         if (register) {
-          registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')), transferChoice: transferChoice(null) };
+          registration = { at: Date.now(), records: readAccountRecords(localStorage, null), rankingKey: validRankingKey(localStorage.getItem('zombie-typing:device-key')), transferChoice: transferChoice(null), playTime: readPlayCounters(null) };
           sessionStorage.setItem(PENDING, JSON.stringify(registration));
         } else { registration = null; sessionStorage.removeItem(PENDING); }
         const email = address.value.trim();

@@ -1149,3 +1149,31 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
   #account-dialog #account-name { font-size: 1.1rem; }
 }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* 六つのモードを一画面に。名前と全体合計、記録と累計時間を同じ列で揃える。 */
+#account-dialog .profile-name-form { flex: 1 1 22rem; max-width: 31rem; }
+.profile-total { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+.profile-total span, .profile-total strong { display: block; }
+.profile-total span { color: var(--ui-dim); font-size: .72rem; }
+.profile-total strong { color: var(--gold); font-size: 1.2rem; }
+#account-dialog .profile-record { grid-template-columns: 7.2rem minmax(0, 1fr) 8.8rem; padding-block: .35rem; }
+#account-dialog .profile-values { column-gap: .7rem; }
+#account-dialog .profile-values > strong { min-width: 5.5rem; }
+.profile-time { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; font-variant-numeric: tabular-nums; border-left: 1px solid rgba(160, 148, 111, .2); padding-left: .7rem; }
+.profile-time > span { color: var(--ui-dim); font-size: .65rem; }
+.profile-time strong { color: #e8e3d3; font-size: .85rem; white-space: nowrap; }
+.profile-practice { color: var(--ui-dim); }
+#account-dialog .profile-records-heading { gap: .4rem; flex-wrap: wrap; align-items: center; }
+.profile-meta { display: flex; flex-wrap: wrap; gap: .05rem .6rem; align-items: center; margin-left: auto; font-size: .65rem; line-height: 1.5; }
+#account-dialog .profile-meta .profile-note { color: var(--ui-dim); margin: 0; font-size: inherit; }
+#account-member-status { color: var(--gold); }
+@media (max-width: 700px) {
+  #account-dialog .profile-heading { flex-wrap: wrap; gap: .5rem; }
+  #account-dialog .profile-name-form { flex-basis: calc(100% - 5rem); max-width: none; }
+  .profile-total { margin-top: .2rem; }
+  .profile-meta { margin-left: 0; flex-basis: 100%; }
+  #account-dialog .profile-record { grid-template-columns: minmax(0, 1fr) 8rem; }
+  .profile-stage { grid-column: 1; flex-direction: row; align-items: center; }
+  .profile-values { grid-column: 1; }
+  .profile-time { grid-column: 2; grid-row: 1 / span 2; }
+}
