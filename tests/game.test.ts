@@ -870,7 +870,7 @@ describe('ベーシックのレベル変更で出現済みの敵を残す', () =
     expect(game.targetId).toBe(front.id);
     expect(front.session.typedRomaji()).toBe(typed);
     expect({ hp: game.hp, score: game.score, kills: game.kills, correct: game.correctKeys, misses: game.missKeys }).toEqual(state);
-    expect(game.drainEvents()).toEqual([]);
+    expect(game.drainEvents()).toEqual([{ type: 'practiceLevel', level: 2 }]);
     for (let t = 0; t < 6; t += .25) game.update(.25);
     expect(game.zombies).toEqual(existing);
     expect(game.drainEvents().some(event => event.type === 'spawn')).toBe(false);

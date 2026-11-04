@@ -21,6 +21,7 @@ import { initKeyboard } from './input/keyboard';
 import { loadAssets } from './render/assets';
 import { Renderer, type Scene } from './render/renderer';
 import { UI } from './ui/screens';
+import { PlayTimeRun } from './ui/play-time';
 import {
   loadBest,
   loadSettings,
@@ -83,6 +84,7 @@ async function boot(): Promise<void> {
   let state: AppState = 'loading';
   let accounts: AccountController | null = null;
   let game: Game | null = null;
+  let playTime: PlayTimeRun | null = null;
   let demoGame: Game | null = null;
   let demoBot = new DemoBot();
   let currentMode: ModeDef = MODES[0];
@@ -112,6 +114,7 @@ async function boot(): Promise<void> {
   }
 
   function gotoTitle(): void {
+    playTime?.flush(); playTime = null;
     state = 'title';
     game = null;
     endFade = null;
@@ -123,6 +126,7 @@ async function boot(): Promise<void> {
   }
 
   function gotoModeSelect(): void {
+    playTime?.flush(); playTime = null;
     state = 'mode';
     game = null;
     endFade = null;
@@ -135,6 +139,7 @@ async function boot(): Promise<void> {
   }
 
   function startGame(mode: ModeDef, diff: DifficultyDef, quick: boolean): void {
+    playTime?.flush(); playTime = null;
     if (quick) analytics.track('game_retry', { mode: mode.id, difficulty: diff.id });
     gaveUp = false;
     currentMode = mode;
@@ -201,12 +206,14 @@ async function boot(): Promise<void> {
 
   function beginPlay(): void {
     state = 'playing';
+    playTime = currentMode.id === 'vs' ? null : new PlayTimeRun(currentDiff.id);
     analytics.track('game_start', { mode: currentMode.id, difficulty: currentDiff.id });
     goTimer = COUNTDOWN.goTime;
     audio.play('go');
   }
 
   function finishGame(kind: 'clear' | 'gameover'): void {
+    playTime?.flush();
     state = 'ending';
     endFade = { kind, t: 0 };
     endDelay = kind === 'clear' ? 1.7 : 1.4;
@@ -339,7 +346,7 @@ async function boot(): Promise<void> {
       (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();
     }
     if (state === 'mode') ui.buildModeSelect();
-  });
+  }, () => audio.play('shell'));
   initAnalytics();
   initRecordTransfer(backup => accounts!.importRecords(backup));
   initSiteMove(async backup => {
@@ -379,6 +386,7 @@ async function boot(): Promise<void> {
         if (action.kind === 'typing') game?.handleKey(action.key);
         else if (action.kind === 'enter') game?.releaseTarget();
         else if (action.kind === 'escape') {
+          playTime?.flush();
           audio.play('pause'); // 拳銃を構える
           state = 'paused';
           ui.show('pause');
@@ -416,6 +424,7 @@ async function boot(): Promise<void> {
     crossed: 'damage',
     release: 'release',
     bonus: 'bonus',
+    practiceLevel: 'ready',
   };
 
   function processEvents(g: Game, sound: boolean): GameEvent[] {
@@ -443,6 +452,7 @@ async function boot(): Promise<void> {
     const x = ((e.clientX - rect.left) / rect.width) * 1600;
     const y = ((e.clientY - rect.top) / rect.height) * 900;
     if (x < 260 && y < 96) {
+      playTime?.flush();
       audio.play('pause'); // 拳銃を構える
       state = 'paused';
       ui.show('pause');
@@ -452,10 +462,12 @@ async function boot(): Promise<void> {
   window.addEventListener('resize', () => renderer.resize());
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && state === 'playing') {
+      playTime?.flush();
       state = 'paused';
       ui.show('pause');
     }
   });
+  window.addEventListener('pagehide', () => playTime?.flush());
 
   let last = performance.now();
   function frame(now: number): void {
@@ -500,6 +512,7 @@ async function boot(): Promise<void> {
         }
         if (game) {
           game.update(dt);
+          playTime?.observe(game.isPractice() || game.isEndless() ? game.time : Math.min(game.time, game.duration));
           const events = processEvents(game, true);
           for (const ev of events) {
             if (ev.type === 'clear') finishGame('clear');
