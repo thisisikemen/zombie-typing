@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-const backend = vi.hoisted(() => ({ online: true, submit: vi.fn(), load: vi.fn(), rename: vi.fn() }));
+const backend = vi.hoisted(() => ({ online: true, submit: vi.fn(), rankRun: vi.fn(), load: vi.fn(), rename: vi.fn() }));
 vi.mock('../src/ui/ranking', async importOriginal => ({
   ...await importOriginal<typeof import('../src/ui/ranking')>(), rankingBackend: backend,
 }));
@@ -20,7 +20,8 @@ beforeEach(() => {
   document.body.innerHTML = readFileSync('index.html', 'utf8').split('<body>')[1].split('</body>')[0].replace(/<script[\s\S]*?<\/script>/g, '');
   backend.online = true;
   backend.submit.mockReset().mockResolvedValue(1);
-  backend.load.mockReset().mockResolvedValue([{ survival: 300, score: 100 }]);
+  backend.rankRun.mockReset().mockResolvedValue(1);
+  backend.load.mockReset();
   const noop = () => {};
   ui = new UI({ volume: .5, sfx: false, bgm: false, romaji: true }, {
     onStart: noop, onSelectDifficulty: noop, onBackToTitle: noop, onRetry: noop,
@@ -44,17 +45,17 @@ describe('エンドレス世界1位の特別な見出し', () => {
     }
   });
   it('保存済み自己ベストが1位でも、今回の時間が短い場合は特別表示しない', async () => {
-    backend.load.mockResolvedValue([{ survival: 600, score: 200 }]);
+    backend.rankRun.mockResolvedValue(2);
     ui.showResult(result({ newRecord: false }));
     await flush();
     expect(document.getElementById('result-heading')!.textContent).toBe('GAME OVER');
   });
   it('順位を確認できない回やオフラインの1位は特別表示しない', async () => {
-    backend.load.mockRejectedValue(new Error('offline'));
+    backend.rankRun.mockRejectedValue(new Error('offline'));
     ui.showResult(result());
     await flush();
     expect(document.getElementById('result-heading')!.textContent).toBe('GAME OVER');
-    backend.load.mockResolvedValue([{ survival: 300 }]);
+    backend.rankRun.mockResolvedValue(1);
     backend.online = false;
     ui.showResult(result());
     await flush();
@@ -74,5 +75,32 @@ describe('エンドレス世界1位の特別な見出し', () => {
     resolve(1);
     await flush();
     expect(document.getElementById('result-heading')!.textContent).toBe('GAME OVER');
+  });
+});
+
+describe('リザルトの今回の順位', () => {
+  it('公開一覧の外でも110位まで表示し、今回と自己ベストを区別する', async () => {
+    backend.submit.mockResolvedValue(78);
+    backend.rankRun.mockResolvedValue(110);
+    ui.showResult(result());
+    await flush();
+    expect(document.getElementById('register-status')!.textContent).toBe('世界 110位（自己ベスト 78位）（名無しの生存者）');
+    expect(backend.load).not.toHaveBeenCalled();
+  });
+
+  it('自己ベストが上位でも、今回が111位以下なら指定された圏外表示にする', async () => {
+    backend.submit.mockResolvedValue(78);
+    backend.rankRun.mockResolvedValue('outside');
+    ui.showResult(result());
+    await flush();
+    expect(document.getElementById('register-status')!.textContent).toBe('ランキング圏外（110位まで表示）');
+  });
+
+  it('照会に失敗した場合は自己ベストを今回の順位として表示しない', async () => {
+    backend.submit.mockResolvedValue(78);
+    backend.rankRun.mockRejectedValue(new Error('offline'));
+    ui.showResult(result());
+    await flush();
+    expect(document.getElementById('register-status')!.textContent).toContain('今回の順位を確認できません（自己ベスト：世界 78位）');
   });
 });

@@ -1,9 +1,32 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setRecordOwner } from '../src/ui/record-scope';
-import { OnlineBackend, sanitizeName } from '../src/ui/ranking';
+import { OnlineBackend, sanitizeName, type RankEntry } from '../src/ui/ranking';
 
 afterEach(() => { vi.unstubAllGlobals(); setRecordOwner(null); });
 const backend = new OnlineBackend('https://example.supabase.co', 'public-test-key');
+const run: RankEntry = { name: '生存者', score: 1200, kills: 1, wpm: 100, accuracy: 1, survival: 123.6, ts: 1 };
+
+describe('今回の順位の照会', () => {
+  it.each([[100, 101], [104, 105], [109, 110], [110, 'outside']] as const)(
+    '上回る記録が%d件なら%jを返す', async (count, expected) => {
+      const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => Array.from({ length: count }, () => ({ score: 1201 })) });
+      vi.stubGlobal('fetch', fetch);
+      expect(await backend.rankRun('normal', run, 'score')).toBe(expected);
+      const query = new URL(fetch.mock.calls[0][0]).searchParams;
+      expect(Object.fromEntries(query)).toEqual({ difficulty: 'eq.normal', select: 'score', score: 'gt.1200', limit: '110' });
+    },
+  );
+
+  it('エンドレスはスコアではなく、投稿時と同じ丸め方の生存秒数で照会する', async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [{ survival_seconds: 125 }] });
+    vi.stubGlobal('fetch', fetch);
+    expect(await backend.rankRun('endless', run, 'survival')).toBe(2);
+    expect(Object.fromEntries(new URL(fetch.mock.calls[0][0]).searchParams)).toEqual({
+      difficulty: 'eq.endless', select: 'survival_seconds', survival_seconds: 'gt.124', limit: '110',
+    });
+  });
+});
+
 describe('ランキングの送信', () => {
   it('保存禁止でも同じセッションは同じランダムキーを使い、共通キーにしない', async () => {
     vi.stubGlobal('localStorage', { getItem() { throw Error(); } });

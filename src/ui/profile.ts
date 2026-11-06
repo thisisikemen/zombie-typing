@@ -1,6 +1,7 @@
 import { MODES } from '../core/modes';
 import { loadBest } from './store';
 import { formatPlayTime, playTimeTotals } from './play-time';
+import { RESULT_RANK_LIMIT, worldRankLabel } from './ranking';
 
 export interface PersonalRank { difficulty: string; rank: number; score: number; survival: number }
 export function survivalLabel(seconds: number): string {
@@ -31,7 +32,8 @@ export function renderProfile(ranks: PersonalRank[] | null, rankError = false): 
       const title = document.createElement('div'); title.className = 'profile-stage';
       const name = document.createElement('strong'); name.textContent = diff.label;
       const position = document.createElement('span'); position.className = 'profile-rank';
-      position.textContent = diff.practice ? '練習モード' : ranks === null ? rankError ? '順位を取得できません' : '順位を確認中…' : rank ? `世界 ${rank.rank.toLocaleString()}位` : 'ランキング未登録';
+      position.textContent = diff.practice ? '練習モード' : ranks === null ? rankError ? '順位を取得できません' : '順位を確認中…' : rank ? worldRankLabel(rank.rank) : 'ランキング未登録';
+      if (rank && rank.rank > RESULT_RANK_LIMIT) position.classList.add('profile-rank-outside');
       title.append(name, position); row.append(title);
       const values = document.createElement('div'); values.className = 'profile-values';
       if (diff.practice) {
