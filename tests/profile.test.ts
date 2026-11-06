@@ -22,7 +22,7 @@ describe('生存記録の表示',()=>{
  it('110位は正確に表示し、111位以下は未登録と区別して圏外を表示する',()=>{
   renderProfile([{difficulty:'easy',rank:110,score:20,survival:10},{difficulty:'normal',rank:111,score:20,survival:10}]);
   const labels=[...document.querySelectorAll('.profile-rank')].map(e=>e.textContent);
-  expect(labels.slice(1,4)).toEqual(['世界 110位','ランキング圏外（110位まで表示）','ランキング未登録']);
+  expect(labels.slice(1,4)).toEqual(['世界 110位','ランキング圏外','ランキング未登録']);
  });
  it('引き継ぎ不要はゲストと会員を分離し、完了した会員の案内は別端末の応答からも隠せる',()=>{
   cacheTransferChoice('dismissed');refreshTransferPrompts();expect(document.getElementById('settings-transfer')!.hidden).toBe(true);
@@ -32,18 +32,17 @@ describe('生存記録の表示',()=>{
  });
 });
 
-it('ベーシックは時間だけ、他の5行には自己ベストと時間を表示し、6行の合計を名前横に置く', async () => {
+it('ベーシックだけに総練習時間を表示し、他のモードの累計は出さない', async () => {
  const { mergePlayCounters } = await import('../src/ui/play-time');
- document.body.insertAdjacentHTML('beforeend','<strong id="account-total-time"></strong>');
  const counter_id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
- mergePlayCounters(null,[{counter_id,difficulty:'basic',elapsed_ms:90000},{counter_id,difficulty:'normal',elapsed_ms:120000}]);
+ mergePlayCounters(null,[{counter_id,difficulty:'basic',elapsed_ms:3690000},{counter_id,difficulty:'normal',elapsed_ms:120000}]);
  renderProfile([]);
  const rows=[...document.querySelectorAll('.profile-record')];
  expect(rows).toHaveLength(6);
  expect(rows[0].textContent).toContain('ベーシック');
- expect(rows[0].textContent).toContain('総練習時間1分30秒');
+ expect(rows[0].querySelector('.profile-values')?.textContent).toBe('1時間01分30秒総練習時間');
  expect(rows[0].textContent).not.toContain('WPM');
  expect(rows[0].textContent).not.toContain('位');
- expect(rows[2].textContent).toContain('総プレイ時間2分00秒');
- expect(document.getElementById('account-total-time')!.textContent).toBe('3分30秒');
+ expect(rows[2].textContent).not.toContain('2分00秒');
+ expect(document.getElementById('account-records')!.textContent).not.toContain('総プレイ時間');
 });

@@ -1,7 +1,7 @@
 import { MODES } from '../core/modes';
 import { loadBest } from './store';
 import { formatPlayTime, playTimeTotals } from './play-time';
-import { RESULT_RANK_LIMIT, worldRankLabel } from './ranking';
+import { worldRankLabel } from './ranking';
 
 export interface PersonalRank { difficulty: string; rank: number; score: number; survival: number }
 export function survivalLabel(seconds: number): string {
@@ -19,9 +19,7 @@ export function rankingOutcome(seconds: number, duration: number, cleared?: bool
 export function renderProfile(ranks: PersonalRank[] | null, rankError = false): void {
   const root = document.getElementById('account-records');
   if (!root) return;
-  const times = playTimeTotals();
-  const total = document.getElementById('account-total-time');
-  if (total) total.textContent = formatPlayTime(Object.values(times).reduce((sum, ms) => sum + ms, 0));
+  const practiceTime = formatPlayTime(playTimeTotals().basic);
   root.replaceChildren();
   for (const mode of MODES.filter(m => m.id !== 'vs')) {
     for (const diff of mode.difficulties) {
@@ -32,13 +30,13 @@ export function renderProfile(ranks: PersonalRank[] | null, rankError = false): 
       const title = document.createElement('div'); title.className = 'profile-stage';
       const name = document.createElement('strong'); name.textContent = diff.label;
       const position = document.createElement('span'); position.className = 'profile-rank';
-      position.textContent = diff.practice ? '練習モード' : ranks === null ? rankError ? '順位を取得できません' : '順位を確認中…' : rank ? worldRankLabel(rank.rank) : 'ランキング未登録';
-      if (rank && rank.rank > RESULT_RANK_LIMIT) position.classList.add('profile-rank-outside');
+      position.textContent = diff.practice ? '練習モード' : ranks === null ? rankError ? '順位を取得できません' : '順位を確認中…' : rank ? worldRankLabel(rank.rank, { showLimit: false }) : 'ランキング未登録';
       title.append(name, position); row.append(title);
       const values = document.createElement('div'); values.className = 'profile-values';
       if (diff.practice) {
-        values.classList.add('profile-practice');
-        values.textContent = '五十音・単語の練習';
+        const duration = document.createElement('strong'); duration.textContent = practiceTime;
+        const label = document.createElement('span'); label.textContent = '総練習時間';
+        values.append(duration, label);
       } else if (best) {
         const score = document.createElement('strong');
         score.textContent = diff.endless ? survivalLabel(best.survival ?? 0) : `${best.score.toLocaleString()} pt`;
@@ -54,11 +52,7 @@ export function renderProfile(ranks: PersonalRank[] | null, rankError = false): 
           const note = document.createElement('small'); note.textContent = '順位は公開ランキングの自己ベスト'; values.append(note);
         }
       } else { values.textContent = 'まだ記録がありません'; }
-      const time = document.createElement('div'); time.className = 'profile-time';
-      const label = document.createElement('span'); label.textContent = diff.practice ? '総練習時間' : '総プレイ時間';
-      const duration = document.createElement('strong'); duration.textContent = formatPlayTime(times[diff.id]);
-      time.append(label, duration);
-      row.append(values, time); root.append(row);
+      row.append(values); root.append(row);
     }
   }
 }

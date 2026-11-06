@@ -12,10 +12,11 @@ export type RankMetric = 'score' | 'survival';
 export const RESULT_RANK_LIMIT = 110;
 export type RunRank = number | 'outside';
 
-export function worldRankLabel(rank: RunRank): string {
-  return rank === 'outside' || rank > RESULT_RANK_LIMIT
-    ? `ランキング圏外（${RESULT_RANK_LIMIT}位まで表示）`
-    : `世界 ${rank}位`;
+export function worldRankLabel(rank: RunRank, { showLimit = true } = {}): string {
+  if (rank === 'outside' || rank > RESULT_RANK_LIMIT) {
+    return showLimit ? `ランキング圏外（${RESULT_RANK_LIMIT}位まで表示）` : 'ランキング圏外';
+  }
+  return `世界 ${rank}位`;
 }
 
 export interface RankEntry {
