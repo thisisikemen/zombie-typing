@@ -9,6 +9,14 @@ import { recordOwner, recordStorage } from './record-scope';
  */
 
 export type RankMetric = 'score' | 'survival';
+export const RESULT_RANK_LIMIT = 110;
+export type RunRank = number | 'outside';
+
+export function worldRankLabel(rank: RunRank): string {
+  return rank === 'outside' || rank > RESULT_RANK_LIMIT
+    ? `ランキング圏外（${RESULT_RANK_LIMIT}位まで表示）`
+    : `世界 ${rank}位`;
+}
 
 export interface RankEntry {
   name: string;
@@ -28,6 +36,8 @@ export interface RankingBackend {
   load(difficulty: string, metric: RankMetric): Promise<RankEntry[]>;
   /** 登録して順位(1始まり)を返す */
   submit(difficulty: string, entry: RankEntry, metric: RankMetric): Promise<number>;
+  /** オンラインで今回の成績の順位を確認。上限より下は outside。 */
+  rankRun?(difficulty: string, entry: RankEntry, metric: RankMetric): Promise<RunRank>;
   /** 登録済みスコアの名前を変更する */
   rename(name: string): Promise<void>;
   readonly online: boolean;
@@ -243,6 +253,18 @@ export class OnlineBackend implements RankingBackend {
     if (!res.ok) throw new Error(`ranking submit failed: ${res.status}`);
     const rank = (await res.json()) as number;
     return rank;
+  }
+
+  async rankRun(difficulty: string, entry: RankEntry, metric: RankMetric): Promise<RunRank> {
+    const column = metric === 'survival' ? 'survival_seconds' : 'score';
+    const value = metric === 'survival' ? Math.round(entry.survival) : entry.score;
+    // 同点は同順位。上回る記録が110件あれば、残りを数えず「111位以下」と分かる。
+    const query = new URLSearchParams({ difficulty: `eq.${difficulty}`, select: column, [column]: `gt.${value}`, limit: String(RESULT_RANK_LIMIT) });
+    const res = await fetch(`${this.url}/rest/v1/scores?${query}`, { headers: this.headers(), signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`run rank lookup failed: ${res.status}`);
+    const higher = await res.json();
+    if (!Array.isArray(higher)) throw new Error('invalid run rank response');
+    return higher.length >= RESULT_RANK_LIMIT ? 'outside' : higher.length + 1;
   }
 
   async rename(name: string): Promise<void> {

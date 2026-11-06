@@ -19,6 +19,11 @@ describe('生存記録の表示',()=>{
   expect(document.getElementById('account-records')!.textContent).not.toContain('WPM 0');
   expect(document.getElementById('account-records')!.textContent).toContain('まだ記録がありません');
  });
+ it('110位は正確に表示し、111位以下は未登録と区別して圏外を表示する',()=>{
+  renderProfile([{difficulty:'easy',rank:110,score:20,survival:10},{difficulty:'normal',rank:111,score:20,survival:10}]);
+  const labels=[...document.querySelectorAll('.profile-rank')].map(e=>e.textContent);
+  expect(labels.slice(1,4)).toEqual(['世界 110位','ランキング圏外（110位まで表示）','ランキング未登録']);
+ });
  it('引き継ぎ不要はゲストと会員を分離し、完了した会員の案内は別端末の応答からも隠せる',()=>{
   cacheTransferChoice('dismissed');refreshTransferPrompts();expect(document.getElementById('settings-transfer')!.hidden).toBe(true);
   setRecordOwner('member-a');refreshTransferPrompts();expect(document.getElementById('settings-transfer')!.hidden).toBe(false);

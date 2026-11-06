@@ -10,7 +10,9 @@ import {
   rankingBackend,
   sanitizeName,
   savePlayerName,
+  worldRankLabel,
   type RankEntry,
+  type RunRank,
 } from './ranking';
 import { loadBest, loadVsBest, type Settings } from './store';
 import { TIPS } from './tips';
@@ -101,7 +103,7 @@ export class UI {
   /** 直近のリザルトで自動登録された順位 */
   private lastRank: number | null = null;
   /** 今回のラン自体の順位(自己ベストと異なる場合の表示用) */
-  private lastCurrentRank: number | null = null;
+  private lastCurrentRank: RunRank | null = null;
   private activeMode: ModeDef = MODES[0];
   /** 画面切替直後の誤クリック(ダブルクリック等のすり抜け)防止 */
   private shownAt = 0;
@@ -678,23 +680,18 @@ export class UI {
         .submit(data.diffId, entry, data.rankBy)
         .then(async (rank) => {
           if (this.shareData !== data) return;
-          // submit が返すのは「保存されている自己ベスト」の順位。
-          // 自己ベスト未更新の回のために「今回のスコア自体の順位」も計算する
-          this.lastRank = rank;
+          // 投稿の応答は保存済みの自己ベスト。今回の順位は一覧とは別に確認する。
+          let current: RunRank | null;
           try {
-            const list = await rankingBackend.load(data.diffId, data.rankBy);
-            if (this.shareData !== data) return;
-            const current = data.rankBy === 'survival' ? Math.round(data.survival) : data.score;
-            const better = list.filter(
-              (e) => (data.rankBy === 'survival' ? e.survival : e.score) > current,
-            ).length;
-            this.lastCurrentRank = better + 1;
+            current = rankingBackend.rankRun ? await rankingBackend.rankRun(data.diffId, entry, data.rankBy) : rank;
           } catch {
-            if (this.shareData !== data) return;
-            this.lastCurrentRank = null;
+            current = null;
           }
+          if (this.shareData !== data) return;
+          this.lastRank = rank;
+          this.lastCurrentRank = current;
           // 保存済み自己ベストだけが1位の回は対象外。今回も世界1位と確認できた時だけ。
-          if (data.endless && rankingBackend.online && rank === 1 && this.lastCurrentRank === 1) {
+          if (data.endless && rankingBackend.online && rank === 1 && current === 1) {
             heading.textContent = '世界で一番長く生き延びた';
             heading.className = 'world-best';
             $('result-sub').textContent = 'エンドレス 世界1位';
@@ -716,12 +713,21 @@ export class UI {
       $('register-status').textContent = '';
       return;
     }
-    // 今回が自己ベスト未満なら「今回の順位(自己ベスト 順位)」を併記する
-    const text =
-      this.lastCurrentRank !== null && this.lastCurrentRank > this.lastRank
-        ? `${where} ${this.lastCurrentRank}位(自己ベスト ${this.lastRank}位)(${name})`
-        : `${where} ${this.lastRank}位 にランクイン!(${name})`;
-    $('register-status').textContent = text;
+    const current = this.lastCurrentRank;
+    const best = `${this.lastRank.toLocaleString('ja-JP')}位`;
+    const statusNode = $('register-status');
+    if (current === 'outside') {
+      statusNode.textContent = worldRankLabel(current);
+      return;
+    }
+    let status: string;
+    if (current === null) {
+      status = `今回の順位を確認できません（自己ベスト：${worldRankLabel(this.lastRank)}）`;
+    } else {
+      const bestNote = current > this.lastRank ? `（自己ベスト ${best}）` : '';
+      status = `${where} ${current}位${bestNote}`;
+    }
+    statusNode.textContent = `${status}（${name}）`;
   }
 
   /** 名前を変更して各所へ反映(登録済みスコアの名前も更新される) */

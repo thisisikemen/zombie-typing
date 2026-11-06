@@ -1157,6 +1157,10 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .profile-total span { color: var(--ui-dim); font-size: .72rem; }
 .profile-total strong { color: var(--gold); font-size: 1.2rem; }
 #account-dialog .profile-record { grid-template-columns: 7.2rem minmax(0, 1fr) 8.8rem; padding-block: .35rem; }
+.profile-rank-outside { font-size: .7rem; line-height: 1.15; }
+@media (min-width: 900px) {
+  #account-dialog .profile-records:has(.profile-rank-outside) .profile-record { grid-template-columns: 11.5rem minmax(0, 1fr) 8.8rem; }
+}
 #account-dialog .profile-values { column-gap: .7rem; }
 #account-dialog .profile-values > strong { min-width: 5.5rem; }
 .profile-time { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; font-variant-numeric: tabular-nums; border-left: 1px solid rgba(160, 148, 111, .2); padding-left: .7rem; }
