@@ -1170,3 +1170,21 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .ranking-context-output { text-align: left; font-size: 13px; overflow-wrap: anywhere; }
 .ranking-context-output strong { font-size: 20px; }
 .ranking-context-output ul { padding-left: 1.4em; }
+
+/* Current-run position: one clear rank, with the population secondary. */
+.register-status .result-rank-primary {
+  display: inline-block;
+  font-size: clamp(30px, 5vw, 42px);
+  font-weight: 900;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.register-status .result-rank-total {
+  display: inline-block;
+  margin-left: 0.3em;
+  font-size: clamp(14px, 2.4vw, 18px);
+  font-weight: 600;
+  line-height: 1.4;
+  color: #c8c4b8;
+  white-space: nowrap;
+}

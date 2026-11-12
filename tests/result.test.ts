@@ -113,7 +113,9 @@ describe('自動の今回順位（新経路）',()=>{
   vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');
   const f=vi.fn().mockResolvedValue({ok:true,json:async()=>({rank:701,total:802})});vi.stubGlobal('fetch',f);
   backend.submit.mockResolvedValue(5);ui.showResult(result());await flush();
-  expect(document.getElementById('register-status')!.textContent).toBe('今回の順位：802人中 701位');
+  expect(document.getElementById('register-status')!.textContent).toBe('701位／802人中');
+  expect(document.querySelector('.result-rank-primary')!.textContent).toBe('701位');
+  expect(document.querySelector('.result-rank-total')!.textContent).toBe('／802人中');
   expect(document.getElementById('ranking-context')).toBeNull();
   expect(backend.rankRun).not.toHaveBeenCalled();expect(f).toHaveBeenCalledTimes(1);
  });
@@ -123,4 +125,19 @@ describe('自動の今回順位（新経路）',()=>{
   expect(document.getElementById('register-status')!.textContent).toBe('記録を保存しました。今回の順位は確認できませんでした');
   expect(backend.rankRun).not.toHaveBeenCalled();
  });
+});
+
+it.each([1,5,100,101,701])('順位 %i も同じ表示形式で、NEW RECORDは従来どおり',async(rank)=>{
+ vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({rank,total:802})}));
+ ui.showResult(result({newRecord:true}));await flush();
+ expect(document.querySelector('.result-rank-primary')!.textContent).toBe(`${rank}位`);
+ expect(document.querySelector('.result-rank-total')!.textContent).toBe('／802人中');
+ expect(document.querySelector('.result-new-record')!.textContent).toBe('NEW RECORD!');
+ ui.showResult(result({newRecord:false}));await flush();expect(document.querySelector('.result-new-record')).toBeNull();
+});
+it('成功表示のあと取得失敗でも大きな数字を残さない',async()=>{
+ vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');vi.stubGlobal('fetch',vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({rank:5,total:802})}).mockRejectedValue(new Error('offline')));
+ ui.showResult(result());await flush();ui.showResult(result());await flush();
+ expect(document.querySelector('.result-rank-primary')).toBeNull();expect(document.querySelector('.result-rank-total')).toBeNull();
+ expect(document.getElementById('register-status')!.textContent).toContain('今回の順位は確認できませんでした');
 });

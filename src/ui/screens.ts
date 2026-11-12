@@ -1,4 +1,4 @@
-import { captureRankingIdentity, fetchRunPosition, runPositionLabel } from './ranking-context';
+import { captureRankingIdentity, fetchRunPosition } from './ranking-context';
 /**
  * DOM オーバーレイの画面管理(タイトル / モード選択 / リザルト /
  * ポーズ / 設定・遊び方モーダル)。
@@ -724,7 +724,17 @@ export class UI {
   private setRegisterStatus(name: string): void {
     const statusNode = $('register-status');
     if (rankingBackend.online && import.meta.env.VITE_ENABLE_RANKING_CONTEXT === 'true') {
-      statusNode.textContent=this.lastRunPosition ? runPositionLabel(this.lastRunPosition) : '記録を保存しました。今回の順位は確認できませんでした';
+      if (this.lastRunPosition) {
+        const rank = document.createElement('span');
+        rank.className = 'result-rank-primary';
+        rank.textContent = `${this.lastRunPosition.rank.toLocaleString('ja-JP')}位`;
+        const total = document.createElement('span');
+        total.className = 'result-rank-total';
+        total.textContent = `／${this.lastRunPosition.total.toLocaleString('ja-JP')}人中`;
+        statusNode.replaceChildren(rank, total);
+      } else {
+        statusNode.textContent = '記録を保存しました。今回の順位は確認できませんでした';
+      }
       statusNode.title='同じ難易度の登録者と今回の成績を比較。同点は同順位。人数は端末・アカウント単位で、自分は重複して数えません。ランキング一覧には自己ベストを保存します。';
       return;
     }
