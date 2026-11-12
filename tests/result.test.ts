@@ -16,6 +16,8 @@ const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve()
 let ui: UI;
 beforeEach(() => {
   vi.useFakeTimers();
+  vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','false');
+  vi.stubGlobal('fetch',vi.fn().mockRejectedValue(new Error('unexpected real network')));
   localStorage.clear();
   document.body.innerHTML = readFileSync('index.html', 'utf8').split('<body>')[1].split('</body>')[0].replace(/<script[\s\S]*?<\/script>/g, '');
   backend.online = true;
@@ -29,7 +31,7 @@ beforeEach(() => {
     onUserGesture: noop, onUiSound: noop,
   });
 });
-afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); });
+afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 describe('エンドレス世界1位の特別な見出し', () => {
   it('今回の生存時間も世界1位と確認できたときだけ特別表示する', async () => {
     ui.showResult(result());
@@ -103,4 +105,22 @@ describe('リザルトの今回の順位', () => {
     await flush();
     expect(document.getElementById('register-status')!.textContent).toContain('今回の順位を確認できません（自己ベスト：世界 78位）');
   });
+});
+
+
+describe('自動の今回順位（新経路）',()=>{
+ it('操作せず元の欄へ今回順位と人数を表示し、自己ベスト詳細は出さない',async()=>{
+  vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');
+  const f=vi.fn().mockResolvedValue({ok:true,json:async()=>({rank:701,total:802})});vi.stubGlobal('fetch',f);
+  backend.submit.mockResolvedValue(5);ui.showResult(result());await flush();
+  expect(document.getElementById('register-status')!.textContent).toBe('今回の順位：802人中 701位');
+  expect(document.getElementById('ranking-context')).toBeNull();
+  expect(backend.rankRun).not.toHaveBeenCalled();expect(f).toHaveBeenCalledTimes(1);
+ });
+ it('新集計失敗時も保存済みと伝え、自己ベストや圏外で代用しない',async()=>{
+  vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');ui.showResult(result());await flush();
+  expect(backend.submit).toHaveBeenCalledTimes(1);
+  expect(document.getElementById('register-status')!.textContent).toBe('記録を保存しました。今回の順位は確認できませんでした');
+  expect(backend.rankRun).not.toHaveBeenCalled();
+ });
 });
