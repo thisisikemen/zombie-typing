@@ -1,3 +1,4 @@
+import { mountRankingContext } from './ranking-context';
 /**
  * DOM オーバーレイの画面管理(タイトル / モード選択 / リザルト /
  * ポーズ / 設定・遊び方モーダル)。
@@ -658,6 +659,7 @@ export class UI {
     const metricValue = data.rankBy === 'survival' ? data.survival : data.score;
     const canRegister = data.ranked && metricValue > 0;
     register.style.display = canRegister ? '' : 'none';
+    document.getElementById('ranking-context')?.remove();
     $('register-status').textContent = '';
     const nameInput = $<HTMLInputElement>('result-name');
     nameInput.value = loadPlayerName();
@@ -697,6 +699,14 @@ export class UI {
             $('result-sub').textContent = 'エンドレス 世界1位';
           }
           this.setRegisterStatus(name);
+          // Disabled by default until DB permissions, production plans and UI QA pass.
+          if (rankingBackend.online && import.meta.env.VITE_ENABLE_RANKING_CONTEXT === 'true') {
+            const context = document.createElement('div');
+            context.id = 'ranking-context';
+            register.after(context);
+            mountRankingContext(context, data.diffId, metricValue, rank);
+          }
+
         })
         .catch(() => {
           if (this.shareData !== data) return;

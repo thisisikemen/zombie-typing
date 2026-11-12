@@ -1165,3 +1165,8 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
   #account-dialog .profile-record { grid-template-columns: minmax(0, 1fr); }
   .profile-stage { flex-direction: row; align-items: center; }
 }
+
+#ranking-context { margin: 10px 0; max-width: 100%; }
+.ranking-context-output { text-align: left; font-size: 13px; overflow-wrap: anywhere; }
+.ranking-context-output strong { font-size: 20px; }
+.ranking-context-output ul { padding-left: 1.4em; }

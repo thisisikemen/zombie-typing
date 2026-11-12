@@ -1,3 +1,4 @@
+import { setRankingContextAuth } from './ranking-context';
 import { IMPORT_DONE } from './site-move';
 import { rankingBackend, loadPlayerName, savePlayerName, sanitizeName } from './ranking';
 import { cacheTransferChoice, refreshTransferPrompts, transferChoice, TRANSFER_CHANGE, type TransferChoice } from './transfer-state';
@@ -494,6 +495,11 @@ export function initAccounts(canSwitch: () => boolean, refreshed: () => void, on
   void import('@supabase/supabase-js').then(async ({ createClient }) => {
     client = createClient(ONLINE_CONFIG.supabaseUrl, ONLINE_CONFIG.supabaseAnonKey, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: 'pkce' },
+    });
+    setRankingContextAuth(async owner => {
+      const { data, error } = await client!.auth.getSession();
+      if (error || data.session?.user.id !== owner || recordOwner() !== owner) throw Error('authentication changed');
+      return data.session.access_token;
     });
     client.auth.onAuthStateChange((_event, next) => {
       session = next;

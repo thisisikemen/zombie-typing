@@ -87,7 +87,7 @@ export function sanitizeName(raw: string): string {
 
 /** この端末を識別するキー(1人1枠の実現用) */
 const sessionKeys = new Map<string, string>();
-function deviceKey(): string {
+export function deviceKey(): string {
   const owner = recordOwner() ?? 'guest';
   const fallback = () => {
     let value = sessionKeys.get(owner);
