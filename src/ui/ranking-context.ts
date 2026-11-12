@@ -81,6 +81,7 @@ export async function fetchRunPosition(difficulty:string,value:number,identity=c
  const res=await fetch(`${ONLINE_CONFIG.supabaseUrl}/rest/v1/rpc/ranking_run_position`,{method:'POST',headers:{apikey:ONLINE_CONFIG.supabaseAnonKey,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({p_difficulty:difficulty,p_value:Math.round(value),p_expected_user:expectedOwner,p_guest_key:expectedOwner?null:identity.key}),signal:AbortSignal.timeout(5000)});
  if(!res.ok || recordOwner()!==expectedOwner || deviceKey()!==identity.key)throw Error('run position unavailable');
  const c=await res.json();
+ if(recordOwner()!==expectedOwner || deviceKey()!==identity.key)throw Error('account changed');
  if(!Number.isSafeInteger(c.rank)||!Number.isSafeInteger(c.total)||c.total<1||c.rank<1||c.rank>c.total)throw Error('invalid run position');
  return {rank:c.rank,total:c.total};
 }
