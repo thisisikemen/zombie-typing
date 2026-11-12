@@ -141,3 +141,7 @@ it('成功表示のあと取得失敗でも大きな数字を残さない',async
  expect(document.querySelector('.result-rank-primary')).toBeNull();expect(document.querySelector('.result-rank-total')).toBeNull();
  expect(document.getElementById('register-status')!.textContent).toContain('今回の順位は確認できませんでした');
 });
+
+it.each(['ベーシック','イージー','ノーマル','ハード','ハードコア','エンドレス'])('結果に難易度 %s を表示する',async(diffLabel)=>{
+ ui.showResult(result({diffLabel}));await flush();expect(document.getElementById('result-difficulty')!.textContent).toBe(diffLabel);
+});

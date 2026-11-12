@@ -1174,7 +1174,7 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 /* Current-run position: one clear rank, with the population secondary. */
 .register-status .result-rank-primary {
   display: inline-block;
-  font-size: clamp(30px, 5vw, 42px);
+  font-size: 1.25em;
   font-weight: 900;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
@@ -1182,9 +1182,70 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .register-status .result-rank-total {
   display: inline-block;
   margin-left: 0.3em;
-  font-size: clamp(14px, 2.4vw, 18px);
+  font-size: .9em;
   font-weight: 600;
   line-height: 1.4;
   color: #c8c4b8;
   white-space: nowrap;
+}
+
+/* Results use the viewport, not the game's 16:9 canvas, for a complete screenshot. */
+#screen-result { position: fixed; padding: 12px; gap: 0; }
+.result-panel {
+  width: min(720px, 100%); max-height: calc(100dvh - 24px);
+  padding: 16px 22px; gap: 8px; flex-shrink: 0;
+  font-size: clamp(12px, 1.15vw, 15px);
+}
+#result-sub { font-size: 1em; }
+.result-heading-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+#result-heading { font-size: clamp(26px, 3.5vw, 40px); margin: 0; }
+#result-heading.world-best { font-size: clamp(20px, 3vw, 30px); }
+.result-difficulty { font-size: 14px; font-weight: 800; padding: 4px 10px; border: 1px solid var(--ui-border); border-radius: 5px; color: var(--ui-text); }
+.result-stats:not(.vs-result-stats) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.result-stats:not(.vs-result-stats) > .stat-row:first-child { grid-column: 1 / -1; }
+.result-stats .stat-row { padding: 7px 3px; gap: 8px; align-items: center; }
+.result-stats .stat-label { font-size: 12px; letter-spacing: .02em; }
+.result-stats .label-note { display: block; font-size: 9px; }
+.result-stats .stat-value { font-size: 20px; white-space: nowrap; }
+.result-stats .stat-value.gold { font-size: 26px; }
+.result-stats .stat-value .unit { font-size: 11px; }
+.result-stats .result-new-record { grid-column: 1 / -1; font-size: 14px; margin: 4px 0 0; }
+.result-register { margin: 0; gap: 6px; width: 100%; }
+#result-name { width: 180px; font-size: 12px; padding: 6px 8px; }
+.result-panel .register-status { font-size: 14px; min-height: 20px; }
+.result-panel .plate-btn { min-width: 0; font-size: 12px; padding: 10px 14px; letter-spacing: .05em; text-indent: .05em; }
+.result-panel .result-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.result-panel #btn-share { padding: 7px 16px; }
+@media (max-width: 420px) {
+  #screen-result { padding: 8px; }
+  .result-panel { padding: 12px; max-height: calc(100dvh - 16px); gap: 7px; }
+  .result-heading-row { gap: 8px; }
+  .result-difficulty { font-size: 12px; padding: 3px 6px; }
+  .result-stats:not(.vs-result-stats) { column-gap: 10px; }
+  .result-stats .stat-row { gap: 5px; }
+  .result-stats .stat-value { font-size: 18px; }
+  .result-stats .stat-label { flex-shrink: 0; }
+  .result-stats .label-note { max-width: 90px; }
+  .result-panel .plate-btn { padding: 10px; }
+  .result-panel .keyhint { display: none; }
+}
+@media (max-height: 450px) and (min-width: 600px) {
+  #screen-result { padding: 6px; }
+  .result-panel { max-height: calc(100dvh - 12px); padding: 8px 18px; gap: 4px; width: min(850px, 100%); }
+  .result-stats:not(.vs-result-stats) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .result-stats .stat-row { padding: 3px; }
+  #result-heading { font-size: 26px; }
+  #result-sub { font-size: 11px; }
+  .result-panel .plate-btn { padding: 7px 12px; }
+  .result-panel #btn-share { padding: 5px 14px; }
+
+  .result-panel .vs-competitor h3 { font-size: 12px; }
+  .result-panel .vs-kills strong { font-size: 28px; }
+  .result-panel .vs-result-details { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .result-panel .vs-result-stats { gap: 3px; }
+
+  .result-panel .vs-competitor { padding: 3px 8px; gap: 1px; line-height: 1.1; }
+  .result-panel .vs-metric { padding-top: 1px; line-height: 1.1; font-size: 12px; }
+  .result-panel .vs-result-stats .result-new-record { padding-top: 0; margin-top: 0; }
+  .result-panel .vs-result-stats .result-new-record span { display: inline; margin-left: 8px; }
 }

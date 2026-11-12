@@ -557,6 +557,7 @@ export class UI {
             : data.cleared
               ? '夜明けまで生き延びた!'
               : '防衛ラインは破られた…';
+    $('result-difficulty').textContent = data.diffLabel;
     const heading = $('result-heading');
     heading.textContent =
       data.vs
