@@ -70,3 +70,18 @@ export function mountRankingContext(host: HTMLElement, difficulty: string, value
     } catch { if(host.contains(button) && recordOwner()===expectedOwner) { output.textContent='詳しい順位は今は取得できません。プレイや記録保存には影響ありません。'; button.textContent='詳しい順位を取得できませんでした'; } }
   };
 }
+
+/** Current run replaces this owner's stored slot for comparison; no extra participant. */
+export function captureRankingIdentity(){return {owner:recordOwner(),key:deviceKey()};}
+export async function fetchRunPosition(difficulty:string,value:number,identity=captureRankingIdentity()):Promise<{rank:number;total:number}> {
+ const expectedOwner=identity.owner;
+ if(recordOwner()!==expectedOwner || deviceKey()!==identity.key)throw Error('account changed');
+ const token=expectedOwner ? await accessTokenFor?.(expectedOwner) : ONLINE_CONFIG.supabaseAnonKey;
+ if(!token || recordOwner()!==expectedOwner)throw Error('authentication unavailable');
+ const res=await fetch(`${ONLINE_CONFIG.supabaseUrl}/rest/v1/rpc/ranking_run_position`,{method:'POST',headers:{apikey:ONLINE_CONFIG.supabaseAnonKey,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({p_difficulty:difficulty,p_value:Math.round(value),p_expected_user:expectedOwner,p_guest_key:expectedOwner?null:identity.key}),signal:AbortSignal.timeout(5000)});
+ if(!res.ok || recordOwner()!==expectedOwner || deviceKey()!==identity.key)throw Error('run position unavailable');
+ const c=await res.json();
+ if(!Number.isSafeInteger(c.rank)||!Number.isSafeInteger(c.total)||c.total<1||c.rank<1||c.rank>c.total)throw Error('invalid run position');
+ return {rank:c.rank,total:c.total};
+}
+export function runPositionLabel(c:{rank:number;total:number}):string {return `今回の順位：${c.total.toLocaleString('ja-JP')}人中 ${c.rank.toLocaleString('ja-JP')}位`;}

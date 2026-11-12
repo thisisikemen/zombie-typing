@@ -74,3 +74,31 @@ Remaining risks: network plus real role execution unverified until step 3; anony
 - Bounded same-score names are ordered by public name, not by owner; ties can omit the owner. The UI no longer claims the neighborhood list includes self. The canonical own best is always separately shown above the list. Name order only determines which tied names are sampled; it does not break ties or improve/worsen anyone's score rank. No stable private identifier is disclosed or synthesized to highlight self. Duplicate names cannot be treated as identity.
 - Added 51-way tie regression: user's ZZZ name is omitted from the three visible ties, while exact own rank remains 21/101 and all tied rows rank 21. UI regression confirms separate own best and explicit omission explanation.
 - UI flag OFF does NOT shut down direct RPC requests. For DB-load/abuse incidents, the authorized operator should revoke EXECUTE for PUBLIC, anon and authenticated on BOTH newly added RPCs, then disable the UI. See docs/RANKING-CONTEXT-STOP.sql (proposal only, not executed). Existing leaderboard/submit grants remain untouched. REVOKE stops new unauthorized calls, not already-running statements; existing role timeouts and separately approved targeted cancellation cover those. Verify denial with only a few read-only calls. Restore exact anon/authenticated grants only after resolution and explicit approval; never PUBLIC/table grants.
+
+## User correction: automatic current-run position (2026-11-13)
+The requested result is NOT a saved-best detail panel. The result status now shows
+`今回の順位：802人中 701位` automatically; the previous optional panel is not mounted.
+Leaderboard storage remains best-only. A single STABLE INVOKER RPC authenticates
+through the existing narrow own-best function, then counts public same-difficulty
+rows in one snapshot. It virtually replaces the owner's saved slot with this run:
+`rank = 1 + count(metric > current) - (ownBest > current ? 1 : 0)`.
+Total is unchanged. Ties share a rank. Endless compares rounded survival seconds;
+Basic is excluded. Missing own record or invalid result fails closed, no clamping.
+People means guest/account record identities, not verified unique humans.
+
+The current-result request replaces the previous capped rankRun request, not an
+extra automatic request. No nearby list, polling, automatic retry, or stale cache.
+Five-second timeout and owner captured before submit. Failure preserves saved
+scores/gameplay and reports unavailable rather than showing saved-best rank.
+The flag disables new lookup and restores the old capped-result logic.
+
+Exact counts still scan difficulty rows. Local synthetic warm median was 0.46–0.62ms
+at 1k total rows, 1.41–2.13ms at 10k, 4.08–13.31ms at 100k. Benchmark stubs the
+identity function and is NOT an end-to-end Supabase performance or free-tier guarantee.
+No production load test. At previous live snapshot: 1848 records, largest difficulty
+802. 257 unit/database tests pass; real local game result with mocked external calls
+confirmed direct automatic status and absence of optional detail panel.
+Before rollout apply migration 003 and revoke old ranking_context EXECUTE after old
+clients need no more detail (old client detail button will fail gracefully). Keep
+ranking_own_best grant because new INVOKER RPC uses it. New emergency revoke is in
+RANKING-CONTEXT-STOP.sql. No production change was made for this correction yet.

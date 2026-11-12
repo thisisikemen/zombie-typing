@@ -5,6 +5,7 @@ set local lock_timeout='100ms';
 set local statement_timeout='1500ms';
 revoke execute on function public.ranking_context(text,integer) from public,anon,authenticated;
 revoke execute on function public.ranking_own_best(text,uuid,uuid) from public,anon,authenticated;
+revoke execute on function public.ranking_run_position(text,integer,uuid,uuid) from public,anon,authenticated;
 commit;
 -- Existing in-flight queries are not cancelled by REVOKE. Observe existing configured
 -- role timeout; any selective cancellation requires a separately reviewed procedure.

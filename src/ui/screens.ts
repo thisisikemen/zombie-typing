@@ -1,4 +1,4 @@
-import { mountRankingContext } from './ranking-context';
+import { captureRankingIdentity, fetchRunPosition, runPositionLabel } from './ranking-context';
 /**
  * DOM オーバーレイの画面管理(タイトル / モード選択 / リザルト /
  * ポーズ / 設定・遊び方モーダル)。
@@ -105,6 +105,7 @@ export class UI {
   private lastRank: number | null = null;
   /** 今回のラン自体の順位(自己ベストと異なる場合の表示用) */
   private lastCurrentRank: RunRank | null = null;
+  private lastRunPosition: {rank:number;total:number} | null = null;
   private activeMode: ModeDef = MODES[0];
   /** 画面切替直後の誤クリック(ダブルクリック等のすり抜け)防止 */
   private shownAt = 0;
@@ -665,6 +666,7 @@ export class UI {
     nameInput.value = loadPlayerName();
     this.lastRank = null;
     this.lastCurrentRank = null;
+    this.lastRunPosition = null;
     if (canRegister) {
       const name = sanitizeName(loadPlayerName());
       $('register-status').textContent = 'ランキングに登録中…';
@@ -678,6 +680,8 @@ export class UI {
         cleared: data.cleared,
         ts: Date.now(),
       };
+      let rankingIdentity: ReturnType<typeof captureRankingIdentity> | null = null;
+      try { if(rankingBackend.online && import.meta.env.VITE_ENABLE_RANKING_CONTEXT === 'true')rankingIdentity=captureRankingIdentity(); } catch { /* Optional ranking must never prevent score saving. */ }
       rankingBackend
         .submit(data.diffId, entry, data.rankBy)
         .then(async (rank) => {
@@ -685,7 +689,13 @@ export class UI {
           // 投稿の応答は保存済みの自己ベスト。今回の順位は一覧とは別に確認する。
           let current: RunRank | null;
           try {
-            current = rankingBackend.rankRun ? await rankingBackend.rankRun(data.diffId, entry, data.rankBy) : rank;
+            if (rankingBackend.online && import.meta.env.VITE_ENABLE_RANKING_CONTEXT === 'true') {
+              if(!rankingIdentity)throw Error('identity unavailable');
+              const position=await fetchRunPosition(data.diffId,metricValue,rankingIdentity);
+              if(this.shareData !== data)return;
+              this.lastRunPosition=position;
+              current=position.rank;
+            } else current = rankingBackend.rankRun ? await rankingBackend.rankRun(data.diffId, entry, data.rankBy) : rank;
           } catch {
             current = null;
           }
@@ -699,13 +709,7 @@ export class UI {
             $('result-sub').textContent = 'エンドレス 世界1位';
           }
           this.setRegisterStatus(name);
-          // Disabled by default until DB permissions, production plans and UI QA pass.
-          if (rankingBackend.online && import.meta.env.VITE_ENABLE_RANKING_CONTEXT === 'true') {
-            const context = document.createElement('div');
-            context.id = 'ranking-context';
-            register.after(context);
-            mountRankingContext(context, data.diffId, metricValue, rank);
-          }
+
 
         })
         .catch(() => {
@@ -718,6 +722,12 @@ export class UI {
   }
 
   private setRegisterStatus(name: string): void {
+    const statusNode = $('register-status');
+    if (rankingBackend.online && import.meta.env.VITE_ENABLE_RANKING_CONTEXT === 'true') {
+      statusNode.textContent=this.lastRunPosition ? runPositionLabel(this.lastRunPosition) : '記録を保存しました。今回の順位は確認できませんでした';
+      statusNode.title='同じ難易度の登録者と今回の成績を比較。同点は同順位。人数は端末・アカウント単位で、自分は重複して数えません。ランキング一覧には自己ベストを保存します。';
+      return;
+    }
     const where = rankingBackend.online ? '世界' : 'この端末で';
     if (this.lastRank === null) {
       $('register-status').textContent = '';
@@ -725,7 +735,6 @@ export class UI {
     }
     const current = this.lastCurrentRank;
     const best = `${this.lastRank.toLocaleString('ja-JP')}位`;
-    const statusNode = $('register-status');
     if (current === 'outside') {
       statusNode.textContent = worldRankLabel(current);
       return;

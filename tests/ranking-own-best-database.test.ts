@@ -8,3 +8,20 @@ it('authenticated A can read A but not B, guest keys, or mismatched session',asy
 it('unknown or deleted accounts fail closed',async()=>{await db.exec(`set role authenticated;set request.jwt.claim.sub='${B}'`);try{await expect(own('easy',B,null)).rejects.toThrow('identity unavailable');}finally{await db.exec('reset role;reset request.jwt.claim.sub');}});
 
 it('emergency revoke also disables the own-best RPC without deleting scores',async()=>{await db.exec('revoke execute on function ranking_own_best(text,uuid,uuid) from public,anon,authenticated;set role anon');try{await expect(own('easy',null,GK)).rejects.toThrow('permission denied');}finally{await db.exec('reset role');}await db.exec(`set role authenticated;set request.jwt.claim.sub='${A}'`);try{await expect(own('easy',A,null)).rejects.toThrow('permission denied');}finally{await db.exec('reset role;reset request.jwt.claim.sub');}await db.exec('grant execute on function ranking_own_best(text,uuid,uuid) to anon,authenticated;set role anon');try{expect(await own('easy',null,GK)).toEqual({name:'Guest',value:300});}finally{await db.exec('reset role');}});
+
+it('current run replaces own slot, including worst result, ties and Endless',async()=>{
+ await db.exec(readFileSync('supabase/migrations/202611130003_ranking_run_position.sql','utf8'));
+ await db.exec('grant select(difficulty,score,survival_seconds) on scores to anon,authenticated;set role anon');
+ const run=async(d:string,v:number)=>(await db.query<{c:any}>('select ranking_run_position($1,$2,null,$3)c',[d,v,GK])).rows[0].c;
+ try {
+  expect(await run('easy',100)).toEqual({rank:2,total:2});
+  expect(await run('easy',500)).toEqual({rank:1,total:2});
+  expect(await run('easy',600)).toEqual({rank:1,total:2});
+  await expect(run('hard',100)).rejects.toThrow('saved record unavailable');
+  await expect(run('easy',-1)).rejects.toThrow('invalid value');
+  await expect(db.query('select device_key from scores')).rejects.toThrow('permission denied');
+ }finally{await db.exec('reset role');}
+ await db.exec(`set role authenticated;set request.jwt.claim.sub='${A}'`);
+ try {expect((await db.query<{c:any}>(`select ranking_run_position('endless',1,$1,null)c`,[A])).rows[0].c).toEqual({rank:1,total:1});await expect(db.query(`select ranking_run_position('easy',100,$1,null)`,[B])).rejects.toThrow('authentication');}finally{await db.exec('reset role;reset request.jwt.claim.sub');}
+ await db.exec('revoke execute on function ranking_run_position(text,integer,uuid,uuid) from anon,authenticated;set role anon');try{await expect(run('easy',100)).rejects.toThrow('permission denied');}finally{await db.exec('reset role');}
+});

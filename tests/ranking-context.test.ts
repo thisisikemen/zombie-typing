@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach,it,expect,vi } from 'vitest';
-import { mountRankingContext,fetchRankingContext,fetchOwnBest,setRankingContextAuth,clearRankingContextCache } from '../src/ui/ranking-context';
+import { captureRankingIdentity,fetchRunPosition,runPositionLabel,mountRankingContext,fetchRankingContext,fetchOwnBest,setRankingContextAuth,clearRankingContextCache } from '../src/ui/ranking-context';
 import {setRecordOwner} from '../src/ui/record-scope';
 afterEach(()=>{clearRankingContextCache();setRecordOwner(null);vi.unstubAllGlobals();document.body.replaceChildren();});
 const data={total:1000,rank:701,tied:1,neighbors:[{name:'<img src=x onerror=alert(1)>',value:10,rank:701}]};
@@ -15,3 +15,6 @@ it('identical concurrent requests share one public read and one-minute cache',as
 it('HTTP failure is not cached and request has a bounded abort signal',async()=>{const f=vi.fn().mockResolvedValue({ok:false});vi.stubGlobal('fetch',f);await expect(fetchRankingContext('hard',7)).rejects.toThrow();await expect(fetchRankingContext('hard',7)).rejects.toThrow();expect(f).toHaveBeenCalledTimes(2);expect(f.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);});
 
 it('an unresponsive request aborts within the configured five-second budget without retry',async()=>{let aborts=0;const f=vi.fn((_url:string,init:RequestInit)=>new Promise((_resolve,reject)=>{init.signal!.addEventListener('abort',()=>{aborts++;reject(init.signal!.reason);},{once:true});}));vi.stubGlobal('fetch',f);const started=Date.now();await expect(fetchRankingContext('hardcore',9876)).rejects.toThrow();expect(aborts).toBe(1);expect(f).toHaveBeenCalledTimes(1);expect(Date.now()-started).toBeLessThan(7500);},8000);
+
+it('current result is automatic one request with direct denominator label and no best display',async()=>{const f=vi.fn().mockResolvedValue({ok:true,json:async()=>({rank:701,total:802})});vi.stubGlobal('fetch',f);expect(runPositionLabel(await fetchRunPosition('easy',9000))).toBe('今回の順位：802人中 701位');expect(f).toHaveBeenCalledTimes(1);expect(f.mock.calls[0][0]).toContain('/ranking_run_position');});
+it('captured submit owner must still match and malformed ranks are not clamped',async()=>{const identity=captureRankingIdentity();setRecordOwner('different');const f=vi.fn().mockResolvedValue({ok:true,json:async()=>({rank:803,total:802})});vi.stubGlobal('fetch',f);await expect(fetchRunPosition('easy',1,identity)).rejects.toThrow('changed');expect(f).not.toHaveBeenCalled();setRecordOwner(null);await expect(fetchRunPosition('easy',1)).rejects.toThrow('invalid');});
