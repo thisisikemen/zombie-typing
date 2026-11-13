@@ -539,7 +539,7 @@ export class UI {
 
     // モードに応じたキーアートを背景に
     const screen = this.screens.result;
-    if (data.endless) {
+    if (data.endless || (!data.cleared && !data.practice && !data.vs)) {
       screen.style.backgroundImage = uiUrl('result-endless-bg.png');
     } else if (data.cleared) {
       screen.style.backgroundImage = uiUrl('result-clear-bg.jpg');

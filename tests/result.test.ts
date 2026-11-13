@@ -145,3 +145,17 @@ it('成功表示のあと取得失敗でも大きな数字を残さない',async
 it.each(['ベーシック','イージー','ノーマル','ハード','ハードコア','エンドレス'])('結果に難易度 %s を表示する',async(diffLabel)=>{
  ui.showResult(result({diffLabel}));await flush();expect(document.getElementById('result-difficulty')!.textContent).toBe(diffLabel);
 });
+
+describe('結果背景',()=>{
+ it.each(['easy','normal','hard','hardcore','endless'])('%s のGAME OVERは共通の背景',async(diffId)=>{
+  ui.showResult(result({diffId,endless:diffId==='endless',cleared:false}));await flush();
+  expect(document.getElementById('screen-result')!.style.backgroundImage).toContain('result-endless-bg.png');
+ });
+ it('CLEARとベーシック終了、VS敗北の背景は従来どおり',async()=>{
+  for(const data of [result({endless:false,cleared:true}),result({endless:false,practice:true,cleared:true})]){
+   ui.showResult(data);await flush();expect(document.getElementById('screen-result')!.style.backgroundImage).toContain('result-clear-bg.jpg');
+  }
+  ui.showResult(result({endless:false,vs:{win:false,ghostKills:2,ghostAccuracy:1,ghostWpm:100}}));await flush();
+  expect(document.getElementById('screen-result')!.style.backgroundImage).toBe('none');
+ });
+});
