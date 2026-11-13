@@ -270,6 +270,7 @@ async function boot(): Promise<void> {
         currentDiff.rankBy ?? 'score',
       );
     }
+    const savedBest = game.ghost ? null : loadBest(currentMode.id, currentDiff.id);
     ui.showResult({
       cleared,
       score: game.score,
@@ -295,6 +296,7 @@ async function boot(): Promise<void> {
           }
         : null,
       newRecord,
+      bestValue: savedBest ? (currentDiff.rankBy === 'survival' ? savedBest.survival : savedBest.score) : undefined,
     });
   }
 

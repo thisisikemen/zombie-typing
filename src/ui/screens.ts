@@ -44,6 +44,8 @@ export interface ResultData {
   /** VS 自己ベストの結果(通常モードは null) */
   vs: { ghostKills: number; ghostAccuracy: number; ghostWpm: number; win: boolean } | null;
   newRecord: boolean;
+  /** この記録スコープの保存済みベスト（通常は点、Endlessは秒）。 */
+  bestValue?: number;
 }
 
 export interface UICallbacks {
@@ -605,6 +607,10 @@ export class UI {
             ['WPM <span class="label-note">(1分あたりの正打数)</span>', `${data.wpm}`, ''],
             ['生存時間', formatTime(data.survival), ''],
           ];
+    if (!data.newRecord && !data.vs && !data.practice && data.bestValue !== undefined && Number.isFinite(data.bestValue) && data.bestValue >= 0) {
+      const bestText = data.rankBy === 'survival' ? formatTime(data.bestValue) : data.bestValue.toLocaleString('ja-JP');
+      rows[0][1] += `<span class="result-score-best">（自己ベスト ${bestText}）</span>`;
+    }
     const stats = $('result-stats');
     stats.classList.toggle('vs-result-stats', data.vs !== null);
     if (data.vs) {
@@ -735,6 +741,12 @@ export class UI {
         statusNode.replaceChildren(rank, total);
       } else {
         statusNode.textContent = '記録を保存しました。今回の順位は確認できませんでした';
+      }
+      if (!this.shareData?.newRecord && this.lastRank !== null && Number.isSafeInteger(this.lastRank) && this.lastRank > 0) {
+        const best = document.createElement('span');
+        best.className = 'result-rank-best';
+        best.textContent = `（自己ベスト ${this.lastRank.toLocaleString('ja-JP')}位）`;
+        statusNode.append(best);
       }
       statusNode.title='同じ難易度の登録者と今回の成績を比較。同点は同順位。人数は端末・アカウント単位で、自分は重複して数えません。ランキング一覧には自己ベストを保存します。';
       return;

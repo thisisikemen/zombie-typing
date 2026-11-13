@@ -1201,7 +1201,7 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 #result-heading { font-size: clamp(26px, 3.5vw, 40px); margin: 0; }
 #result-heading.world-best { font-size: clamp(20px, 3vw, 30px); }
 .result-difficulty { font-size: 14px; font-weight: 800; padding: 4px 10px; border: 1px solid var(--ui-border); border-radius: 5px; color: var(--ui-text); }
-.result-stats:not(.vs-result-stats) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.result-stats:not(.vs-result-stats) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
 .result-stats:not(.vs-result-stats) > .stat-row:first-child { grid-column: 1 / -1; }
 .result-stats .stat-row { padding: 7px 3px; gap: 8px; align-items: center; }
 .result-stats .stat-label { font-size: 12px; letter-spacing: .02em; }
@@ -1232,7 +1232,7 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 @media (max-height: 450px) and (min-width: 600px) {
   #screen-result { padding: 6px; }
   .result-panel { max-height: calc(100dvh - 12px); padding: 8px 18px; gap: 4px; width: min(850px, 100%); }
-  .result-stats:not(.vs-result-stats) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .result-stats:not(.vs-result-stats) { grid-template-columns: minmax(0, 1fr); }
   .result-stats .stat-row { padding: 3px; }
   #result-heading { font-size: 26px; }
   #result-sub { font-size: 11px; }
@@ -1248,4 +1248,14 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
   .result-panel .vs-metric { padding-top: 1px; line-height: 1.1; font-size: 12px; }
   .result-panel .vs-result-stats .result-new-record { padding-top: 0; margin-top: 0; }
   .result-panel .vs-result-stats .result-new-record span { display: inline; margin-left: 8px; }
+}
+
+/* Supplementary best values stay beside the current result, wrapping only when needed. */
+.result-score-best { display: inline-block; font-size: 11px; font-weight: 400; color: var(--text-dim, #aaa); margin-left: 6px; white-space: nowrap; }
+.result-rank-best { display: inline-block; font-size: 11px; font-weight: 400; margin-left: 6px; white-space: nowrap; }
+
+.result-stats:not(.vs-result-stats) .stat-value { white-space: normal; text-align: right; }
+@media (max-height: 700px) {
+ .result-stats:not(.vs-result-stats) .stat-row { padding: 3px; }
+ .result-stats:not(.vs-result-stats) .label-note { display: inline; margin-left: 3px; }
 }

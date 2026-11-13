@@ -112,8 +112,8 @@ describe('自動の今回順位（新経路）',()=>{
  it('操作せず元の欄へ今回順位と人数を表示し、自己ベスト詳細は出さない',async()=>{
   vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');
   const f=vi.fn().mockResolvedValue({ok:true,json:async()=>({rank:701,total:802})});vi.stubGlobal('fetch',f);
-  backend.submit.mockResolvedValue(5);ui.showResult(result());await flush();
-  expect(document.getElementById('register-status')!.textContent).toBe('701位／802人中');
+  backend.submit.mockResolvedValue(5);ui.showResult(result({newRecord:false}));await flush();
+  expect(document.getElementById('register-status')!.textContent).toBe('701位／802人中（自己ベスト 5位）');
   expect(document.querySelector('.result-rank-primary')!.textContent).toBe('701位');
   expect(document.querySelector('.result-rank-total')!.textContent).toBe('／802人中');
   expect(document.getElementById('ranking-context')).toBeNull();
@@ -158,4 +158,28 @@ describe('結果背景',()=>{
   ui.showResult(result({endless:false,vs:{win:false,ghostKills:2,ghostAccuracy:1,ghostWpm:100}}));await flush();
   expect(document.getElementById('screen-result')!.style.backgroundImage).toBe('none');
  });
+});
+
+describe('自己ベストの補足表示',()=>{
+ it('今回得点を維持して保存済み得点を横に添える',async()=>{
+  ui.showResult(result({endless:false,rankBy:'score',score:100,bestValue:500,newRecord:false}));await flush();
+  expect(document.querySelector('.result-score-best')!.textContent).toBe('（自己ベスト 500）');
+  expect(document.querySelector('.stat-value')!.textContent).toBe('100（自己ベスト 500）');
+ });
+ it('Endlessは生存時間の自己ベストを表示する',async()=>{
+  ui.showResult(result({bestValue:600,newRecord:false}));await flush();
+  expect(document.querySelector('.stat-value')!.textContent).toBe('05:00（自己ベスト 10:00）');
+ });
+ it('保存値不明・Basic・VSには通常スコアのベストを混ぜない',async()=>{
+  for(const data of [result(),result({bestValue:NaN}),result({practice:true,bestValue:500}),result({bestValue:500,vs:{win:false,ghostKills:2,ghostWpm:100,ghostAccuracy:1}})]){
+   ui.showResult(data);await flush();expect(document.querySelector('.result-score-best')).toBeNull();
+  }
+ });
+});
+
+it('今回更新ならベスト値を重複表示せずNEW RECORDを維持',async()=>{
+ vi.stubEnv('VITE_ENABLE_RANKING_CONTEXT','true');vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({rank:1,total:802})}));
+ ui.showResult(result({bestValue:300,newRecord:true}));await flush();
+ expect(document.querySelector('.result-score-best')).toBeNull();expect(document.querySelector('.result-rank-best')).toBeNull();
+ expect(document.querySelector('.result-new-record')!.textContent).toBe('NEW RECORD!');
 });
