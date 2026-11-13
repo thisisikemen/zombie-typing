@@ -559,7 +559,11 @@ export class UI {
             : data.cleared
               ? '夜明けまで生き延びた!'
               : '防衛ラインは破られた…';
-    $('result-difficulty').textContent = data.diffLabel;
+    const difficultyBadge = $('result-difficulty');
+    difficultyBadge.textContent = data.diffLabel;
+    const difficultyColor = MODES.flatMap(mode => mode.difficulties).find(diff => diff.id === data.diffId)?.color;
+    difficultyBadge.style.color = difficultyColor ?? '';
+    difficultyBadge.style.borderColor = difficultyColor ?? '';
     const heading = $('result-heading');
     heading.textContent =
       data.vs

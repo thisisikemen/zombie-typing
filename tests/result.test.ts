@@ -183,3 +183,14 @@ it('今回更新ならベスト値を重複表示せずNEW RECORDを維持',asyn
  expect(document.querySelector('.result-score-best')).toBeNull();expect(document.querySelector('.result-rank-best')).toBeNull();
  expect(document.querySelector('.result-new-record')!.textContent).toBe('NEW RECORD!');
 });
+
+it.each([['basic','#6ec8e8'],['easy','#5ad45a'],['normal','#ffd24a'],['hard','#ff4444'],['hardcore','#a45ae0'],['endless','#d7d1c4']])('難易度 %s のバッジは既存の選択色を使う',async(diffId,color)=>{
+ ui.showResult(result({diffId}));await flush();const badge=document.getElementById('result-difficulty')!;
+ expect(badge.style.color).toBe(color);expect(badge.style.borderColor).toBe(color);
+});
+it('VSも同じ難易度色、未知の難易度で前の色を残さない',async()=>{
+ ui.showResult(result({diffId:'hard',vs:{win:false,ghostKills:2,ghostAccuracy:1,ghostWpm:100}}));await flush();
+ expect(document.getElementById('result-difficulty')!.style.color).toBe('#ff4444');
+ ui.showResult(result({diffId:'unknown'}));await flush();
+ expect(document.getElementById('result-difficulty')!.style.color).toBe('');
+});
