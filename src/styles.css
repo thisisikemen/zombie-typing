@@ -191,15 +191,17 @@ kbd {
 .service-links a, .service-links button { color: #c6bdab; font: inherit; font-size: max(11px, .75rem); background: none; border: 0; text-decoration: underline; cursor: pointer; }
 
 /* ---------- モード選択 ---------- */
-#screen-mode { gap: 1rem; padding-top: 0.6rem; padding-bottom: 3.4rem; /* 下部の TIP バーぶん */ }
+/* The stage is fitted to 16:9: its height is min(viewport height, 56.25vw).
+   Scale this menu only, including text and carousel steps, to leave footer space. */
+#screen-mode { --mode-unit: min(1rem, 2vh, 1.125vw); gap: calc(1 * var(--mode-unit, 1rem)); padding-top: calc(0.6 * var(--mode-unit, 1rem)); padding-bottom: calc(3.4 * var(--mode-unit, 1rem)); /* 下部の TIP バーぶん */ }
 .mode-logo {
-  height: 5rem;
+  height: calc(5 * var(--mode-unit, 1rem));
   filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.8));
 }
 .mode-tabs {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
+  gap: calc(1.1 * var(--mode-unit, 1rem));
 }
 .mode-tab {
   background: none;
@@ -207,20 +209,20 @@ kbd {
   padding: 0;
   cursor: pointer;
 }
-.mode-tabs { height: 4.1rem; } /* タブの拡縮でレイアウトが動かないよう固定 */
-.mode-tab img { display: block; height: 4.1rem; width: auto; transition: height 0.15s ease, filter 0.15s ease; }
+.mode-tabs { height: calc(4.1 * var(--mode-unit, 1rem)); } /* タブの拡縮でレイアウトが動かないよう固定 */
+.mode-tab img { display: block; height: calc(4.1 * var(--mode-unit, 1rem)); width: auto; transition: height 0.15s ease, filter 0.15s ease; }
 .mode-tab.active img { filter: drop-shadow(0 0 12px rgba(255, 190, 80, 0.45)); }
 /* 非選択タブは近日公開と同じサイズ感+減彩で「選択中」をわかりやすく */
 .mode-tab:not(.active):not(.locked) { opacity: 0.72; }
-.mode-tab:not(.active):not(.locked) img { height: 3.7rem; filter: saturate(0.25) brightness(0.7); }
+.mode-tab:not(.active):not(.locked) img { height: calc(3.7 * var(--mode-unit, 1rem)); filter: saturate(0.25) brightness(0.7); }
 .mode-tab:not(.active):not(.locked):hover { opacity: 1; }
 .mode-tab:not(.active):not(.locked):hover img { filter: saturate(0.7) brightness(0.92); }
 .mode-tab.text-tab {
-  min-width: 19rem;
-  height: 4.1rem;
-  padding: 0 2rem;
+  min-width: calc(19 * var(--mode-unit, 1rem));
+  height: calc(4.1 * var(--mode-unit, 1rem));
+  padding: 0 calc(2 * var(--mode-unit, 1rem));
   font-family: inherit;
-  font-size: 1.35rem;
+  font-size: calc(1.35 * var(--mode-unit, 1rem));
   font-weight: 900;
   letter-spacing: 0.18em;
   text-indent: 0.18em;
@@ -240,13 +242,13 @@ kbd {
   filter: drop-shadow(0 0 12px rgba(215, 209, 196, 0.28));
 }
 .mode-tab.locked { cursor: default; opacity: 0.75; }
-.mode-tab.locked img { height: 3.7rem; }
+.mode-tab.locked img { height: calc(3.7 * var(--mode-unit, 1rem)); }
 /* VS 自己ベストのテキストタブ: 画像タブとサイズ感を揃える */
-.mode-tab.text-tab { min-width: 13.5rem; transition: height 0.15s ease, font-size 0.15s ease, filter 0.15s ease; }
+.mode-tab.text-tab { min-width: calc(13.5 * var(--mode-unit, 1rem)); transition: height 0.15s ease, font-size 0.15s ease, filter 0.15s ease; }
 .mode-tab.text-tab:not(.active):not(.locked) {
-  height: 3.7rem;
-  min-width: 12rem;
-  font-size: 1.15rem;
+  height: calc(3.7 * var(--mode-unit, 1rem));
+  min-width: calc(12 * var(--mode-unit, 1rem));
+  font-size: calc(1.15 * var(--mode-unit, 1rem));
   filter: saturate(0.25) brightness(0.8);
 }
 .mode-tab.text-tab.active {
@@ -261,20 +263,20 @@ kbd {
   justify-content: center;
 }
 .mode-tab.vs-tab img {
-  height: 4.1rem;
+  height: calc(4.1 * var(--mode-unit, 1rem));
   width: auto;
   object-fit: contain;
 }
-.mode-tab.vs-tab:not(.active) img { height: 3.7rem; }
+.mode-tab.vs-tab:not(.active) img { height: calc(3.7 * var(--mode-unit, 1rem)); }
 .mode-tab.vs-tab .prototype-badge {
   position: absolute;
   left: 50%;
-  top: -1.15rem;
+  top: calc(-1.15 * var(--mode-unit, 1rem));
   transform: translateX(-50%);
   z-index: 1;
   white-space: nowrap;
-  padding: 0.12rem 0.65rem 0.18rem;
-  font-size: 0.76rem;
+  padding: calc(0.12 * var(--mode-unit, 1rem)) calc(0.65 * var(--mode-unit, 1rem)) calc(0.18 * var(--mode-unit, 1rem));
+  font-size: calc(0.76 * var(--mode-unit, 1rem));
   font-weight: 900;
   letter-spacing: 0.16em;
   text-indent: 0.16em;
@@ -288,15 +290,15 @@ kbd {
 
 .difficulty-cards {
   display: flex;
-  gap: 1.8rem;
+  gap: calc(1.8 * var(--mode-unit, 1rem));
   align-items: center;
   justify-content: center;
   /* カルーセル(3枚+余白)と同じ高さで固定し、タブ切替でタイトル等がずれないように */
-  height: 30rem;
+  height: calc(30 * var(--mode-unit, 1rem));
 }
 .diff-card {
   position: relative;
-  width: 17.4rem;
+  width: calc(17.4 * var(--mode-unit, 1rem));
   aspect-ratio: 839 / 1391;
   background-color: transparent;
   background-image: var(--card);
@@ -316,21 +318,21 @@ kbd {
 
 /* カルーセル(難易度が4つ以上のモード): 中央3枚+左右に見切れカード */
 .difficulty-cards.carousel {
-  --card-step: 19.2rem; /* カード幅 17.4rem + gap 1.8rem */
-  --peek: 6.8rem;       /* 見切れカードの覗き幅 */
+  --card-step: calc(19.2 * var(--mode-unit, 1rem)); /* カード幅 calc(17.4 * var(--mode-unit, 1rem)) + gap calc(1.8 * var(--mode-unit, 1rem)) */
+  --peek: calc(6.8 * var(--mode-unit, 1rem));       /* 見切れカードの覗き幅 */
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: calc(0.7 * var(--mode-unit, 1rem));
 }
 .carousel-viewport {
-  width: calc(3 * 17.4rem + 2 * 1.8rem + 2 * var(--peek));
-  max-width: calc(100vw - 10rem); /* 狭い画面でも矢印が画面内に残るように */
+  width: calc(3 * calc(17.4 * var(--mode-unit, 1rem)) + 2 * calc(1.8 * var(--mode-unit, 1rem)) + 2 * var(--peek));
+  max-width: calc(100vw - calc(10 * var(--mode-unit, 1rem))); /* 狭い画面でも矢印が画面内に残るように */
   overflow: hidden;
-  padding: 0.7rem 0 0.4rem; /* ホバー浮き上がりの余白 */
+  padding: calc(0.7 * var(--mode-unit, 1rem)) 0 calc(0.4 * var(--mode-unit, 1rem)); /* ホバー浮き上がりの余白 */
 }
 .carousel-track {
   display: flex;
-  gap: 1.8rem;
+  gap: calc(1.8 * var(--mode-unit, 1rem));
   transition: transform 0.28s ease;
   will-change: transform;
 }
@@ -342,9 +344,9 @@ kbd {
   filter: saturate(0.55) brightness(0.75);
 }
 .carousel-arrow {
-  width: 3.4rem;
-  height: 5.2rem;
-  font-size: 1.5rem;
+  width: calc(3.4 * var(--mode-unit, 1rem));
+  height: calc(5.2 * var(--mode-unit, 1rem));
+  font-size: calc(1.5 * var(--mode-unit, 1rem));
   font-family: inherit;
   color: #d8d4c8;
   background: rgba(10, 9, 8, 0.72);
@@ -357,8 +359,8 @@ kbd {
   position: relative;
   z-index: 2;
 }
-.carousel-arrow.left { margin-right: -3.2rem; }
-.carousel-arrow.right { margin-left: -3.2rem; }
+.carousel-arrow.left { margin-right: calc(-3.2 * var(--mode-unit, 1rem)); }
+.carousel-arrow.right { margin-left: calc(-3.2 * var(--mode-unit, 1rem)); }
 .carousel-arrow:hover:not(:disabled) {
   border-color: var(--accent);
   color: #fff;
@@ -366,13 +368,14 @@ kbd {
 }
 .carousel-arrow:disabled { opacity: 0.22; cursor: default; }
 
-.unranked-note { color: #8fb9cc; font-size: 0.85rem; letter-spacing: 0.04em; }
+.unranked-note { color: #8fb9cc; font-size: calc(0.85 * var(--mode-unit, 1rem)); letter-spacing: 0.04em; }
 .diff-card h3 {
   position: absolute;
   top: 5.5%;
   left: 0;
   right: 0;
-  font-size: 2.1rem;
+  font-size: calc(2.1 * var(--mode-unit, 1rem));
+  line-height: 1.2;
   font-weight: 900;
   letter-spacing: 0.22em;
   text-indent: 0.22em;
@@ -382,21 +385,22 @@ kbd {
 .diff-specs {
   position: absolute;
   top: 54%;
-  left: 13%;
-  right: 9%;
+  left: 10%;
+  right: 7%;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: calc(0.55 * var(--mode-unit, 1rem));
   text-align: left;
 }
 .diff-specs li {
   list-style: none;
-  font-size: 1.06rem;
+  font-size: calc(.98 * var(--mode-unit, 1rem));
+  line-height: 1.4;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #ddd8cc;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  padding-left: 1.3em;
+  padding-left: 1.05em;
   position: relative;
 }
 .diff-specs li::before {
@@ -412,16 +416,24 @@ kbd {
   bottom: 7%; /* カード枠の飾りに重ならない高さ */
   left: 0;
   right: 0;
-  font-size: 0.95rem;
+  font-size: calc(0.95 * var(--mode-unit, 1rem));
   font-weight: 700;
   color: var(--gold);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 .mode-hint {
-  height: 2rem;
-  margin-top: 0.2rem;
+  height: calc(2 * var(--mode-unit, 1rem));
+  margin-top: calc(0.2 * var(--mode-unit, 1rem));
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
 }
+
+/* Keep mode-only controls independent of each browser's native button metrics. */
+#screen-mode button { -webkit-appearance: none; appearance: none; }
+#screen-mode > .mode-logo, #screen-mode > .mode-tabs,
+#screen-mode > .difficulty-cards, #screen-mode > .mode-hint { flex-shrink: 0; }
+#screen-mode .tips-bar { bottom: calc(1 * var(--mode-unit)); padding: calc(.5 * var(--mode-unit)) calc(1.2 * var(--mode-unit)); gap: calc(.75 * var(--mode-unit)); }
+#screen-mode .tips-tag { font-size: calc(.85 * var(--mode-unit)); }
+#screen-mode .tips-text { min-width: 0; font-size: calc(1.02 * var(--mode-unit)); line-height: 1.3; }
 
 /* ---------- リザルト ---------- */
 #screen-result {
