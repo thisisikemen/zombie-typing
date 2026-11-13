@@ -20,6 +20,7 @@ import type { Game, GameEvent, Zombie } from '../core/game';
 import type { Assets } from './assets';
 import { Effects } from './effects';
 import { skyAt } from './sky';
+import { drawHudValue, HUD_NUMBER_FONT } from './hud-text';
 
 /** 見た目の大きさ倍率(ラスボスは専用値) */
 function zombieScale(z: Zombie): number {
@@ -1018,8 +1019,9 @@ export class Renderer {
     // ロゴ + 難易度サブタイトル(一目でどの難易度か分かるように)
     let logoRight = 224;
     if (this.assets.logo) {
-      const lh = 54;
-      const lw = lh * (this.assets.logo.naturalWidth / this.assets.logo.naturalHeight);
+      const ratio = this.assets.logo.naturalWidth / this.assets.logo.naturalHeight;
+      const lw = Math.min(236, 54 * ratio);
+      const lh = lw / ratio;
       ctx.drawImage(this.assets.logo, 18, (BAR_H - lh) / 2 - 4, lw, lh);
       logoRight = 18 + lw;
     } else {
@@ -1099,13 +1101,8 @@ export class Renderer {
     ctx.stroke();
     // 数値は HP+エナジーの合計。100 を超えている間は水色
     const total = Math.max(0, Math.ceil(game.hp + game.energy));
-    ctx.textAlign = 'right';
-    ctx.font = '900 30px sans-serif';
-    ctx.fillStyle = total > PLAYER.maxHp ? HUD_COLORS.energy : hpColor;
-    ctx.fillText(`${total}`, 648, boxY + 44);
-    ctx.font = '700 16px sans-serif';
-    ctx.fillStyle = 'rgba(216,212,200,0.6)';
-    ctx.fillText('/100', 682, boxY + 44);
+    drawHudValue(ctx, `${total}`, '/100', 682, boxY + 44, 104, 30, 16,
+      total > PLAYER.maxHp ? HUD_COLORS.energy : hpColor, 'rgba(216,212,200,0.6)');
 
     // HP+エナジーの増減ポップ(+は水色 / −は灰色。バーの外へはみ出してOK)
     const vitality = game.hp + game.energy;
@@ -1123,7 +1120,7 @@ export class Renderer {
       const life = p.t / 0.9;
       const punch = p.t < 0.12 ? ((0.12 - p.t) / 0.12) * 10 : 0; // 出た瞬間「ばんっ」と大きく
       ctx.textAlign = 'center';
-      ctx.font = `900 ${26 + punch}px sans-serif`;
+      ctx.font = `900 ${26 + punch}px ${HUD_NUMBER_FONT}`;
       ctx.lineJoin = 'round';
       ctx.strokeStyle = `rgba(0, 0, 0, ${0.75 * (1 - life)})`;
       ctx.lineWidth = 4;
@@ -1139,7 +1136,7 @@ export class Renderer {
     if (game.shieldTime > 0) {
       ctx.textAlign = 'left';
       ctx.fillStyle = '#9ad0ff';
-      ctx.font = '700 13px sans-serif';
+      ctx.font = `700 13px ${HUD_NUMBER_FONT}`;
       ctx.fillText(`軽減 ${game.shieldTime.toFixed(0)}s`, 282, boxY + 60);
     }
 
@@ -1152,10 +1149,9 @@ export class Renderer {
     panel(708, 210);
     ctx.restore();
     label(game.ghost ? 'あなたの撃破' : 'スコア', 722);
-    ctx.textAlign = 'right';
-    ctx.font = '900 32px sans-serif';
-    ctx.fillStyle = HUD_COLORS.text;
-    ctx.fillText(game.ghost ? `${game.kills}体` : game.score.toLocaleString(), 902, boxY + 52);
+    drawHudValue(ctx, game.ghost ? `${game.kills}` : game.score.toLocaleString(),
+      game.ghost ? '体' : '', 902, boxY + 52, 174, 32, 16,
+      HUD_COLORS.text, 'rgba(216,212,200,0.6)');
 
     // --- コンボ ---
     panel(938, 190);
@@ -1165,20 +1161,12 @@ export class Renderer {
       this.lastCombo = game.combo;
     }
     this.comboPop = Math.max(0, this.comboPop - 0.08);
-    ctx.save();
-    ctx.translate(1074, boxY + 48);
-    ctx.scale(1 + this.comboPop * 0.25, 1 + this.comboPop * 0.25);
-    ctx.textAlign = 'right';
-    ctx.font = '900 34px sans-serif';
-    ctx.fillStyle = game.combo > 0 ? '#ffd24a' : 'rgba(216,212,200,0.5)';
-    ctx.fillText(`${game.combo}`, 0, 0);
-    ctx.restore();
+    drawHudValue(ctx, `${game.combo}`, game.combo > 0 ? 'COMBO!' : '',
+      1114, boxY + 52, 162, 34 * (1 + this.comboPop * 0.15), 12,
+      game.combo > 0 ? '#ffd24a' : 'rgba(216,212,200,0.5)', '#ffd24a');
     if (game.combo > 0) {
-      ctx.textAlign = 'left';
-      ctx.font = '900 12px sans-serif';
       ctx.fillStyle = '#ffd24a';
-      ctx.fillText('COMBO!', 1082, boxY + 48);
-      ctx.fillRect(1006, boxY + 56, 70, 3);
+      ctx.fillRect(1006, boxY + 60, 70, 3);
     }
 
     // --- 倒した数(VS は自己ベスト側) ---
@@ -1190,13 +1178,8 @@ export class Renderer {
     panel(1148, 176);
     ctx.restore();
     label(game.ghost ? '自己ベスト' : '倒した数', 1162);
-    ctx.textAlign = 'right';
-    ctx.font = '900 32px sans-serif';
-    ctx.fillStyle = HUD_COLORS.text;
-    ctx.fillText(`${game.ghost ? game.ghost.kills : game.kills}`, 1282, boxY + 52);
-    ctx.font = '700 16px sans-serif';
-    ctx.fillStyle = 'rgba(216,212,200,0.6)';
-    ctx.fillText('体', 1306, boxY + 52);
+    drawHudValue(ctx, `${game.ghost ? game.ghost.kills : game.kills}`, '体',
+      1306, boxY + 52, 144, 32, 16, HUD_COLORS.text, 'rgba(216,212,200,0.6)');
 
     // --- 残り時間 ---
     panel(1344, 240);
