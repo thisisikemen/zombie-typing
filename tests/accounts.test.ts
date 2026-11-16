@@ -33,6 +33,19 @@ beforeEach(()=>{
 });
 afterEach(()=>{vi.unstubAllEnvs();});
 describe('任意ログインの画面とセッション復元',()=>{
+  it('登録前に端末間の引継ぎを図で案内し、ゲストでも使える機能を区別する',async()=>{
+    await setup();
+    const benefits=document.getElementById('account-benefits')!;
+    expect(benefits.hidden).toBe(false);
+    expect(document.getElementById('account-guest')!.firstElementChild).toBe(benefits);
+    expect(benefits.querySelectorAll('.account-device')).toHaveLength(2);
+    expect(benefits.textContent).toContain('名前・自己ベストを引き継げます');
+    expect(benefits.textContent).toContain('登録しなくても、ゲーム・ランキング・自己ベストの保存は使えます');
+    expect(mock.auth.signInWithOAuth).not.toHaveBeenCalled();
+    document.getElementById('account-register-open')!.click();
+    expect(benefits.hidden).toBe(false);
+  });
+
   it('未ログインでは勝手にOAuthや同期を始めず、説明確認後の新規登録だけが端末記録を保存する',async()=>{
     localStorage.setItem(key,rec);
     await setup();

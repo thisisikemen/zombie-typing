@@ -1051,7 +1051,15 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .account-text-btn:disabled { opacity: .5; cursor: default; }
 #account-dialog .account-help-link { text-align: center; margin: .4rem 0; }
 .account-help-link .account-text-btn { font-size: .8rem; color: var(--ui-dim); }
-#account-dialog .account-benefit { border-top: 1px solid var(--ui-border); padding-top: .7rem; margin-top: 1rem; text-align: center; }
+#account-dialog .account-benefit { border: 1px solid var(--ui-border); padding: .8rem; margin: 0 0 .9rem; text-align: center; background: rgba(38, 40, 30, .35); }
+#account-dialog .account-benefit h3 { margin: 0 0 .65rem; color: #e8dfc7; font-size: 1.1rem; letter-spacing: .03em; }
+.account-transfer-diagram { display: flex; align-items: center; justify-content: center; gap: .5rem; max-width: 30rem; margin: auto; }
+.account-device { display: flex; flex-direction: column; align-items: center; gap: .2rem; flex: 0 0 auto; font-size: .75rem; color: #c9c2af; }
+.account-device svg { width: 3rem; height: 2.5rem; }
+.account-transfer-diagram svg { fill: none; stroke: #b8a372; stroke-width: 2; }
+.account-transfer-arrow { display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: 12rem; flex: 1; color: #e2c981; font-size: .75rem; }
+.account-transfer-arrow svg { width: 100%; height: 1rem; }
+.account-transfer-arrow small { color: var(--ui-dim); font-size: .7rem; }
 #account-dialog .account-benefit p { margin: .35rem 0; font-size: .9rem; line-height: 1.7; }
 #account-dialog .account-benefit .dialog-caption { font-size: .8rem; color: var(--ui-dim); }
 #account-register > #account-message { text-align: center; }

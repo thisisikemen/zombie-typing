@@ -242,6 +242,16 @@
     <div class="dialog-heading"><h2 id="account-heading">ログイン</h2><button type="button" class="plate-btn compact-btn" id="account-details-open" hidden>詳細</button></div>
     <p id="account-test-notice" class="dialog-caption" hidden>ただいまテスト中です。登録はテスト参加者だけ使えます。</p>
     <div id="account-guest">
+      <section id="account-benefits" class="account-benefit" aria-labelledby="account-benefits-heading">
+        <h3 id="account-benefits-heading">いつもの記録を、別のパソコンでも。</h3>
+        <div class="account-transfer-diagram" aria-hidden="true">
+          <div class="account-device"><svg viewBox="0 0 48 40"><rect x="6" y="3" width="36" height="25" rx="1"/><path d="M18 35h12M24 28v7M13 11h12M13 17h20M13 23h16"/></svg><span>今のパソコン</span></div>
+          <div class="account-transfer-arrow"><span>名前・自己ベスト</span><svg viewBox="0 0 100 16"><path d="M2 8h92M88 2l7 6-7 6"/></svg><small>アカウントに保存</small></div>
+          <div class="account-device"><svg viewBox="0 0 48 40"><rect x="6" y="3" width="36" height="25" rx="1"/><path d="M18 35h12M24 28v7M13 11h12M13 17h20M13 23h16"/></svg><span>別のパソコン</span></div>
+        </div>
+        <p class="account-benefit-main">同じアカウントでログインすれば、名前・自己ベストを引き継げます。</p>
+        <p class="dialog-caption">登録は無料。登録しなくても、ゲーム・ランキング・自己ベストの保存は使えます。</p>
+      </section>
       <section id="account-home" aria-label="登録済みの方のログイン">
         <p class="auth-intro">登録済みの方はこちらから</p>
         <div class="auth-methods"><button type="button" class="plate-btn" id="account-login" disabled>Googleでログイン</button><button type="button" class="plate-btn" id="account-email-login" data-email-entry hidden>メールでログイン</button></div>
@@ -276,7 +286,7 @@
         <p class="auth-switch"><button type="button" class="account-text-btn" id="account-existing-back" data-account-nav>別のアカウントを選ぶ</button></p>
       </section>
       <div class="consent-actions" id="account-back-row" hidden><button type="button" class="account-text-btn" id="account-back" data-account-nav>戻る</button></div>
-      <div id="account-benefits" class="account-benefit"><p>ログインすると、ステージごとの自己ベストと世界順位をまとめて見られます。<br>名前と記録を保存して、ほかのパソコンでも遊べます。</p><p class="dialog-caption">ログインしていなくても遊べます。</p></div>
+
       <p class="account-help-link"><button type="button" class="account-text-btn" id="account-guest-help-open">記録・ログインのよくある質問</button></p>
     </div>
     <div id="account-member" hidden>
