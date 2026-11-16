@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 15
     env:
       SITE_URL: ${{ vars.SITE_URL }}
+      VITE_SITE_ACTIVITY_ENABLED: ${{ vars.VITE_SITE_ACTIVITY_ENABLED }}
+      VITE_SITE_ACTIVITY_LEGACY_POLICY: ${{ vars.VITE_SITE_ACTIVITY_LEGACY_POLICY }}
       VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
       ADSENSE_PUBLISHER_ID: ${{ vars.ADSENSE_PUBLISHER_ID }}
       VITE_ACCOUNTS_ENABLED: 'true'
@@ -36,7 +38,7 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run build:cloudflare
       - name: Deploy existing Worker
-        run: npx wrangler deploy
+        run: npx wrangler deploy --var ACTIVITY_ENABLED:${VITE_SITE_ACTIVITY_ENABLED:-false}
         env:
           CLOUDFLARE_ACCOUNT_ID: 84aa8a6bf3a0c928949c3794815ad590
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

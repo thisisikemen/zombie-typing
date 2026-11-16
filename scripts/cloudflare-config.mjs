@@ -14,6 +14,8 @@ export function cloudflareSettings(env, forcePreview = false) {
     env: {
       ...env, SITE_URL: url,
       VITE_GA_MEASUREMENT_ID: preview ? '' : (env.VITE_GA_MEASUREMENT_ID || ''),
+      VITE_SITE_ACTIVITY_ENABLED: preview ? 'false' : (env.VITE_SITE_ACTIVITY_ENABLED || 'false'),
+      VITE_SITE_ACTIVITY_LEGACY_POLICY: preview ? '' : (env.VITE_SITE_ACTIVITY_LEGACY_POLICY || ''),
       ADSENSE_PUBLISHER_ID: preview ? '' : (env.ADSENSE_PUBLISHER_ID || ''),
     },
     headers: `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n${preview

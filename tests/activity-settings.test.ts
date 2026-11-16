@@ -1,0 +1,8 @@
+// @vitest-environment happy-dom
+import {afterEach,expect,it,vi} from 'vitest';
+afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.resetModules();localStorage.clear();document.body.innerHTML='';});
+function setup(enabled='true'){localStorage.clear();document.body.innerHTML='<dialog id="analytics-dialog"></dialog>';vi.stubEnv('VITE_SITE_ACTIVITY_ENABLED',enabled);vi.stubEnv('VITE_SITE_ACTIVITY_LEGACY_POLICY','');const fetch=vi.fn(async()=>Response.json({ok:false},{status:503}));vi.stubGlobal('fetch',fetch);return fetch;}
+it('初期OFFではUIも送信も追加しない',async()=>{const fetch=setup('false');const {initGameActivitySettings}=await import('../src/activity');initGameActivitySettings();expect(fetch).not.toHaveBeenCalled();expect(document.querySelector('#site-usage-settings')).toBeNull();});
+it('旧拒否は独立方式を明示選択するまで尊重する',async()=>{const fetch=setup();localStorage.setItem('zombie-typing:analytics-consent:v1','denied');const {initGameActivitySettings}=await import('../src/activity');initGameActivitySettings();expect(fetch).not.toHaveBeenCalled();expect(document.body.textContent).toContain('送信：停止中');});
+it('独立方式でも新しい停止設定は必ず優先する',async()=>{const fetch=setup();vi.stubEnv('VITE_SITE_ACTIVITY_LEGACY_POLICY','independent-reviewed');localStorage.setItem('zombie-typing:site-usage:v2','off');const {initGameActivitySettings}=await import('../src/activity');initGameActivitySettings();expect(fetch).not.toHaveBeenCalled();expect(document.body.textContent).toContain('削除を再試行');});
+it('計測接続失敗はゲーム初期化を妨げない',async()=>{const fetch=setup();const {initGameActivitySettings}=await import('../src/activity');expect(()=>initGameActivitySettings()).not.toThrow();expect(fetch).toHaveBeenCalledOnce();});

@@ -6,12 +6,33 @@
   "assets": {
     "directory": "./dist",
     "html_handling": "none",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/activity/*"
+    ]
   },
   "routes": [
     {
       "pattern": "zombietyping.jp",
       "custom_domain": true
+    }
+  ],
+  "main": "worker/index.mjs",
+  "vars": {
+    "ACTIVITY_ENABLED": "false",
+    "SITE_ORIGIN": "https://zombietyping.jp",
+    "ACTIVITY_DB_RPC_URL": "https://vizhznqrgasepakokygv.supabase.co/rest/v1/rpc/ingest_guest_activity_v2",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_YaY9RP9wVnlS7yPgIRcF5w_kJXm6LaY"
+  },
+  "ratelimits": [
+    {
+      "name": "ACTIVITY_RATE_LIMITER",
+      "namespace_id": "2026111601",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
     }
   ]
 }

@@ -6,6 +6,7 @@
 
 import { AudioSystem, type SfxName } from './audio/sfx';
 import { analytics, initAnalytics } from './analytics';
+import { gameActivity, initGameActivitySettings } from './activity';
 import { initOldSiteMove, initSiteMove, IMPORT_DONE } from './ui/site-move';
 import { mergeBackup, restoreBackup } from './ui/backup';
 import { initRecordTransfer } from './ui/record-transfer';
@@ -114,6 +115,7 @@ async function boot(): Promise<void> {
   }
 
   function gotoTitle(): void {
+    gameActivity.finish('quit');
     playTime?.flush(); playTime = null;
     state = 'title';
     game = null;
@@ -126,6 +128,7 @@ async function boot(): Promise<void> {
   }
 
   function gotoModeSelect(): void {
+    gameActivity.finish('quit');
     playTime?.flush(); playTime = null;
     state = 'mode';
     game = null;
@@ -139,6 +142,8 @@ async function boot(): Promise<void> {
   }
 
   function startGame(mode: ModeDef, diff: DifficultyDef, quick: boolean): void {
+    gameActivity.finish('quit');
+    void gameActivity.prepare();
     playTime?.flush(); playTime = null;
     if (quick) analytics.track('game_retry', { mode: mode.id, difficulty: diff.id });
     gaveUp = false;
@@ -206,6 +211,7 @@ async function boot(): Promise<void> {
 
   function beginPlay(): void {
     state = 'playing';
+    gameActivity.start(currentMode.id,currentDiff.id);
     playTime = currentMode.id === 'vs' ? null : new PlayTimeRun(currentDiff.id);
     analytics.track('game_start', { mode: currentMode.id, difficulty: currentDiff.id });
     goTimer = COUNTDOWN.goTime;
@@ -213,6 +219,7 @@ async function boot(): Promise<void> {
   }
 
   function finishGame(kind: 'clear' | 'gameover'): void {
+    gameActivity.finish(gaveUp ? 'quit' : kind);
     playTime?.flush();
     state = 'ending';
     endFade = { kind, t: 0 };
@@ -353,6 +360,7 @@ async function boot(): Promise<void> {
     void audio.ensureInit().then(() => audio.play('shell'));
   });
   initAnalytics();
+  initGameActivitySettings();
   initRecordTransfer(backup => accounts!.importRecords(backup));
   initSiteMove(async backup => {
     if (accounts) await accounts.importRecords(backup, true);
@@ -391,7 +399,7 @@ async function boot(): Promise<void> {
         if (action.kind === 'typing') game?.handleKey(action.key);
         else if (action.kind === 'enter') game?.releaseTarget();
         else if (action.kind === 'escape') {
-          playTime?.flush();
+          playTime?.flush(); gameActivity.checkpoint();
           audio.play('pause'); // 拳銃を構える
           state = 'paused';
           ui.show('pause');
@@ -467,12 +475,12 @@ async function boot(): Promise<void> {
   window.addEventListener('resize', () => renderer.resize());
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && state === 'playing') {
-      playTime?.flush();
+      playTime?.flush(); gameActivity.exitCheckpoint();
       state = 'paused';
       ui.show('pause');
     }
   });
-  window.addEventListener('pagehide', () => playTime?.flush());
+  window.addEventListener('pagehide', () => {playTime?.flush();gameActivity.exitCheckpoint();});
 
   let last = performance.now();
   function frame(now: number): void {
@@ -518,6 +526,8 @@ async function boot(): Promise<void> {
         if (game) {
           game.update(dt);
           playTime?.observe(game.isPractice() || game.isEndless() ? game.time : Math.min(game.time, game.duration));
+          if(currentMode.id !== 'vs')gameActivity.observe(game.isPractice() || game.isEndless() ? game.time : Math.min(game.time,game.duration));
+          gameActivity.maybeFlush();
           const events = processEvents(game, true);
           for (const ev of events) {
             if (ev.type === 'clear') finishGame('clear');
