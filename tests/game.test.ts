@@ -142,12 +142,22 @@ describe('自動ターゲット切替', () => {
 
     g.handleKey('c'); // ち(chi) で A にロック(本当は さくら を打ちたかった)
     expect(g.targetId).toBe(a.id);
-    g.handleKey('s'); // miss(1打目は様子見)
-    expect(g.missKeys).toBe(1);
+    g.combo = 5;
+    g.energy = 5;
+    g.drainEvents();
+    g.handleKey('s'); // 別の敵の初手なので、判定はまだ保留
+    expect(g.missKeys).toBe(0);
+    expect(g.correctKeys).toBe(1);
     expect(g.targetId).toBe(a.id);
-    g.handleKey('a'); // ミス列 "sa" が さくら の正しい入力 → 切替
+    g.handleKey('a'); // "sa" が さくら の正しい入力 → 2打とも正打
     expect(g.targetId).toBe(b.id);
     expect(b.session.typedRomaji()).toBe('sa');
+    expect(g.correctKeys).toBe(3);
+    expect(g.missKeys).toBe(0);
+    expect(g.accuracy()).toBe(1);
+    expect(g.combo).toBe(5);
+    expect(g.energy).toBe(5);
+    expect(g.drainEvents().some((event) => event.type === 'miss')).toBe(false);
     for (const k of 'kura') g.handleKey(k);
     expect(g.kills).toBe(1);
     // A の進捗(c)は保持されている
@@ -167,6 +177,8 @@ describe('自動ターゲット切替', () => {
     g.handleKey('a'); // 末尾 "sa" が一致 → 切替
     expect(g.targetId).toBe(b.id);
     expect(b.session.typedRomaji()).toBe('sa');
+    expect(g.missKeys).toBe(2);
+    expect(g.correctKeys).toBe(3);
   });
 
   it('途中まで入力済みのゾンビの「続き」を打つと、そのゾンビに乗り移る', () => {
@@ -181,14 +193,15 @@ describe('自動ターゲット切替', () => {
     g.handleKey('t');
     expect(g.targetId).toBe(a.id);
     // さくら の続き「くら」を打ち始める
-    g.handleKey('k'); // とけい では miss(1打目は様子見)
+    g.handleKey('k'); // 切替が確定するまで保留
     g.handleKey('u'); // 末尾 "ku" が さくら の続きに一致 → 乗り移り
     expect(g.targetId).toBe(b.id);
     expect(b.session.typedRomaji()).toBe('saku');
     g.handleKey('r');
     g.handleKey('a');
     expect(g.kills).toBe(1);
-    expect(g.missKeys).toBe(1);
+    expect(g.missKeys).toBe(0);
+    expect(g.correctKeys).toBe(7);
   });
 
   it('ターゲット無しでも、進捗のあるゾンビを頭から打ち直せば復帰できる', () => {
@@ -205,6 +218,69 @@ describe('自動ターゲット切替', () => {
     for (const k of 'nae') g.handleKey(k);
     expect(g.kills).toBe(1);
     expect(g.missKeys).toBe(1);
+  });
+
+  it('別の敵に切り替わらず元の敵を打ち続けた場合は、保留したキーをミスにする', () => {
+    const g = emptyPoolGame();
+    const a = makeZombie('ちず');
+    g.zombies.push(a, makeZombie('さくら'));
+    g.handleKey('c');
+    g.handleKey('s');
+    expect(g.missKeys).toBe(0);
+    g.handleKey('h');
+    expect(g.targetId).toBe(a.id);
+    expect(g.missKeys).toBe(1);
+    expect(g.correctKeys).toBe(2);
+    expect(a.session.missCount).toBe(1);
+  });
+
+  it('手動解除は打鍵に含めず、手動解除前の未確定の誤打は残す', () => {
+    const g = emptyPoolGame();
+    g.zombies.push(makeZombie('ちず'), makeZombie('さくら'));
+    g.handleKey('c');
+    g.handleKey('s');
+    g.releaseTarget();
+    expect(g.missKeys).toBe(1);
+    g.releaseTarget();
+    g.handleKey('s');
+    g.handleKey('a');
+    expect(g.missKeys).toBe(1);
+    expect(g.correctKeys).toBe(3);
+  });
+
+  it('クリアとゲームオーバーでは、未確定のままの打鍵をミスにする', () => {
+    for (const ending of ['clear', 'gameover']) {
+      const g = emptyPoolGame();
+      g.zombies.push(makeZombie('ちず'), makeZombie('さくら'));
+      g.handleKey('c');
+      g.handleKey('s');
+      expect(g.missKeys).toBe(0);
+      if (ending === 'gameover') g.hp = 0;
+      else g.time = g.duration;
+      g.update(0.001);
+      expect(g.status).toBe(ending);
+      expect(g.missKeys).toBe(1);
+      expect(g.correctKeys).toBe(1);
+    }
+  });
+
+  it('重複候補から切り替えと同時に撃破したときにも各打鍵を1回だけ数える', () => {
+    const g = emptyPoolGame();
+    const a = makeZombie('かき');
+    const b = makeZombie('かめ');
+    const c = makeZombie('し');
+    g.zombies.push(a, b, c);
+    g.handleKey('k');
+    g.handleKey('a');
+    expect(g.candidateIds).toHaveLength(2);
+    g.handleKey('s');
+    g.handleKey('i');
+    expect(g.kills).toBe(1);
+    expect(g.getZombie(c.id)).toBeUndefined();
+    expect(g.missKeys).toBe(0);
+    expect(g.correctKeys).toBe(4);
+    expect(a.session.typedRomaji()).toBe('ka');
+    expect(b.session.typedRomaji()).toBe('ka');
   });
 
   it('どの単語とも一致しないミスは通常のミスのまま', () => {
