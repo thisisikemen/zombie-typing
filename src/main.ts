@@ -309,6 +309,7 @@ async function boot(): Promise<void> {
 
   function giveUp(): void {
     if (!game) return;
+    game.settlePendingSwitch();
     gaveUp = true;
     if (game.isPractice()) {
       // 練習の「終了する」はゲームオーバーではなく SCORE リザルトへ

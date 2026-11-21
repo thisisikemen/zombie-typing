@@ -188,6 +188,8 @@ export class Game {
   practiceLooped = false;
   /** ロック(または重複候補)開始以降の全打鍵列(正打・ミス問わず時系列。自動切替の判定用) */
   private recentKeys: string[] = [];
+  /** 別の敵への切替候補になった、まだ正誤を確定していない末尾の打鍵。 */
+  private pendingSwitchKeys: { timeMs: number; session?: TypingSession }[] = [];
   private static readonly RECENT_KEYS_MAX = 32;
 
   /** 次にボスを出す時刻(ボスなしの難易度は Infinity) */
@@ -297,10 +299,12 @@ export class Game {
 
     // --- 終了判定 ---
     if (this.hp <= 0) {
+      this.settlePendingSwitch();
       this.hp = 0;
       this.status = 'gameover';
       this.events.push({ type: 'gameover' });
     } else if (!this.isEndless() && !this.isPractice() && this.time >= this.duration) {
+      this.settlePendingSwitch();
       this.status = 'clear';
       this.events.push({ type: 'clear' });
     }
@@ -323,8 +327,9 @@ export class Game {
       } else {
         if (!z.session.currentKeys().has(key)) {
           // 打鍵列が他のゾンビの単語として正しければ自動で狙いを切り替える
-          if (!this.tryAutoSwitch(key)) { z.session.input(key); this.registerMiss(); }
+          this.handlePossibleSwitch(key, z.session);
         } else {
+          this.settlePendingSwitch();
           const res = z.session.input(key);
           this.pushRecentKey(key);
           this.registerCorrectShot(z.id);
@@ -342,9 +347,10 @@ export class Game {
       const accepting = alive.filter((z) => z.session.currentKeys().has(key));
       if (accepting.length === 0) {
         // ミスでは候補を消さない(仕様 §5: 打ち切るまで断定しない)
-        if (!this.tryAutoSwitch(key)) this.registerMiss();
+        this.handlePossibleSwitch(key);
         return;
       }
+      this.settlePendingSwitch();
       this.pushRecentKey(key);
       this.registerCorrectShot(accepting[0].id);
       let killed: Zombie | null = null;
@@ -373,9 +379,10 @@ export class Game {
       .sort((a, b) => a.x - b.x || a.id - b.id);
     if (matches.length === 0) {
       // 進捗のあるゾンビを最初から打ち直しているケース等を拾う
-      if (!this.tryAutoSwitch(key)) this.registerMiss();
+      this.handlePossibleSwitch(key);
       return;
     }
+    this.settlePendingSwitch();
     this.recentKeys = [key];
     if (matches.length === 1) {
       const z = matches[0];
@@ -421,12 +428,14 @@ export class Game {
    * - 候補が複数あるときは「手前(ラインに近い)のゾンビ」を最優先する。
    *   後方のゾンビの方が長く一致していても、手前が一致するなら手前へ
    */
-  private tryAutoSwitch(key: string): boolean {
+  private handlePossibleSwitch(key: string, session?: TypingSession): void {
     this.pushRecentKey(key);
+    this.pendingSwitchKeys.push({timeMs: Math.round(this.time * 1000), session});
     const active = new Set<number>(this.candidateIds);
     if (this.targetId !== null) active.add(this.targetId);
 
     let best: { z: Zombie; s: TypingSession; len: number; cont: boolean } | null = null;
+    let potentialLen = 0;
     // 優先度: 手前(x が小さい) > 一致の長さ > 「続きから」
     const better = (len: number, cont: boolean, z: Zombie) =>
       !best ||
@@ -436,12 +445,17 @@ export class Game {
     for (const z of this.zombies) {
       const hasProgress = !z.session.isComplete() && z.session.typedRomaji().length > 0;
       // このゾンビに一致する最長のサフィックスを探す
-      for (let len = this.recentKeys.length; len >= 2; len--) {
+      const canDefer = active.size > 0 && !active.has(z.id);
+      for (let len = this.recentKeys.length; len >= (canDefer ? 1 : 2); len--) {
         const suffix = this.recentKeys.slice(-len);
         // 続きから(入力進捗のあるゾンビの残りを打っているケース)
         if (hasProgress && !active.has(z.id)) {
           const cont = replayInto(z.session.clone(), suffix);
           if (cont) {
+            if (len === 1) {
+              if (!cont.isComplete()) potentialLen = Math.max(potentialLen, len);
+              break;
+            }
             if (better(len, true, z)) best = { z, s: cont, len, cont: true };
             break;
           }
@@ -452,14 +466,28 @@ export class Game {
         if (fresh) {
           // 「まめまき」の mamem + 誤入力e が末尾のmameに一致しても、
           // 正しく打ったmamemを消さない。打ち直しは元の位置に追いついてから採用。
-          if (fresh.progress() < z.session.progress()) continue;
+          if (len === 1 || fresh.progress() < z.session.progress()) {
+            if (canDefer && !fresh.isComplete()) potentialLen = Math.max(potentialLen, len);
+            continue;
+          }
           if (better(len, false, z)) best = { z, s: fresh, len, cont: false };
           break;
         }
       }
     }
-    if (!best) return false;
+    if (!best) {
+      this.settlePendingSwitch(potentialLen);
+      return;
+    }
 
+    // 既に正打として数えた打鍵は再計上しない。成功した末尾の保留分だけ確定。
+    // 同じ敵の打ち直しでは、従来どおり最後のキーだけを正打にする。
+    this.settlePendingSwitch(active.has(best.z.id) ? 1 : best.len);
+    const rescued = this.pendingSwitchKeys.splice(0);
+    for (const rescuedKey of rescued.slice(0, -1)) {
+      this.correctKeys++;
+      if (this.ghost) this.playerShotTimesMs.push(rescuedKey.timeMs);
+    }
     best.z.session = best.s;
     this.targetId = best.z.id;
     this.candidateIds = [];
@@ -467,12 +495,21 @@ export class Game {
     this.registerCorrectShot(best.z.id);
     this.events.push({ type: 'lock', zombieId: best.z.id });
     if (best.s.isComplete()) this.onZombieKilled(best.z);
-    return true;
+  }
+
+  /** 切替が成立しなかった打鍵をミスとして確定する。終了時も結果の集計前に呼ぶ。 */
+  settlePendingSwitch(keep = 0): void {
+    const rejected = this.pendingSwitchKeys.splice(0, Math.max(0, this.pendingSwitchKeys.length - keep));
+    for (const input of rejected) {
+      if (input.session) input.session.missCount++;
+      this.registerMiss();
+    }
   }
 
   /** Enter / Space によるターゲット解除(進捗はゾンビ側に保持される・仕様 §5) */
   releaseTarget(): void {
     if (this.status !== 'running') return;
+    this.settlePendingSwitch();
     if (this.targetId !== null || this.candidateIds.length > 0) {
       this.targetId = null;
       this.candidateIds = [];
@@ -503,6 +540,7 @@ export class Game {
     if (this.targetId === id) this.targetId = null;
     this.candidateIds = this.candidateIds.filter((c) => c !== id);
     if (this.targetId === null && this.candidateIds.length === 0) {
+      this.settlePendingSwitch();
       this.recentKeys = [];
     }
   }
