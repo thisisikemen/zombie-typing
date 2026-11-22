@@ -613,7 +613,8 @@ export class UI {
           ];
     if (!data.newRecord && !data.vs && !data.practice && data.bestValue !== undefined && Number.isFinite(data.bestValue) && data.bestValue >= 0) {
       const bestText = data.rankBy === 'survival' ? formatTime(data.bestValue) : data.bestValue.toLocaleString('ja-JP');
-      rows[0][1] += `<span class="result-score-best">（自己ベスト ${bestText}）</span>`;
+      const label = data.ranked ? '従来の自己ベスト' : '自己ベスト';
+      rows[0][1] += `<span class="result-score-best">（${label} ${bestText}）</span>`;
     }
     const stats = $('result-stats');
     stats.classList.toggle('vs-result-stats', data.vs !== null);

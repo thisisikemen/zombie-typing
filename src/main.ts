@@ -22,6 +22,8 @@ import { initKeyboard } from './input/keyboard';
 import { loadAssets } from './render/assets';
 import { Renderer, type Scene } from './render/renderer';
 import { UI } from './ui/screens';
+import { isPersonalDifficulty } from './core/personal-records';
+import { initPersonalRecords } from './ui/personal-records';
 import { PlayTimeRun } from './ui/play-time';
 import {
   loadBest,
@@ -99,6 +101,7 @@ async function boot(): Promise<void> {
   let endFade: { kind: 'clear' | 'gameover'; t: number } | null = null;
   let endDelay = 0;
   let gaveUp = false;
+  let personalSaved: ReturnType<ReturnType<typeof initPersonalRecords>['save']> | undefined;
 
   const applyAudioSettings = () =>
     audio.applySettings({ volume: settings.volume, sfxOn: settings.sfx, bgmOn: settings.bgm });
@@ -147,6 +150,7 @@ async function boot(): Promise<void> {
     playTime?.flush(); playTime = null;
     if (quick) analytics.track('game_retry', { mode: mode.id, difficulty: diff.id });
     gaveUp = false;
+    personalSaved = undefined;
     currentMode = mode;
     currentDiff = diff;
     // VS 自己ベスト: 直前に勝って更新したVS専用記録を最優先で再生する。
@@ -222,6 +226,11 @@ async function boot(): Promise<void> {
     gameActivity.finish(gaveUp ? 'quit' : kind);
     playTime?.flush();
     state = 'ending';
+    if (!gaveUp && !personalSaved && game && currentMode.id !== 'vs' &&
+        currentDiff.ranked !== false && isPersonalDifficulty(currentDiff.id)) {
+      const value = currentDiff.rankBy === 'survival' ? Math.round(game.survivalTime()) : game.score;
+      if (value > 0) personalSaved = personal.save(currentDiff.id,value);
+    }
     endFade = { kind, t: 0 };
     endDelay = kind === 'clear' ? 1.7 : 1.4;
     // 戦闘 BGM はリザルト画面まで流し続ける
@@ -305,6 +314,8 @@ async function boot(): Promise<void> {
       newRecord,
       bestValue: savedBest ? (currentDiff.rankBy === 'survival' ? savedBest.survival : savedBest.score) : undefined,
     });
+    personal.show(currentMode.id !== 'vs' && currentDiff.ranked !== false && isPersonalDifficulty(currentDiff.id)
+      ? currentDiff.id : null, personalSaved);
   }
 
   function giveUp(): void {
@@ -351,6 +362,7 @@ async function boot(): Promise<void> {
   });
   document.getElementById('site-move')!.hidden = location.hostname !== 'thisisikemen.github.io';
   initGameDialogs();
+  const personal = initPersonalRecords();
   accounts = initAccounts(() => state === 'title' || state === 'mode', () => {
     for (const id of ['result-name', 'set-name', 'ranking-name']) {
       (document.getElementById(id) as HTMLInputElement).value = loadPlayerName();
