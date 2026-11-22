@@ -24,15 +24,15 @@ function setText<K extends keyof HTMLElementTagNameMap>(tag: K, str: string): HT
 }
 
 /** One shared dialog, with no authority of its own: a backend must confirm any write. */
-export function mountRecordCorrection(backend: CorrectionBackend, label: string): void {
+export function mountRecordCorrection(backend: CorrectionBackend): void {
   const dialog = document.createElement('dialog');
   dialog.className = 'modal-box game-dialog record-correction';
   dialog.setAttribute('aria-labelledby', 'record-correction-heading');
   dialog.innerHTML = `
-    <div class="dialog-heading"><h2 id="record-correction-heading">このブラウザの記録を見直す</h2></div>
-    <p class="dialog-caption" id="record-correction-label"></p>
-    <p class="record-correction-intro">直近24時間の記録を、難易度ごとに確認できます。外した記録も、プレイから24時間以内なら集計に戻せます。</p>
-    <p class="record-correction-tip"><strong>ヒント：</strong>友達が遊んだ記録だけ選んで「集計から外す」。自分の記録が混じっていたらチェックを外せます。</p>
+    <div class="dialog-heading"><h2 id="record-correction-heading">自己ベストの管理</h2></div>
+    <p class="record-correction-intro">プレイから24時間以内なら、自分以外の記録をこのブラウザの集計から外せます。</p>
+    <p class="dialog-caption">結果画面の自己ベストと公開ランキングは変わりません。</p>
+    <p class="record-correction-tip"><strong>ヒント：</strong>友達が遊んだ回だけ選んで「集計から外す」。24時間以内なら「集計に戻す」で取り消せます。</p>
     <div class="record-correction-tabs" role="group" aria-label="表示する難易度"></div>
     <p class="record-correction-count" aria-live="polite"></p>
     <div class="record-correction-range" hidden>
@@ -63,7 +63,6 @@ export function mountRecordCorrection(backend: CorrectionBackend, label: string)
   const last = get<HTMLSelectElement>('[data-correction-last]');
   const close = get<HTMLButtonElement>('[data-correction-close]');
   const controls = Array.from(dialog.querySelectorAll<HTMLButtonElement>('[data-correction-preview]'));
-  get('#record-correction-label').textContent = label;
 
   let generation = 0;
   let busy = false;
@@ -217,6 +216,7 @@ export function mountRecordCorrection(backend: CorrectionBackend, label: string)
         }
       }
       preview.append(setText('h3', `${changes.length}件を${excluded ? '集計から外す' : '集計に戻す'}`));
+      preview.append(setText('p', 'この画面の集計だけが変わります。'));
       const lines = document.createElement('ul');
       for (const item of summary) {
         lines.append(setText('li', `${DIFFICULTY_LABELS[item.difficulty]}：${formatValue(item.difficulty, item.before)} → ${formatValue(item.difficulty, item.after)}`));
@@ -304,16 +304,10 @@ export function mountRecordCorrection(backend: CorrectionBackend, label: string)
     }
   };
 
-  const destinations = [
-    ['#modal-ranking .modal-actions', 'このブラウザの記録を見直す'],
-    ['#modal-settings .modal-actions', 'このブラウザの記録を見直す'],
-    ['#account-dialog .account-footer', 'このブラウザの記録を見直す'],
-    ['#personal-best-result', '記録を見直す'],
-  ];
-  for (const [selector, title] of destinations) {
+  for (const selector of ['#modal-settings .modal-actions', '#account-dialog .account-footer']) {
     const container = document.querySelector(selector);
     if (!container) continue;
-    const button = setText('button', title);
+    const button = setText('button', '自己ベストの管理');
     button.type = 'button';
     button.className = 'plate-btn compact-btn record-correction-entry-point';
     button.onclick = () => { void open(button); };
