@@ -1280,6 +1280,15 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
  .result-stats:not(.vs-result-stats) .label-note { display: inline; margin-left: 3px; }
 }
 
+/* With room on desktop, make result captions and actions easier to read. */
+@media (min-width: 800px) and (min-height: 760px) {
+  .result-panel:has(.result-stats:not(.vs-result-stats)) .stat-label { font-size: 14px; }
+  .result-panel:has(.result-stats:not(.vs-result-stats)) .label-note { font-size: 11px; }
+  .result-panel:has(.result-stats:not(.vs-result-stats)) .result-score-best,
+  .result-panel:has(.result-stats:not(.vs-result-stats)) .result-rank-best,
+  .result-panel:has(.result-stats:not(.vs-result-stats)) .plate-btn { font-size: 13px; }
+}
+
 /* Local-only personal history and correction. */
 .record-correction.game-dialog { width: min(700px, 95vw); }
 .record-correction-intro { line-height: 1.6; }
@@ -1322,11 +1331,4 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
 .record-correction:has(.record-correction-preview:not(:empty)) .record-correction-list { max-height: 20dvh; }
 .record-correction-more:not([hidden]) { display: block; margin: 8px auto; }
 
-.personal-best-result:not([hidden]) {
-  display: flex; align-items: center; justify-content: center; gap: 7px 14px; flex-wrap: wrap;
-  margin: 7px 0; padding: 7px 10px; border: 1px solid #7c6251; border-radius: 5px;
-  background: rgba(25,21,17,.75); color: var(--ui-text);
-}
-.personal-best-result strong { color: var(--gold); font-variant-numeric: tabular-nums; }
-.personal-best-result .record-correction-entry-point { order: 1; }
 #account-dialog .account-footer:has(.record-correction-entry-point) { flex-wrap: wrap; gap: 8px; }
