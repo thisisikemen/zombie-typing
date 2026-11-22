@@ -163,12 +163,12 @@ describe('結果背景',()=>{
 describe('自己ベストの補足表示',()=>{
  it('今回得点を維持して保存済み得点を横に添える',async()=>{
   ui.showResult(result({endless:false,rankBy:'score',score:100,bestValue:500,newRecord:false}));await flush();
-  expect(document.querySelector('.result-score-best')!.textContent).toBe('（自己ベスト 500）');
-  expect(document.querySelector('.stat-value')!.textContent).toBe('100（自己ベスト 500）');
+  expect(document.querySelector('.result-score-best')!.textContent).toBe('（従来の自己ベスト 500）');
+  expect(document.querySelector('.stat-value')!.textContent).toBe('100（従来の自己ベスト 500）');
  });
  it('Endlessは生存時間の自己ベストを表示する',async()=>{
   ui.showResult(result({bestValue:600,newRecord:false}));await flush();
-  expect(document.querySelector('.stat-value')!.textContent).toBe('05:00（自己ベスト 10:00）');
+  expect(document.querySelector('.stat-value')!.textContent).toBe('05:00（従来の自己ベスト 10:00）');
  });
  it('保存値不明・Basic・VSには通常スコアのベストを混ぜない',async()=>{
   for(const data of [result(),result({bestValue:NaN}),result({practice:true,bestValue:500}),result({bestValue:500,vs:{win:false,ghostKills:2,ghostWpm:100,ghostAccuracy:1}})]){

@@ -1279,3 +1279,54 @@ body:has(#screen-title.hidden, dialog[open], .modal:not(.hidden)) .analytics-not
  .result-stats:not(.vs-result-stats) .stat-row { padding: 3px; }
  .result-stats:not(.vs-result-stats) .label-note { display: inline; margin-left: 3px; }
 }
+
+/* Local-only personal history and correction. */
+.record-correction.game-dialog { width: min(700px, 95vw); }
+.record-correction-intro { line-height: 1.6; }
+.record-correction-range:not([hidden]) {
+  display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin: 12px 0;
+}
+.record-correction-range label { display: grid; gap: 4px; min-width: 0; }
+.record-correction-range select {
+  color: var(--ui-text); background: #211e1a; border: 1px solid #696052;
+  border-radius: 4px; padding: 6px; max-width: 100%;
+}
+.record-correction-list {
+  max-height: 34dvh; overflow-y: auto; border-block: 1px solid rgba(140, 128, 104, .48);
+}
+.record-correction-entry {
+  display: grid; grid-template-columns: 1.4em minmax(0, 1fr) auto; align-items: center;
+  gap: 8px; padding: 9px 4px; border-bottom: 1px solid rgba(140, 128, 104, .28);
+}
+.record-correction-entry:last-child { border-bottom: 0; }
+.record-correction-entry input { width: 17px; height: 17px; accent-color: var(--gold); }
+.record-correction-entry strong { color: var(--gold); font-variant-numeric: tabular-nums; }
+.record-correction-excluded {
+  display: inline-block; margin-inline-start: 8px; padding: 2px 5px;
+  color: #f2c08a; border: 1px solid #7c6251; border-radius: 4px;
+}
+.record-correction-preview:not(:empty) {
+  margin-top: 12px; padding: 10px 13px; border: 1px solid #7c6251; border-radius: 6px;
+  background: rgba(25, 21, 17, .8);
+}
+.record-correction-preview h3 { margin: 0; }
+.record-correction-preview ul { margin: 8px 0 10px; padding-left: 1.2rem; line-height: 1.65; }
+.record-correction-status:empty { display: none; }
+.record-correction button:disabled { opacity: .48; cursor: default; }
+.record-correction-entry-point { margin-inline-end: 6px; }
+
+.record-correction-tip { border-inline-start: 3px solid var(--gold); padding-left: 10px; line-height: 1.55; }
+.record-correction-tabs { display: flex; flex-wrap: wrap; gap: 5px; }
+.record-correction-tabs button[aria-pressed="true"] { outline: 2px solid var(--gold); outline-offset: -2px; }
+.record-correction .record-correction-count { margin: 8px 0 4px; color: var(--ui-dim); font-size: .9rem; }
+.record-correction:has(.record-correction-preview:not(:empty)) .record-correction-list { max-height: 20dvh; }
+.record-correction-more:not([hidden]) { display: block; margin: 8px auto; }
+
+.personal-best-result:not([hidden]) {
+  display: flex; align-items: center; justify-content: center; gap: 7px 14px; flex-wrap: wrap;
+  margin: 7px 0; padding: 7px 10px; border: 1px solid #7c6251; border-radius: 5px;
+  background: rgba(25,21,17,.75); color: var(--ui-text);
+}
+.personal-best-result strong { color: var(--gold); font-variant-numeric: tabular-nums; }
+.personal-best-result .record-correction-entry-point { order: 1; }
+#account-dialog .account-footer:has(.record-correction-entry-point) { flex-wrap: wrap; gap: 8px; }
